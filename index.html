@@ -58,6 +58,8 @@
   .example{margin-bottom:10px;padding:10px 14px;border-radius:12px;background:#fbfbfe;border:1px solid var(--border)}
   .example .en{font-weight:600;font-size:15px}
   .example .cn{color:var(--muted);font-size:13px}
+  .ex-speak{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;border:1px solid var(--primary);background:#fff;color:var(--primary);cursor:pointer;font-size:13px;margin-right:8px;vertical-align:middle;transition:.15s;padding:0;line-height:1}
+  .ex-speak:hover{background:var(--primary);color:#fff}
 
   .nav-btns{display:flex;justify-content:space-between;align-items:center;margin-top:8px}
   .btn{padding:12px 26px;border-radius:26px;border:none;cursor:pointer;font-size:15px;font-weight:600;transition:.2s}
@@ -264,11 +266,71 @@ function toast(msg){
   const t = $("#toast"); t.textContent = msg; t.classList.add("show");
   clearTimeout(t._t); t._t = setTimeout(()=>t.classList.remove("show"),1800);
 }
+let currentAudio = null;
+// 播放单词真人发音（有道接口，免梯子稳定）
+function playWordAudio(word){
+  stopAudio();
+  const url = "https://dict.youdao.com/dictvoice?audio=" + encodeURIComponent(word) + "&type=2";
+  const a = new Audio(url);
+  currentAudio = a;
+  a.play().catch(err=>{
+    // 有道失败则降级为浏览器 TTS
+    speakTTS(word);
+  });
+}
+// 浏览器 TTS 整句朗读（例句优先用）
+function speakTTS(text){
+  try{
+    if(!window.speechSynthesis) { toast("当前浏览器不支持发音"); return; }
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang="en-US"; u.rate=.85;
+    // 尽量选英文语音
+    const voices = speechSynthesis.getVoices();
+    const en = voices.find(v=>/^en(-|_)/i.test(v.lang)) || voices.find(v=>/en/i.test(v.lang));
+    if(en) u.voice = en;
+    speechSynthesis.speak(u);
+  }catch(e){ toast("发音失败，请重试"); }
+}
+// 例句朗读：优先整句 TTS，失败则逐词朗读（有道单词发音）
+function speakSentence(sentence){
+  stopAudio();
+  // 优先浏览器整句 TTS
+  if(window.speechSynthesis){
+    const voices = speechSynthesis.getVoices();
+    const hasEnVoice = voices.some(v=>/en/i.test(v.lang));
+    if(hasEnVoice){ speakTTS(sentence); return; }
+  }
+  // 无英文语音 → 逐词朗读（有道真人发音）
+  speakWords(sentence);
+}
+// 逐词朗读句子（有道接口逐词播放）
+function speakWords(sentence){
+  const words = sentence.replace(/[^\w\s']/g," ").split(/\s+/).filter(w=>w.length>0);
+  let i = 0;
+  function playNext(){
+    if(i>=words.length) return;
+    const w = words[i];
+    const a = new Audio("https://dict.youdao.com/dictvoice?audio=" + encodeURIComponent(w) + "&type=2");
+    currentAudio = a;
+    a.onended = ()=>{ i++; playNext(); };
+    a.onerror = ()=>{ i++; playNext(); };
+    a.play().catch(()=>{ i++; playNext(); });
+  }
+  playNext();
+}
+function stopAudio(){
+  if(currentAudio){ try{ currentAudio.pause(); }catch(e){} currentAudio = null; }
+  if(window.speechSynthesis){ try{ speechSynthesis.cancel(); }catch(e){} }
+}
+// 统一发音入口：单词用真人发音
 function speak(text){
-  if(!window.speechSynthesis) return toast("浏览器不支持发音");
-  speechSynthesis.cancel();
-  const u = new SpeechSynthesisUtterance(text); u.lang="en-US"; u.rate=.9;
-  speechSynthesis.speak(u);
+  playWordAudio(text);
+}
+// 预加载语音列表（浏览器 TTS 需要）
+if(window.speechSynthesis){
+  speechSynthesis.getVoices();
+  speechSynthesis.onvoiceschanged = ()=>speechSynthesis.getVoices();
 }
 
 /* ================= 渲染 ================= */
@@ -337,7 +399,7 @@ function renderLearn(){
         <h3>🧩 词根词缀</h3>
         <div class="root-box"><b>${w.root.text}</b> —— ${w.root.meaning}<br>${w.root.detail}</div>
         <h3>💬 常用例句</h3>
-        ${w.examples.map(e=>`<div class="example"><div class="en">${e.en}</div><div class="cn">${e.cn}</div></div>`).join("")}
+        ${w.examples.map((e,idx)=>`<div class="example"><div class="en"><button class="ex-speak" onclick="speakSentence(\`${e.en.replace(/'/g,"\\'")}\`)" title="听例句">🔊</button>${e.en}</div><div class="cn">${e.cn}</div></div>`).join("")}
       </div>
     </div>
     <div class="nav-btns">

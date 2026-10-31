@@ -71,6 +71,7 @@
   .word-info{max-width:720px;margin:0 auto;width:100%}
   .word-text{font-size:44px;font-weight:800;letter-spacing:.5px}
   .word-text .syl{cursor:pointer;border-radius:4px;padding:0 2px;transition:.15s}
+  .word-text .syl.stress{color:var(--primary2);font-weight:800}
   .word-text .syl.active{background:var(--red);color:#fff}
   .word-phonetic{color:var(--muted);font-size:15px;margin:6px 0 2px}
   .word-cn{font-size:20px;font-weight:600;color:var(--primary);margin-top:8px}
@@ -279,6 +280,8 @@
 <script src="words-data.js"></script>
 <script src="examples_data.js"></script>
 <script src="pics_data.js"></script>
+<script src="syllables_data.js"></script>
+<script src="atlas_pics.js"></script>
 <script>
 /* ================= 单词数据 ================= */
 /* 词库从 words-data.js 的 WORD_DB 加载（7549 词，按级别分组）
@@ -429,15 +432,14 @@ function buildWord(w, cn, lv){
   };
 }
 
-// 音节拆分（英文 VCV/VCCV 规则：每个元音组一个音节核心，辅音按规则归属前后）
+// 音节拆分：VCV/VCCV 规则粗拆 + cmudict 权威音标校准音节数 + 标注重音
 function autoSyllables(w){
   if(!w) return [{text:''}];
+  // 1. VCV/VCCV 粗拆（元音组 + 辅音归属规则）
   const vowels = "aeiouyAEIOUY";
   const n = w.length;
-  // 标记每个字符是否为元音
   const isV = [];
   for(let i=0;i<n;i++) isV.push(vowels.includes(w[i]));
-  // 找出所有元音组（连续元音视为一个音节核心）的 [起始, 结束] 索引
   const vGroups = [];
   let i = 0;
   while(i < n){
@@ -450,27 +452,48 @@ function autoSyllables(w){
       i++;
     }
   }
-  // 0 或 1 个元音组 → 单音节，不拆分
-  if(vGroups.length <= 1) return [{text:w}];
-  // 依据相邻元音组之间的辅音数量切分音节
-  const segs = [];
-  let start = 0;
-  for(let g=0; g<vGroups.length; g++){
-    const ge = vGroups[g][1];               // 当前元音组结束位置
-    if(g === vGroups.length - 1){
-      segs.push(w.slice(start));            // 最后一个音节取到词尾
-    } else {
-      const ns = vGroups[g+1][0];           // 下一元音组起始位置
-      const consCount = ns - ge - 1;        // 两元音组之间的辅音数量
-      let end = ge;                          // 默认辅音归后一音节 (VCV)
-      if(consCount >= 2){                    // VCCV：第一个辅音归前一音节
-        end = ge + 1;
+  let segs;
+  if(vGroups.length <= 1){
+    segs = [w];
+  } else {
+    segs = [];
+    let start = 0;
+    for(let g=0; g<vGroups.length; g++){
+      const ge = vGroups[g][1];
+      if(g === vGroups.length - 1){
+        segs.push(w.slice(start));
+      } else {
+        const ns = vGroups[g+1][0];
+        const consCount = ns - ge - 1;
+        let end = ge;
+        if(consCount >= 2) end = ge + 1;
+        segs.push(w.slice(start, end + 1));
+        start = end + 1;
       }
-      segs.push(w.slice(start, end + 1));
-      start = end + 1;
     }
   }
-  return segs.map(s=>({text:s}));
+  // 2. cmudict 权威校准：音节数 + 主重音位置（覆盖 98.8% 词）
+  const info = (typeof SYLLABLES_DATA !== 'undefined' && SYLLABLES_DATA[w.toLowerCase()]) || null;
+  let stress = -1;
+  if(info){
+    let arr = segs;
+    // 音节数多拆了（如 silent e）→ 合并最短的相邻对
+    while(arr.length > info.n){
+      let bi = 0, bl = Infinity;
+      for(let k=0;k<arr.length-1;k++){ const c = arr[k].length + arr[k+1].length; if(c < bl){ bl = c; bi = k; } }
+      arr[bi] = arr[bi] + arr[bi+1]; arr.splice(bi+1, 1);
+    }
+    // 音节数少拆了 → 拆分最长的音节
+    while(arr.length < info.n){
+      let mi = 0;
+      for(let k=0;k<arr.length;k++) if(arr[k].length > arr[mi].length) mi = k;
+      const s = arr[mi], mid = Math.floor(s.length / 2);
+      arr.splice(mi, 1, s.slice(0, mid), s.slice(mid));
+    }
+    segs = arr;
+    stress = info.s;
+  }
+  return segs.map((text, idx)=>({ text, stress: idx===stress }));
 }
 
 /* ================= 全局状态 ================= */
@@ -914,7 +937,7 @@ function renderLearn(){
   const w = words()[learnIndex];
   $("#learnPage").classList.remove("hidden");
   // 构建带音节高亮的单词显示
-  const wordSpans = w.syllables.map(s=>`<span class="syl">${s.text}</span>`).join("");
+  const wordSpans = w.syllables.map(s=>`<span class="syl${s.stress?' stress':''}">${s.text}</span>`).join("");
   // 例句渲染（高亮目标词）
   const exHtml = w.examples.map(e=>{
     const enHtml = e.en.replace(/<B>(.*?)<\/B>/g, (m,p1)=>`<b>${p1}</b>`);
@@ -1020,7 +1043,15 @@ async function loadImage(w){
     imgEl.innerHTML = imgTag(cached, w.word);
     return;
   }
-  // 2. 有道图解词典优先
+  // 2. Word Atlas 插画优先（开源 CC BY 4.0，覆盖74%含抽象词）
+  const at = (typeof ATLAS_PICS !== 'undefined' && ATLAS_PICS[w.word.toLowerCase()]) || '';
+  if(at){
+    w.imageUrl = at;
+    setCachedImage(w.word, at);
+    imgEl.innerHTML = imgTag(at, w.word);
+    return;
+  }
+  // 3. 有道图解词典兜底（具体名词）
   const yd = (typeof PICS_DATA !== 'undefined' && PICS_DATA[w.word.toLowerCase()]) || '';
   if(yd){
     w.imageUrl = yd;
@@ -1028,7 +1059,7 @@ async function loadImage(w){
     imgEl.innerHTML = imgTag(yd, w.word);
     return;
   }
-  // 3. 有道无图（抽象词）→ AI 生成兜底
+  // 4. 最后 AI 生成兜底（抽象词）
   await genImage(w, imgEl);
 }
 async function genImage(w, imgEl){
@@ -1056,15 +1087,21 @@ async function genImage(w, imgEl){
     // AI 失败（额度用尽等）保留占位，下次进入重试
   }
 }
-// 图片加载失败：清除缓存；有道图失败回退 AI 一次，AI 也失败则显示占位符
+// 图片加载失败：按顺序回退 有道图 → AI，全部失败则显示占位符
 async function onImgFail(el, word){
   try{ localStorage.removeItem(IMG_CACHE_PREFIX + word); }catch(e){}
   const w = words().find(x=>x.word === word);
   if(!w){ el.innerHTML = '<span class="emoji">🖼️</span>'; return; }
-  if(w._aiTried){ el.innerHTML = '<span class="emoji">🖼️</span>'; return; }
+  const lw = word.toLowerCase();
+  const yd = (typeof PICS_DATA !== 'undefined' && PICS_DATA[lw]) || '';
+  const fail = (w._imgFail = (w._imgFail||0) + 1);
   w.imageUrl = '';
-  w._aiTried = true;
-  await genImage(w, el);
+  if(fail === 1 && yd){ // 第一次失败 → 试有道图
+    w.imageUrl = yd; setCachedImage(word, yd); el.innerHTML = imgTag(yd, word); return;
+  }
+  if(fail <= 2 && !w._aiTried){ // 第二次失败 → 试 AI 生成
+    w._aiTried = true; await genImage(w, el);
+  }
   if(!w.imageUrl){ el.innerHTML = '<span class="emoji">🖼️</span>'; }
 }
 function nextWord(){ if(learnIndex<words().length-1){ learnIndex++; renderLearn(); updateProgress(); } else { goStep(1); } }

@@ -7,7 +7,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { word, cn } = req.body || {};
+  const { word, cn, sentence } = req.body || {};
   if (!word) {
     return res.status(400).json({ error: '缺少单词参数 word' });
   }
@@ -17,8 +17,8 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: '服务端未配置 API key' });
   }
 
-  // 构造图片提示词：卡通插画风格，契合背单词场景
-  const prompt = `A clean, cute cartoon illustration for the English word "${word}"${cn ? ` (meaning: ${cn})` : ''}, simple flat design, soft colors, clear and recognizable subject, vocabulary learning style, no text, no watermark`;
+  // 构造图片提示词：优先用最长例句的语境（画例句场景），否则只用词义
+  const prompt = `A clean, cute cartoon illustration for the English word "${word}"${cn ? ` (meaning: ${cn})` : ''}${sentence ? `, illustrating this context: "${sentence}"` : ''}, simple flat design, soft colors, clear and recognizable subject, vocabulary learning style, no text, no watermark`;
 
   try {
     const upstream = await fetch('https://apihub.agnes-ai.com/v1/images/generations', {

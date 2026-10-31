@@ -527,7 +527,7 @@ function playWordAudio(word, onEnd){
   const a = new Audio("https://dict.youdao.com/dictvoice?audio="+encodeURIComponent(word)+"&type=2");
   currentAudio = a;
   a.play().then(()=>{}).catch(()=>{
-    speakTTS(word, onEnd);
+    playTTS(word, onEnd);
   });
   if(onEnd) a.onended = onEnd;
 }
@@ -544,15 +544,19 @@ function speakTTS(text, onEnd){
     speechSynthesis.speak(u);
   }catch(e){ toast("发音失败"); }
 }
-// 例句整句朗读：走后端 edge-tts（微软神经网络 TTS）生成自然整句音频
-// 解决浏览器原生 speechSynthesis 无声音 / 逐词读（像念单词）的问题
+// 通用：用 edge-tts 播放文本（整句/音节/单词兜底统一走 /api/tts，微软神经网络音色）
+function playTTS(text, onEnd){
+  const a = new Audio("/api/tts?text=" + encodeURIComponent(text) + "&lang=en-US");
+  currentAudio = a;
+  if(onEnd) a.onended = onEnd;
+  a.onerror = ()=>{ if(onEnd) onEnd(); };
+  a.play().catch(()=>{ if(onEnd) onEnd(); });
+}
+// 例句整句朗读（edge-tts 自然整句，不再是逐词读）
 function speakSentence(sentence){
   stopAudio();
   const plain = sentence.replace(/<[^>]+>/g,"");
-  const a = new Audio("/api/tts?text=" + encodeURIComponent(plain) + "&lang=en-US");
-  currentAudio = a;
-  a.onerror = ()=>{ toast("例句朗读失败，请稍后重试"); };
-  a.play().catch(()=>{ toast("例句朗读失败，请稍后重试"); });
+  playTTS(plain);
 }
 function speakWords(sentence){
   const wordsArr = sentence.replace(/[^\w\s']/g," ").split(/\s+/).filter(w=>w.length>0);
@@ -587,10 +591,10 @@ function playSyllables(wordData){
     // 高亮当前段
     sylEls.forEach((el,i)=>{ el.classList.toggle("active", i===idx); });
     const seg = syls[idx].text;
-    // 用 TTS 读片段（有道只能读完整单词，片段用 TTS）
-    speakTTS(seg, ()=>{
+    // 音节片段用 edge-tts 朗读（不再用 speechSynthesis，避免无英文语音包导致没声音）
+    playTTS(seg, ()=>{
       idx++;
-      setTimeout(playSeg, 350);
+      setTimeout(playSeg, 300);
     });
   }
   function readWhole(count){
@@ -603,8 +607,8 @@ function playSyllables(wordData){
     const a = new Audio("https://dict.youdao.com/dictvoice?audio="+encodeURIComponent(word)+"&type=2");
     currentAudio = a;
     a.onended = ()=>readWhole(count+1);
-    a.onerror = ()=>{ speakTTS(word, ()=>readWhole(count+1)); };
-    a.play().catch(()=>{ speakTTS(word, ()=>readWhole(count+1)); });
+    a.onerror = ()=>{ playTTS(word, ()=>readWhole(count+1)); };
+    a.play().catch(()=>{ playTTS(word, ()=>readWhole(count+1)); });
   }
   playSeg();
 }
@@ -776,10 +780,17 @@ async function loadImage(w){
 }
 async function genImage(w, imgEl){
   try{
+    // 取该词最长的一条例句作为生图语境（让 AI 按例句场景画，更贴词义）
+    let sentence = '';
+    if(w.examples && w.examples.length){
+      const arr = w.examples.map(e=>e.en.replace(/<[^>]+>/g,'').trim());
+      arr.sort((a,b)=>b.length-a.length);
+      sentence = arr[0] || '';
+    }
     const resp = await fetch('/api/generate-image', {
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ word: w.word, cn: w._cn || w.cn })
+      body: JSON.stringify({ word: w.word, cn: w._cn || w.cn, sentence })
     });
     if(!resp.ok) throw new Error('http '+resp.status);
     const data = await resp.json();

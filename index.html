@@ -85,6 +85,22 @@
   .chip .cn{color:#8a90a3;font-size:12px}
   .root-box{background:#f8f9fd;border-radius:12px;padding:12px 14px;margin-bottom:14px;font-size:14px;border-left:3px solid var(--primary2)}
   .root-box b{color:var(--primary2)}
+  /* 思维导图：词根词缀中心 + 同源词发散 */
+  .mindmap{background:linear-gradient(135deg,#f5f7ff,#fdf3ff);border-radius:18px;padding:18px;margin-bottom:16px;position:relative;overflow:hidden}
+  .mindmap::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 50% 28%,rgba(99,102,241,.10),transparent 62%);pointer-events:none}
+  .mm-center{position:relative;display:flex;flex-direction:column;align-items:center;margin-bottom:16px;text-align:center}
+  .mm-center::after{content:"";width:2px;height:14px;background:linear-gradient(var(--primary),transparent);margin-top:2px}
+  .mm-afix{display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,var(--primary),var(--primary2));color:#fff;padding:10px 22px;border-radius:999px;font-weight:800;font-size:18px;box-shadow:0 6px 16px rgba(79,110,247,.35);margin-bottom:8px}
+  .mm-tag{background:rgba(255,255,255,.22);font-size:11px;font-weight:600;padding:2px 8px;border-radius:8px}
+  .mm-mean{font-size:13px;font-weight:500;opacity:.92}
+  .mm-core{font-size:15px;color:var(--text);font-weight:700}
+  .mm-core-cn{color:var(--muted);margin-left:6px;font-size:13px;font-weight:500}
+  .mm-nodes{position:relative;display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+  .mm-node{background:#fff;border-radius:14px;padding:10px 14px;text-align:center;border:2px solid;box-shadow:0 3px 10px rgba(0,0,0,.06);transition:.18s;min-width:72px}
+  .mm-node:hover{transform:translateY(-4px);box-shadow:0 8px 18px rgba(0,0,0,.12)}
+  .mm-en{font-weight:800;font-size:15px;letter-spacing:.3px}
+  .mm-cn{font-size:12px;color:#8a90a3;margin-top:2px}
+  .mm-empty{width:100%;text-align:center;color:var(--muted);font-size:13px;padding:8px}
   .example{margin-bottom:10px;padding:10px 14px;border-radius:12px;background:#fbfbfe;border:1px solid var(--border)}
   .example .en{font-weight:600;font-size:15px}
   .example .en b{color:var(--primary)}
@@ -240,6 +256,86 @@ const EXAMPLE_TEMPLATES = [
   { en:"The word \"__W__\" is very common in English.", cn:"__W__ 这个词在英语中很常见。" }
 ];
 
+// ===== 词根词缀词典（前缀/后缀/词根，用于同源词联想） =====
+const AFFIXES = [
+  // 前缀
+  { type:"prefix", key:"re",     text:"re-",     meaning:"再次、重新、回" },
+  { type:"prefix", key:"pre",    text:"pre-",    meaning:"在前、预先" },
+  { type:"prefix", key:"un",     text:"un-",     meaning:"不、无" },
+  { type:"prefix", key:"dis",    text:"dis-",    meaning:"否定、分离" },
+  { type:"prefix", key:"inter",  text:"inter-",  meaning:"之间、相互" },
+  { type:"prefix", key:"mis",    text:"mis-",    meaning:"错误、坏" },
+  { type:"prefix", key:"sub",    text:"sub-",    meaning:"在下、次" },
+  { type:"prefix", key:"super",  text:"super-",  meaning:"超、上" },
+  { type:"prefix", key:"trans",  text:"trans-",  meaning:"跨越、转移" },
+  { type:"prefix", key:"ex",     text:"ex-",     meaning:"向外、前任" },
+  { type:"prefix", key:"pro",    text:"pro-",    meaning:"向前、支持" },
+  { type:"prefix", key:"over",   text:"over-",   meaning:"过度" },
+  { type:"prefix", key:"under",  text:"under-",  meaning:"不足、在下" },
+  { type:"prefix", key:"multi",  text:"multi-",  meaning:"多" },
+  { type:"prefix", key:"anti",   text:"anti-",   meaning:"反对" },
+  { type:"prefix", key:"micro",  text:"micro-",  meaning:"微" },
+  // 后缀
+  { type:"suffix", key:"tion",   text:"-tion",   meaning:"名词（行为、状态）" },
+  { type:"suffix", key:"ment",   text:"-ment",   meaning:"名词（结果、状态）" },
+  { type:"suffix", key:"ness",   text:"-ness",   meaning:"名词（性质、状态）" },
+  { type:"suffix", key:"ful",    text:"-ful",    meaning:"充满…的" },
+  { type:"suffix", key:"less",   text:"-less",   meaning:"无…的" },
+  { type:"suffix", key:"able",   text:"-able",   meaning:"能…的" },
+  { type:"suffix", key:"ly",     text:"-ly",     meaning:"副词（…地）" },
+  { type:"suffix", key:"er",     text:"-er",     meaning:"做…的人/物" },
+  { type:"suffix", key:"ist",    text:"-ist",    meaning:"从事…的人" },
+  { type:"suffix", key:"ism",    text:"-ism",    meaning:"主义、学说" },
+  { type:"suffix", key:"ity",    text:"-ity",    meaning:"性质、状态" },
+  { type:"suffix", key:"ous",    text:"-ous",    meaning:"形容词（…的）" },
+  { type:"suffix", key:"ive",    text:"-ive",    meaning:"形容词（…的）" },
+  { type:"suffix", key:"al",     text:"-al",     meaning:"形容词（…的）" },
+  { type:"suffix", key:"ic",     text:"-ic",     meaning:"形容词（…的）" },
+  { type:"suffix", key:"ship",   text:"-ship",   meaning:"关系、身份" },
+  { type:"suffix", key:"ize",    text:"-ize",    meaning:"动词（使…）" },
+  // 词根
+  { type:"root",   key:"spect",  text:"spect",   meaning:"看" },
+  { type:"root",   key:"dict",   text:"dict",    meaning:"说" },
+  { type:"root",   key:"port",   text:"port",    meaning:"携带" },
+  { type:"root",   key:"duct",   text:"duct",    meaning:"引导" },
+  { type:"root",   key:"tract",  text:"tract",   meaning:"拉" },
+  { type:"root",   key:"scrib",  text:"scrib",   meaning:"写" },
+  { type:"root",   key:"graph",  text:"graph",   meaning:"写、画" },
+  { type:"root",   key:"phon",   text:"phon",    meaning:"声音" },
+  { type:"root",   key:"photo",  text:"photo",   meaning:"光" },
+  { type:"root",   key:"tele",   text:"tele",    meaning:"远" },
+  { type:"root",   key:"struct", text:"struct",  meaning:"建造" },
+  { type:"root",   key:"cred",   text:"cred",    meaning:"相信" },
+  { type:"root",   key:"auto",   text:"auto",    meaning:"自己" },
+  { type:"root",   key:"bio",    text:"bio",     meaning:"生命" },
+  { type:"root",   key:"geo",    text:"geo",     meaning:"地" },
+];
+
+// 匹配单词的词根词缀（优先词根 > 前缀 > 后缀）
+function matchAffixes(w){
+  const lower = w.toLowerCase();
+  // 词根：按长度降序匹配（长词根优先，减少误匹配）
+  const roots = AFFIXES.filter(a=>a.type==="root").sort((a,b)=>b.key.length-a.key.length);
+  for(const a of roots){
+    if(lower.includes(a.key) && lower.length - a.key.length >= 2){
+      return a;
+    }
+  }
+  for(const a of AFFIXES){
+    if(a.type !== "prefix") continue;
+    if(lower.startsWith(a.key) && lower.length - a.key.length >= 3){
+      return a;
+    }
+  }
+  for(const a of AFFIXES){
+    if(a.type !== "suffix") continue;
+    if(lower.endsWith(a.key) && lower.length - a.key.length >= 3){
+      return a;
+    }
+  }
+  return null;
+}
+
 // 从 WORD_DB 构建 GROUPS（兼容原有渲染逻辑）
 const GROUPS = LEVELS.map(lv => ({
   name: lv + "词汇",
@@ -248,24 +344,41 @@ const GROUPS = LEVELS.map(lv => ({
   words: (WORD_DB[lv] || []).map(([w, cn]) => buildWord(w, cn, lv))
 }));
 
+// 构建同源词索引：词根词缀 key -> 包含该词缀的单词列表
+const AFFIX_INDEX = {};
+GROUPS.forEach(g => g.words.forEach(w => {
+  if(w._affixKey){
+    (AFFIX_INDEX[w._affixKey] = AFFIX_INDEX[w._affixKey] || []).push(w);
+  }
+}));
+// 为每个单词填充同源词
+GROUPS.forEach(g => g.words.forEach(w => {
+  if(w._affixKey){
+    const same = (AFFIX_INDEX[w._affixKey] || []).filter(x => x.word !== w.word);
+    w.related = same.slice(0, 6).map(x => x.word + " " + x.cn);
+  }
+}));
+
 // 构建一个单词对象（动态补齐字段）
 function buildWord(w, cn, lv){
   let cachedImg = "";
   try{ cachedImg = localStorage.getItem('wordimg_' + w) || ""; }catch(e){}
+  const affix = matchAffixes(w);
   return {
     word: w,
     cn: cn,
     level: lv,
     ukPhonetic: "", usPhonetic: "",   // 音标运行时通过有道查询
     syllables: autoSyllables(w),       // 音节自动拆分
-    related: [],                        // 同源词运行时生成
-    root: null,                         // 词根词缀运行时生成
+    related: [],                        // 同源词（AFFIX_INDEX 构建后填充）
+    root: affix ? { text: affix.text, meaning: affix.meaning, type: affix.type, key: affix.key } : null,
     examples: EXAMPLE_TEMPLATES.map(t=>({
       en: t.en.replace(/__W__/g, `<B>${w}</B>`),
       cn: t.cn.replace(/__W__/g, w)
     })),
     imageUrl: cachedImg,                // 优先从本地缓存读取（已生成的单词直接复用，节省额度）
-    _cn: cn
+    _cn: cn,
+    _affixKey: affix ? affix.key : null // 用于同源词索引
   };
 }
 
@@ -552,13 +665,21 @@ function renderLearn(){
     const plainEn = e.en.replace(/<[^>]+>/g,"");
     return `<div class="example"><div class="en"><button class="ex-speak" onclick="speakSentence(\`${plainEn.replace(/'/g,"\\'")}\`)" title="听例句">🔊</button>${enHtml}</div><div class="cn">${e.cn}</div></div>`;
   }).join("");
-  // 相关词/词根：动态词库为空时隐藏
-  const relatedHtml = (w.related && w.related.length) ? `
-    <h3>📎 相关词汇（同源词）</h3>
-    <div class="chips">${w.related.map(r=>{const parts=r.split(" "); const en=parts[0]; const cn=parts.slice(1).join(" "); return `<span class="chip">${en} <span class="cn">${cn}</span></span>`;}).join("")}</div>` : "";
-  const rootHtml = w.root ? `
-    <h3>🧩 词根词缀</h3>
-    <div class="root-box"><b>${w.root.text}</b> —— ${w.root.meaning}<br>${w.root.detail}</div>` : "";
+  // 词根词缀 + 同源词 整合为思维导图发散展示
+  const MM_COLORS = ["#6366f1","#8b5cf6","#ec4899","#f59e0b","#10b981","#06b6d4","#f43f5e","#84cc16"];
+  const affixLabel = w.root ? (w.root.type==='prefix'?'前缀':w.root.type==='suffix'?'后缀':'词根') : '';
+  const mindmapHtml = (w.root || (w.related && w.related.length)) ? `
+    <h3>🧠 词汇发散 · 同源联想</h3>
+    <div class="mindmap">
+      <div class="mm-center">
+        ${w.root ? `<div class="mm-afix"><span class="mm-tag">${affixLabel}</span>${w.root.text}<span class="mm-mean">${w.root.meaning}</span></div>` : ''}
+        <div class="mm-core">${w.word}<span class="mm-core-cn">${w.cn.split(/[，；,;]/)[0]}</span></div>
+      </div>
+      <div class="mm-nodes">
+        ${(w.related||[]).map((r,i)=>{const parts=r.split(" "); const en=parts[0]; const cn=parts.slice(1).join(" "); const c=MM_COLORS[i%MM_COLORS.length]; return `<div class="mm-node" style="border-color:${c}"><div class="mm-en" style="color:${c}">${en}</div><div class="mm-cn">${cn}</div></div>`;}).join("")}
+        ${!(w.related&&w.related.length) ? `<div class="mm-empty">该词暂无同源词</div>` : ''}
+      </div>
+    </div>` : "";
   // 图片：有则显示，无则占位（异步加载）
   const imgHtml = w.imageUrl
     ? `<img src="${w.imageUrl}" alt="${w.word}" onerror="this.parentElement.innerHTML='<span class=&quot;emoji&quot;>🖼️</span>'">`
@@ -576,8 +697,7 @@ function renderLearn(){
         </div>
       </div>
       <div class="word-info">
-        ${relatedHtml}
-        ${rootHtml}
+        ${mindmapHtml}
         <h3>💬 常用例句</h3>
         ${exHtml}
       </div>

@@ -1271,7 +1271,10 @@ async function loadImage(w){
     imgEl.innerHTML = imgTag(yd, w.word);
     return;
   }
-  // 3. Word Atlas 插画兜底（抽象词用具体场景插画表达，开源 CC BY 4.0）
+  // 3. AI 写实照片（有道无图时优先 AI，真实感；抽象词也能有写实场景图）
+  await genImage(w, imgEl);
+  if(w.imageUrl){ return; }
+  // 4. Word Atlas 插画最后兜底（AI 失败/额度耗尽时用场景插画）
   const at = (typeof ATLAS_PICS !== 'undefined' && ATLAS_PICS[w.word.toLowerCase()]) || '';
   if(at){
     w.imageUrl = at;
@@ -1279,8 +1282,6 @@ async function loadImage(w){
     imgEl.innerHTML = imgTag(at, w.word);
     return;
   }
-  // 4. 最后 AI 生成兜底（写实照片风格）
-  await genImage(w, imgEl);
 }
 async function genImage(w, imgEl){
   try{
@@ -1307,7 +1308,7 @@ async function genImage(w, imgEl){
     // AI 失败（额度用尽等）保留占位，下次进入重试
   }
 }
-// 图片加载失败：按顺序回退 有道图 → Word Atlas 插画 → AI，全部失败则显示占位符
+// 图片加载失败：按顺序回退 有道图 → AI 写实 → Word Atlas 插画，全部失败则显示占位符
 async function onImgFail(el, word){
   try{ localStorage.removeItem(IMG_CACHE_PREFIX + word); }catch(e){}
   const w = words().find(x=>x.word === word);
@@ -1320,11 +1321,12 @@ async function onImgFail(el, word){
   if(fail === 1 && yd){ // 第一次失败 → 试有道真实照片
     w.imageUrl = yd; setCachedImage(word, yd); el.innerHTML = imgTag(yd, word); return;
   }
-  if(fail === 2 && at){ // 第二次失败 → 试 Word Atlas 插画
-    w.imageUrl = at; setCachedImage(word, at); el.innerHTML = imgTag(at, word); return;
-  }
-  if(fail <= 3 && !w._aiTried){ // 第三次失败 → 试 AI 生成
+  if(fail <= 2 && !w._aiTried){ // 第二次失败 → 试 AI 写实照片
     w._aiTried = true; await genImage(w, el);
+    if(w.imageUrl) return;
+  }
+  if(fail <= 3 && at){ // AI 失败 → Word Atlas 插画兜底
+    w.imageUrl = at; setCachedImage(word, at); el.innerHTML = imgTag(at, word); return;
   }
   if(!w.imageUrl){ el.innerHTML = '<span class="emoji">🖼️</span>'; }
 }

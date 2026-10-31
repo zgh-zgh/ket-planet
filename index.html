@@ -186,6 +186,33 @@
   .toast{position:fixed;top:24px;left:50%;transform:translateX(-50%);background:#1f2430;color:#fff;padding:12px 22px;border-radius:26px;font-size:14px;opacity:0;transition:.3s;z-index:99;pointer-events:none}
   .toast.show{opacity:1}
 
+  /* ===== 复习巩固模块样式 ===== */
+  .empty-state{text-align:center;padding:48px 20px}
+  .empty-emoji{font-size:52px;margin-bottom:14px}
+  .empty-title{font-size:18px;font-weight:600;color:#333;margin-bottom:6px}
+  .empty-desc{color:#999;font-size:14px}
+  .review-card{background:#f8f9fd;border-radius:16px;padding:34px 20px;text-align:center;margin:20px 0}
+  .rc-word{font-size:42px;font-weight:700;margin-bottom:8px;letter-spacing:.5px}
+  .rc-hint{color:#aaa;font-size:13px;margin-bottom:16px}
+  .rc-cn{font-size:22px;color:var(--primary2);font-weight:600;margin:12px 0}
+  .review-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:18px}
+  .btn-ghost{background:#f0f1f5;color:#444}
+  .btn-mini{padding:5px 12px;font-size:13px;border-radius:8px}
+  .wrong-list,.deck-list{display:flex;flex-direction:column;gap:10px;margin-top:16px}
+  .wrong-item,.deck-item{display:flex;align-items:center;gap:12px;background:#f8f9fd;border-radius:12px;padding:12px 16px}
+  .deck-item{cursor:pointer;border:1px solid transparent}
+  .deck-item.active{border-color:var(--primary2);background:#f0f1ff}
+  .wi-word{font-weight:600;font-size:17px}
+  .wi-cn{color:#999;font-size:13px;margin-left:8px}
+  .wi-count{color:var(--red);font-size:12px;margin-left:auto;white-space:nowrap}
+  .wi-actions{display:flex;gap:6px}
+  .di-name{font-weight:600}
+  .di-count{color:#999;font-size:13px;margin-left:auto}
+  .deck-create{margin-top:18px;text-align:center}
+  #deckName,#deckWords{width:100%;box-sizing:border-box;padding:10px 12px;border:1px solid var(--border);border-radius:10px;font-size:14px;margin-bottom:10px;font-family:inherit}
+  #deckWords{resize:vertical}
+  .btn-danger{background:var(--red);color:#fff}
+
   @media(max-width:720px){
     .learn-grid,.match-grid,.options{grid-template-columns:1fr}
     .word-text{font-size:32px}
@@ -219,6 +246,12 @@
     </div>
     <div class="menu-label">研习流程</div>
     <div class="menu-group" id="steps"></div>
+    <div class="menu-label">复习巩固</div>
+    <div class="menu-group" id="reviewMenu">
+      <div class="menu-item" id="miReview" onclick="openMode('review')"><span class="mi-icon">📅</span><span>今日复习</span><span class="mi-num" id="dueBadge"></span></div>
+      <div class="menu-item" id="miWrongbook" onclick="openMode('wrongbook')"><span class="mi-icon">📕</span><span>错题本</span><span class="mi-num" id="wrongBadge"></span></div>
+      <div class="menu-item" id="miDecks" onclick="openMode('decks')"><span class="mi-icon">📚</span><span>我的词库</span></div>
+    </div>
     <div class="sidebar-foot">墨词 Lexi · 词汇训练系统</div>
   </aside>
   <main class="main">
@@ -236,6 +269,9 @@
     <section id="transPage" class="card hidden"></section>
     <section id="passagePage" class="card hidden"></section>
     <section id="resultPage" class="card hidden"></section>
+    <section id="reviewPage" class="card hidden"></section>
+    <section id="wrongbookPage" class="card hidden"></section>
+    <section id="decksPage" class="card hidden"></section>
   </main>
 </div>
 <div class="toast" id="toast"></div>
@@ -443,15 +479,17 @@ let currentStep = 0; // 0学习 1连线 2词义选择 3选词填空 4拼写 5连
 let learnIndex = 0;
 let BATCH_SIZE = 15; // 每批学习的单词数
 let currentBatch = []; // 当前批次的学习词（从当前级别随机抽取）
+let activeCustomWords = null; // 激活的自定义词库词对象数组（null=内置词库）
 
 // 获取当前批次的学习词（不是全部词库）
 const words = () => {
   if(currentBatch.length > 0) return currentBatch;
+  if(activeCustomWords) return activeCustomWords.slice(0, BATCH_SIZE);
   return GROUPS[currentGroup].words.slice(0, BATCH_SIZE);
 };
 // 重新抽一批词
 function newBatch(){
-  const pool = GROUPS[currentGroup].words;
+  const pool = activeCustomWords || GROUPS[currentGroup].words;
   const n = Math.min(BATCH_SIZE, pool.length);
   currentBatch = shuffle(pool).slice(0, n);
   learnIndex = 0;
@@ -644,9 +682,16 @@ function switchGroup(i){
   renderAll();
 }
 function renderAll(){
-  renderTabs(); renderSteps(); updateProgress();
-  ["learnPage","matchPage","choicePage","fillPage","spellPage","sentencePage","transPage","passagePage","resultPage"].forEach(id=>$("#"+id).classList.add("hidden"));
+  renderTabs(); renderSteps(); updateProgress(); updateBadges();
+  ["learnPage","matchPage","choicePage","fillPage","spellPage","sentencePage","transPage","passagePage","resultPage","reviewPage","wrongbookPage","decksPage"].forEach(id=>$("#"+id).classList.add("hidden"));
+  // 复习巩固菜单高亮
+  const miMap = { review:'miReview', wrongbook:'miWrongbook', decks:'miDecks' };
+  ["miReview","miWrongbook","miDecks"].forEach(id=>{ const el=$("#"+id); if(el) el.classList.remove("active"); });
+  if(miMap[appMode]){ const el=$("#"+miMap[appMode]); if(el) el.classList.add("active"); }
   stopAudio();
+  if(appMode==='review'){ renderReview(); window.scrollTo({top:0}); return; }
+  if(appMode==='wrongbook'){ renderWrongbook(); window.scrollTo({top:0}); return; }
+  if(appMode==='decks'){ renderDecks(); window.scrollTo({top:0}); return; }
   if(currentStep===0) renderLearn();
   else if(currentStep===1) renderMatch();
   else if(currentStep===2) renderChoice();
@@ -657,6 +702,211 @@ function renderAll(){
   else if(currentStep===7) renderPassage();
   else renderResult();
   window.scrollTo({top:0,behavior:"smooth"});
+}
+
+/* ================= 复习巩固：错题本 + 艾宾浩斯 + 自定义词库 ================= */
+const LS = { wrongbook:'lx_wrongbook', studylog:'lx_studylog', decks:'lx_decks', activeDeck:'lx_active_deck' };
+const EBB_INTERVALS = [1, 2, 4, 7, 15, 30]; // 艾宾浩斯遗忘曲线间隔（天）
+const DAY = 86400000;
+
+function loadStore(key, def){ try{ const v = localStorage.getItem(key); return v ? JSON.parse(v) : def; }catch(e){ return def; } }
+function saveStore(key, val){ try{ localStorage.setItem(key, JSON.stringify(val)); }catch(e){} }
+
+/* ---- 错题本 ---- */
+function loadWrongbook(){ return loadStore(LS.wrongbook, {}); }
+function addWrong(word, cn){
+  const wb = loadWrongbook();
+  if(wb[word]){ wb[word].count = (wb[word].count||1)+1; wb[word].ts = Date.now(); }
+  else wb[word] = { cn: cn||'', count:1, ts: Date.now() };
+  saveStore(LS.wrongbook, wb);
+  updateBadges();
+}
+function markWrong(word, cn){
+  if(loadWrongbook()[word]){ toast("该词已在错题本中"); return; }
+  addWrong(word, cn);
+  toast("📌 已加入错题本");
+}
+function removeWrong(word){ const wb = loadWrongbook(); delete wb[word]; saveStore(LS.wrongbook, wb); updateBadges(); if(appMode==='wrongbook') renderWrongbook(); }
+function getWrongWords(){ return Object.entries(loadWrongbook()).sort((a,b)=>b[1].ts-a[1].ts); }
+
+/* ---- 艾宾浩斯学习记录 ---- */
+function loadStudylog(){ return loadStore(LS.studylog, {}); }
+function markLearned(word, level){
+  const log = loadStudylog();
+  if(!log[word]){ log[word] = { level, stage:0, nextDue: Date.now()+EBB_INTERVALS[0]*DAY }; }
+  saveStore(LS.studylog, log);
+  updateBadges();
+}
+function getDueReviews(){
+  const log = loadStudylog();
+  const now = Date.now();
+  return Object.entries(log).filter(([,r])=>r.nextDue && r.nextDue<=now)
+    .map(([w,r])=>({ word:w, cn:findCn(w), stage:r.stage||0, nextDue:r.nextDue }))
+    .sort((a,b)=>a.nextDue-b.nextDue);
+}
+function reviewResult(word, result){
+  const log = loadStudylog();
+  const r = log[word];
+  if(!r) return;
+  if(result==='know') r.stage = Math.min((r.stage||0)+1, EBB_INTERVALS.length-1);
+  else if(result==='fuzzy') r.stage = Math.max((r.stage||0)-1, 0);
+  else r.stage = 0;
+  r.nextDue = Date.now() + EBB_INTERVALS[r.stage]*DAY;
+  saveStore(LS.studylog, log);
+}
+
+/* ---- 自定义词库 ---- */
+function loadDecks(){ return loadStore(LS.decks, []); }
+function getActiveDeckId(){ return loadStore(LS.activeDeck, null); }
+function setActiveDeckId(id){ saveStore(LS.activeDeck, id); }
+function findCn(word){
+  const lw = word.toLowerCase();
+  for(const lv of Object.keys(WORD_DB)){ const hit=(WORD_DB[lv]||[]).find(x=>x[0].toLowerCase()===lw); if(hit) return hit[1]; }
+  for(const d of loadDecks()){ const hit=(d.words||[]).find(x=>x[0].toLowerCase()===lw); if(hit) return hit[1]; }
+  return '';
+}
+
+/* ---- 模式切换与徽标 ---- */
+let appMode = 'learn'; // learn | review | wrongbook | decks
+function openMode(mode){ appMode = mode; currentStep = 0; stopAudio(); renderAll(); }
+function updateBadges(){
+  const due = getDueReviews().length;
+  const wrong = Object.keys(loadWrongbook()).length;
+  const db = $("#dueBadge"), wb = $("#wrongBadge");
+  if(db) db.textContent = due>0 ? due : '';
+  if(wb) wb.textContent = wrong>0 ? wrong : '';
+}
+
+/* ---- 今日复习页 ---- */
+let reviewQueue = [], reviewIdx = 0;
+function renderReview(){
+  reviewQueue = getDueReviews();
+  reviewIdx = 0;
+  $("#reviewPage").classList.remove("hidden");
+  if(reviewQueue.length===0){
+    $("#reviewPage").innerHTML = `<h2 class="page-title">📅 今日复习</h2><p class="page-sub">基于艾宾浩斯遗忘曲线，科学安排重复记忆</p><div class="empty-state"><div class="empty-emoji">🎉</div><div class="empty-title">今日暂无复习任务</div><div class="empty-desc">完成学习后，单词会在遗忘临界点自动出现在这里</div></div>`;
+    return;
+  }
+  renderReviewCard();
+}
+function renderReviewCard(){
+  const it = reviewQueue[reviewIdx];
+  $("#reviewPage").classList.remove("hidden");
+  $("#reviewPage").innerHTML = `<h2 class="page-title">📅 今日复习</h2><p class="page-sub">第 ${reviewIdx+1} / ${reviewQueue.length} 个 · 先回想，再核对</p>
+    <div class="review-card">
+      <div class="rc-word">${it.word}</div>
+      <div class="rc-hint">回想这个单词的意思，然后点「显示答案」</div>
+      <div class="rc-answer hidden" id="rcAnswer">
+        <div class="rc-cn">${it.cn||'（暂无释义）'}</div>
+        <button class="btn btn-ghost" onclick="playWordAudio('${it.word}')">🔊 听发音</button>
+      </div>
+    </div>
+    <div class="review-actions">
+      <button class="btn btn-mini btn-ghost" onclick="showReviewAnswer()">👁 显示答案</button>
+      <button class="btn btn-mini btn-danger" onclick="reviewAnswer('forget')">😵 忘记</button>
+      <button class="btn btn-mini btn-ghost" onclick="reviewAnswer('fuzzy')">🤔 模糊</button>
+      <button class="btn btn-mini btn-primary" onclick="reviewAnswer('know')">😊 认识</button>
+    </div>`;
+}
+function showReviewAnswer(){ const el=$("#rcAnswer"); if(el) el.classList.remove("hidden"); }
+function reviewAnswer(result){
+  const it = reviewQueue[reviewIdx];
+  reviewResult(it.word, result);
+  reviewIdx++;
+  if(reviewIdx >= reviewQueue.length){ updateBadges(); toast("🎉 今日复习完成！"); renderReview(); }
+  else renderReviewCard();
+}
+
+/* ---- 错题本页 ---- */
+function renderWrongbook(){
+  const wrongs = getWrongWords();
+  $("#wrongbookPage").classList.remove("hidden");
+  if(wrongs.length===0){
+    $("#wrongbookPage").innerHTML = `<h2 class="page-title">📕 错题本</h2><p class="page-sub">做错的单词自动收录，也可手动标记</p><div class="empty-state"><div class="empty-emoji">✨</div><div class="empty-title">错题本是空的</div><div class="empty-desc">做题答错的单词会自动出现在这里</div></div>`;
+    return;
+  }
+  $("#wrongbookPage").innerHTML = `<h2 class="page-title">📕 错题本</h2><p class="page-sub">共 ${wrongs.length} 个易错词</p>
+    <div class="wrong-list">${wrongs.map(([w,info])=>`<div class="wrong-item"><div class="wi-word">${w}<span class="wi-cn">${info.cn||''}</span></div><div class="wi-count">错 ${info.count||1} 次</div><div class="wi-actions"><button class="btn btn-mini btn-ghost" onclick="playWordAudio('${w}')">🔊</button><button class="btn btn-mini btn-danger" onclick="removeWrong('${w}')">移除</button></div></div>`).join("")}</div>
+    <div style="text-align:center;margin-top:20px"><button class="btn btn-primary" onclick="startWrongReview()">🔁 开始专项复习 →</button></div>`;
+}
+function startWrongReview(){
+  const wrongs = getWrongWords();
+  if(wrongs.length===0){ toast("错题本是空的"); return; }
+  currentBatch = wrongs.map(([w,info])=>buildWord(w, info.cn||'', '错题本'));
+  learnIndex = 0;
+  appMode = 'learn';
+  currentStep = 0;
+  renderAll();
+  toast(`已载入 ${currentBatch.length} 个错词，开始专项复习`);
+}
+
+/* ---- 我的词库页 ---- */
+function renderDecks(){
+  const decks = loadDecks();
+  const activeId = getActiveDeckId();
+  const builtinCount = Object.keys(WORD_DB).reduce((a,k)=>a+WORD_DB[k].length,0);
+  $("#decksPage").classList.remove("hidden");
+  $("#decksPage").innerHTML = `<h2 class="page-title">📚 我的词库</h2><p class="page-sub">内置词库 + 自主导入，多套独立管理</p>
+    <div class="deck-list">
+      <div class="deck-item ${activeId===null?'active':''}" onclick="activateDeck(null)"><div class="di-name">🌱 内置词库（初中/高中）</div><div class="di-count">${builtinCount} 词</div></div>
+      ${decks.map(d=>`<div class="deck-item ${activeId===d.id?'active':''}" onclick="activateDeck('${d.id}')"><div class="di-name">📖 ${d.name}</div><div class="di-count">${(d.words||[]).length} 词</div><div class="wi-actions"><button class="btn btn-mini btn-danger" onclick="event.stopPropagation();deleteDeck('${d.id}')">删除</button></div></div>`).join("")}
+    </div>
+    <div class="deck-create"><button class="btn btn-primary" onclick="showDeckCreate()">＋ 新建词库</button></div>
+    <div id="deckCreateBox" class="hidden" style="margin-top:16px">
+      <input type="text" id="deckName" placeholder="词库名称，如：A 学生词库">
+      <textarea id="deckWords" rows="6" placeholder="批量粘贴单词，每行一个，格式：单词 释义&#10;例如：&#10;abandon 放弃&#10;achieve 实现&#10;brilliant 杰出的"></textarea>
+      <div style="text-align:center"><button class="btn btn-primary" onclick="createDeck()">保存词库</button> <button class="btn btn-ghost" onclick="hideDeckCreate()">取消</button></div>
+    </div>`;
+}
+function showDeckCreate(){ $("#deckCreateBox").classList.remove("hidden"); }
+function hideDeckCreate(){ $("#deckCreateBox").classList.add("hidden"); }
+function createDeck(){
+  const name = $("#deckName").value.trim();
+  const raw = $("#deckWords").value.trim();
+  if(!name){ toast("请填写词库名称"); return; }
+  if(!raw){ toast("请粘贴单词"); return; }
+  const words = raw.split(/\n+/).map(line=>{
+    const t = line.trim();
+    if(!t) return null;
+    // 以第一个中文字符为界，前为英文（可含短语），后为释义
+    const m = t.match(/[\u4e00-\u9fff]/);
+    if(m){
+      const en = t.slice(0, m.index).replace(/[\s,，;；:：]+$/, '').trim();
+      const cn = t.slice(m.index).trim();
+      return en ? [en, cn] : [t, ''];
+    }
+    return [t, ''];
+  }).filter(x=>x!==null);
+  if(words.length===0){ toast("未能解析出单词，请检查格式"); return; }
+  const decks = loadDecks();
+  decks.push({ id: Date.now().toString(36), name, words });
+  saveDecks(decks);
+  $("#deckName").value = ""; $("#deckWords").value = "";
+  hideDeckCreate();
+  renderDecks();
+  toast(`已创建词库「${name}」，共 ${words.length} 词`);
+}
+function deleteDeck(id){
+  saveDecks(loadDecks().filter(d=>d.id!==id));
+  if(getActiveDeckId()===id){ setActiveDeckId(null); activeCustomWords = null; currentBatch = []; }
+  renderDecks();
+  toast("已删除词库");
+}
+function activateDeck(id){
+  setActiveDeckId(id);
+  if(id!==null){
+    const deck = loadDecks().find(d=>d.id===id);
+    activeCustomWords = deck ? (deck.words||[]).map(([w,cn])=>buildWord(w,cn,'自定义')) : null;
+  } else {
+    activeCustomWords = null;
+  }
+  currentBatch = [];
+  currentStep = 0; learnIndex = 0;
+  appMode = 'learn';
+  newBatch();
+  renderDecks();
+  toast(id!==null ? "已切换到自定义词库" : "已切换回内置词库");
+  renderAll();
 }
 
 /* ================= 学习页 ================= */
@@ -700,6 +950,7 @@ function renderLearn(){
         <div class="speak-row">
           <button class="btn-speak" onclick="playWordAudio('${w.word}')">🔊 整词发音</button>
           <button class="btn-speak" onclick="playSyllables(words()[${learnIndex}])">🔊 音节拆分朗读</button>
+          <button class="btn-speak" onclick="markWrong('${w.word}','${w.cn}')">📌 标记易错</button>
         </div>
       </div>
       <div class="word-info">
@@ -719,6 +970,8 @@ function renderLearn(){
   // 异步加载音标和图片
   loadPhonetic(w);
   loadImage(w);
+  // 记录学习（艾宾浩斯遗忘曲线，只记第一次学习）
+  markLearned(w.word, w.level);
 }
 
 /* 音标按需查询（走后端中转，解决有道接口 CORS 限制） */
@@ -848,7 +1101,7 @@ function matchClick(side,i){
     const correct = words().find(x=>x.word===enWord)?.cn === cnWord;
     const enEl = $("#en-"+enIdx), cnEl = $("#cn-"+i);
     if(correct){ enEl.classList.remove("selected","wrong"); enEl.classList.add("right","done"); cnEl.classList.add("right","done"); matchState.right.add(enWord); toast("✅ 配对正确！"); }
-    else { enEl.classList.add("wrong"); cnEl.classList.add("wrong"); setTimeout(()=>{enEl.classList.remove("wrong");cnEl.classList.remove("wrong");},400); toast("❌ 再想想～"); }
+    else { enEl.classList.add("wrong"); cnEl.classList.add("wrong"); addWrong(enWord, cnWord); setTimeout(()=>{enEl.classList.remove("wrong");cnEl.classList.remove("wrong");},400); toast("❌ 再想想～"); }
     matchState.selected = null;
     if(matchState.right.size === words().length){ setTimeout(()=>{ toast("🎉 全部配对完成！"); setTimeout(()=>goStep(2),1200); },800); }
   }
@@ -885,7 +1138,7 @@ function answerChoice(i, el){
   const opts = el.parentElement.querySelectorAll(".option");
   const correct = el.textContent.trim() === choiceState.answer;
   if(correct){ el.classList.add("right"); toast("✅ 正确！"); }
-  else { el.classList.add("wrong"); opts.forEach(o=>{ if(o.textContent.trim()===choiceState.answer) o.classList.add("right"); }); toast("❌ 正确答案已标绿"); }
+  else { el.classList.add("wrong"); addWrong(words()[choiceState.idx].word, words()[choiceState.idx].cn); opts.forEach(o=>{ if(o.textContent.trim()===choiceState.answer) o.classList.add("right"); }); toast("❌ 正确答案已标绿"); }
   opts.forEach(o=>o.style.pointerEvents="none");
   setTimeout(()=>{
     if(choiceState.idx < words().length-1){ choiceState.idx++; renderChoiceQ(); }
@@ -934,7 +1187,7 @@ function answerFill(i, el){
   const opts = el.parentElement.querySelectorAll(".option");
   const correct = el.textContent.trim() === fillState.answer;
   if(correct){ el.classList.add("right"); toast("✅ 正确！"); }
-  else { el.classList.add("wrong"); opts.forEach(o=>{ if(o.textContent.trim()===fillState.answer) o.classList.add("right"); }); toast("❌ 正确答案已标绿"); }
+  else { el.classList.add("wrong"); addWrong(words()[fillState.idx].word, words()[fillState.idx].cn); opts.forEach(o=>{ if(o.textContent.trim()===fillState.answer) o.classList.add("right"); }); toast("❌ 正确答案已标绿"); }
   opts.forEach(o=>o.style.pointerEvents="none");
   setTimeout(()=>{ if(fillState.idx<words().length-1){ fillState.idx++; renderFillQ(); } else { goStep(4); } }, 1200);
 }
@@ -1018,6 +1271,7 @@ function checkSpell(){
     setTimeout(()=>{ if(spellState.idx<words().length-1){ spellState.idx++; renderSpellWord(); } else { goStep(5); } },900);
   } else {
     slots.forEach((s,i)=>s.classList.add(w.word[i]===ans[i]?"right":"wrong"));
+    addWrong(w.word, w.cn);
     toast("❌ 拼错了，点击已填字母修改后重试");
     setTimeout(()=>{ slots.forEach(s=>s.classList.remove("right","wrong")); },1000);
   }
@@ -1080,6 +1334,7 @@ function checkSentence(){
     toast("✅ 拼句正确！");
     setTimeout(()=>{ if(sentenceState.idx<words().length-1){ sentenceState.idx++; renderSentenceQ(); } else { goStep(6); } },1100);
   } else {
+    addWrong(words()[sentenceState.idx].word, words()[sentenceState.idx].cn);
     toast("❌ 顺序不对，点击已选碎片撤回重排");
   }
 }
@@ -1115,7 +1370,7 @@ function checkTrans(){
   const hasTarget = input.toLowerCase().includes(target);
   let msg = "";
   if(hasTarget){ msg = "✅ 很好！你正确使用了目标单词 "+words()[transState.idx].word; }
-  else { msg = "⚠️ 建议在句中用上目标单词 "+words()[transState.idx].word; }
+  else { msg = "⚠️ 建议在句中用上目标单词 "+words()[transState.idx].word; addWrong(words()[transState.idx].word, words()[transState.idx].cn); }
   // 显示参考答案
   toast(msg);
   const area = document.querySelector("#transPage .trans-area");

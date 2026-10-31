@@ -13,37 +13,62 @@
   }
   *{box-sizing:border-box;margin:0;padding:0}
   body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text);line-height:1.6;-webkit-font-smoothing:antialiased}
-  .app{max-width:980px;margin:0 auto;padding:20px 16px 60px}
 
-  header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:12px}
-  .logo{font-size:22px;font-weight:800;background:linear-gradient(135deg,var(--primary),var(--primary2));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
-  .logo small{font-size:12px;font-weight:500;-webkit-text-fill-color:var(--muted);margin-left:8px}
-  .group-tabs{display:flex;gap:8px;flex-wrap:wrap}
-  .group-tab{padding:8px 16px;border-radius:20px;background:#fff;border:1px solid var(--border);cursor:pointer;font-size:14px;color:var(--muted);transition:.2s}
-  .group-tab:hover{border-color:var(--primary);color:var(--primary)}
-  .group-tab.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+  /* ===== 左侧菜单栏布局（DeepSeek 风格） ===== */
+  .layout{display:flex;min-height:100vh}
+  .sidebar{width:260px;flex-shrink:0;background:#fff;border-right:1px solid var(--border);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto;padding:20px 14px}
+  .brand{display:flex;align-items:center;gap:10px;padding:4px 8px 20px}
+  .brand-logo{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,var(--primary),var(--primary2));display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px;font-weight:800;flex-shrink:0}
+  .brand-name{font-size:17px;font-weight:800;background:linear-gradient(135deg,var(--primary),var(--primary2));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:.5px}
+  .brand-sub{font-size:11px;color:var(--muted);margin-top:-2px}
 
-  .progress-bar{height:8px;background:#eef0f7;border-radius:4px;overflow:hidden;margin-bottom:16px}
+  .menu-label{font-size:11px;color:#b6bac7;letter-spacing:1px;padding:14px 12px 6px;text-transform:uppercase}
+  .menu-group{display:flex;flex-direction:column;gap:2px}
+  .menu-item{display:flex;align-items:center;gap:11px;padding:11px 12px;border-radius:10px;cursor:pointer;color:#5a6072;font-size:14px;transition:.15s;position:relative}
+  .menu-item:hover{background:#f3f5fc;color:var(--primary)}
+  .menu-item.active{background:linear-gradient(135deg,#eef1ff,#f4efff);color:var(--primary);font-weight:600}
+  .menu-item.active::before{content:"";position:absolute;left:-14px;top:20%;height:60%;width:3px;border-radius:2px;background:linear-gradient(180deg,var(--primary),var(--primary2))}
+  .menu-item .mi-icon{font-size:17px;width:22px;text-align:center}
+  .menu-item .mi-num{width:18px;height:18px;border-radius:50%;background:#eef0f7;color:#9aa0b0;font-size:11px;display:flex;align-items:center;justify-content:center;margin-left:auto;flex-shrink:0}
+  .menu-item.active .mi-num{background:var(--primary);color:#fff}
+  .menu-item.done .mi-num{background:var(--green);color:#fff}
+
+  .menu-group-tabs{display:flex;flex-direction:column;gap:4px;margin-top:8px}
+  .menu-group-tab{display:flex;align-items:center;gap:9px;padding:9px 12px;border-radius:10px;cursor:pointer;color:#5a6072;font-size:13.5px;transition:.15s}
+  .menu-group-tab:hover{background:#f3f5fc;color:var(--primary)}
+  .menu-group-tab.active{background:linear-gradient(135deg,#eef1ff,#f4efff);color:var(--primary);font-weight:600}
+
+  .search-box{position:relative;margin:6px 0 4px}
+  .search-box input{width:100%;padding:9px 12px;border-radius:10px;border:1px solid var(--border);font-size:13px;outline:none;font-family:inherit;transition:.15s}
+  .search-box input:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(79,110,247,.12)}
+  .search-result{position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid var(--border);border-radius:10px;box-shadow:var(--shadow);max-height:280px;overflow-y:auto;z-index:50;display:none}
+  .search-result.show{display:block}
+  .search-result .sr-item{padding:8px 12px;cursor:pointer;font-size:13px;border-bottom:1px solid #f2f3f8}
+  .search-result .sr-item:hover{background:#f3f5fc}
+  .search-result .sr-item .sr-word{font-weight:600}
+  .search-result .sr-item .sr-cn{color:var(--muted);font-size:12px;margin-left:6px}
+
+  .sidebar-foot{margin-top:auto;padding:14px 8px 4px;font-size:11px;color:#b6bac7;border-top:1px solid var(--border)}
+
+  .main{flex:1;min-width:0;padding:26px 30px 60px}
+  .main-head{max-width:860px;margin:0 auto 18px}
+  .main-title{font-size:20px;font-weight:800;margin-bottom:4px}
+  .main-sub{color:var(--muted);font-size:13px}
+
+  .progress-bar{height:6px;background:#eef0f7;border-radius:3px;overflow:hidden;margin-bottom:16px}
   .progress-bar>div{height:100%;background:linear-gradient(90deg,var(--primary),var(--primary2));transition:width .3s}
 
-  .steps{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:0;margin:14px 0 22px}
-  .step{display:flex;align-items:center;gap:8px;padding:8px 16px;border-radius:24px;background:#fff;border:1px solid var(--border);font-size:14px;color:var(--muted);cursor:pointer;transition:.2s}
-  .step .n{width:22px;height:22px;border-radius:50%;background:#eef0f7;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700}
-  .step.active{background:var(--primary);color:#fff;border-color:var(--primary)}
-  .step.active .n{background:rgba(255,255,255,.25)}
-  .step.done{color:var(--green);border-color:var(--green)}
-  .step.done .n{background:var(--green);color:#fff}
-  .step-arrow{color:#c4c9d8;margin:0 6px;font-size:16px}
-
-  .card{background:var(--card);border-radius:20px;box-shadow:var(--shadow);padding:28px;margin-bottom:20px}
+  .card{background:var(--card);border-radius:20px;box-shadow:var(--shadow);padding:28px;margin-bottom:20px;max-width:860px;margin-left:auto;margin-right:auto}
   h2.page-title{text-align:center;margin-bottom:6px;font-size:22px}
   .page-sub{text-align:center;color:var(--muted);margin-bottom:22px;font-size:14px}
 
-  /* ===== 学习页 ===== */
-  .learn-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+  /* ===== 学习页（图片居中主打） ===== */
+  .learn-grid{display:grid;grid-template-columns:1fr;gap:22px}
   .word-main{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
-  .word-img{width:100%;max-width:320px;aspect-ratio:4/3;border-radius:16px;overflow:hidden;margin-bottom:16px;background:linear-gradient(135deg,#eef1ff,#f7f0ff);display:flex;align-items:center;justify-content:center}
-  .word-img .emoji{font-size:110px;line-height:1}
+  .word-img{width:100%;max-width:420px;aspect-ratio:4/3;border-radius:18px;overflow:hidden;margin-bottom:18px;background:linear-gradient(135deg,#eef1ff,#f7f0ff);display:flex;align-items:center;justify-content:center}
+  .word-img img{width:100%;height:100%;object-fit:cover}
+  .word-img .emoji{font-size:120px;line-height:1}
+  .word-info{max-width:720px;margin:0 auto;width:100%}
   .word-text{font-size:44px;font-weight:800;letter-spacing:.5px}
   .word-text .syl{cursor:pointer;border-radius:4px;padding:0 2px;transition:.15s}
   .word-text .syl.active{background:var(--red);color:#fff}
@@ -148,324 +173,203 @@
   @media(max-width:720px){
     .learn-grid,.match-grid,.options{grid-template-columns:1fr}
     .word-text{font-size:32px}
+    .layout{flex-direction:column}
+    .sidebar{width:100%;height:auto;position:static;flex-direction:row;flex-wrap:wrap;align-items:center;gap:6px;padding:12px;border-right:none;border-bottom:1px solid var(--border)}
+    .brand{padding:0 6px 0 0}
+    .menu-label,.menu-group-tabs,.sidebar-foot{display:none}
+    .menu-group{flex-direction:row;flex-wrap:wrap}
+    .menu-item{width:auto}
+    .menu-item.active::before{display:none}
+    .main{padding:18px 14px 50px}
   }
 </style>
 </head>
 <body>
-<div class="app">
-  <header>
-    <div class="logo">轻松背单词<small>中高考词汇训练</small></div>
-    <div class="group-tabs" id="groupTabs"></div>
-  </header>
-  <div class="progress-bar"><div id="progressBar" style="width:0%"></div></div>
-  <div class="steps" id="steps"></div>
-  <section id="learnPage" class="card"></section>
-  <section id="matchPage" class="card hidden"></section>
-  <section id="choicePage" class="card hidden"></section>
-  <section id="fillPage" class="card hidden"></section>
-  <section id="spellPage" class="card hidden"></section>
-  <section id="sentencePage" class="card hidden"></section>
-  <section id="transPage" class="card hidden"></section>
-  <section id="passagePage" class="card hidden"></section>
-  <section id="resultPage" class="card hidden"></section>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-logo">词</div>
+      <div>
+        <div class="brand-name">墨词 · Lexi</div>
+        <div class="brand-sub">中高考词汇研习</div>
+      </div>
+    </div>
+    <div class="menu-label">词库专题</div>
+    <div class="menu-group-tabs" id="groupTabs"></div>
+    <div class="menu-label">检索单词</div>
+    <div class="search-box">
+      <input type="text" id="searchInput" placeholder="搜索单词…" oninput="onSearch(this.value)">
+      <div class="search-result" id="searchResult"></div>
+    </div>
+    <div class="menu-label">研习流程</div>
+    <div class="menu-group" id="steps"></div>
+    <div class="sidebar-foot">墨词 Lexi · 词汇训练系统</div>
+  </aside>
+  <main class="main">
+    <div class="main-head">
+      <div class="main-title" id="mainTitle">词汇认知</div>
+      <div class="main-sub" id="mainSub"></div>
+      <div class="progress-bar"><div id="progressBar" style="width:0%"></div></div>
+    </div>
+    <section id="learnPage" class="card"></section>
+    <section id="matchPage" class="card hidden"></section>
+    <section id="choicePage" class="card hidden"></section>
+    <section id="fillPage" class="card hidden"></section>
+    <section id="spellPage" class="card hidden"></section>
+    <section id="sentencePage" class="card hidden"></section>
+    <section id="transPage" class="card hidden"></section>
+    <section id="passagePage" class="card hidden"></section>
+    <section id="resultPage" class="card hidden"></section>
+  </main>
 </div>
 <div class="toast" id="toast"></div>
 
+<script src="words-data.js"></script>
 <script>
 /* ================= 单词数据 ================= */
-/* 字段说明：word 单词, cn 中文, emoji 图片, usPhonetic 美式音标, ukPhonetic 英式音标,
-   syllables 音节数组(每项 {text, 对应单词中的片段}), related 同源/相关词, root 词根词缀,
-   examples 例句(en含<B>标记目标词, cn译文), passage 语篇 */
-const GROUPS = [
-  {
-    name:"餐厅篇", emoji:"🍽️",
-    passage:{
-      en:"Last weekend, I walked into a famous <B>restaurant</B> in the city center. A polite <B>waiter</B> smiled and handed me the <B>menu</B>. I ordered a dish recommended by the chef. When I tasted it, the flavor was really <B>delicious</B>. I had made a <B>reservation</B> by phone earlier, so I didn't need to wait in line.",
-      cn:"上周末，我走进市中心一家有名的餐馆。一位有礼貌的服务员微笑着递给我菜单。我点了一道厨师推荐的菜。尝了一口，味道真是美味极了。因为我早就打电话做了预订，所以不用排队等位。"
-    },
-    words:[
-      {
-        word:"restaurant", cn:"餐馆，饭店", emoji:"🍽️",
-        ukPhonetic:"/ˈrestrɒnt/", usPhonetic:"/ˈrestərɑːnt/",
-        syllables:[{text:"res"},{text:"tau"},{text:"rant"}],
-        related:["chef 厨师","menu 菜单","waiter 服务员","reservation 预订","cuisine 菜肴","cafe 咖啡馆","diner 小餐馆"],
-        root:{text:"restaur", meaning:"恢复，修复（源自拉丁语 restaurare）", detail:"restaur（恢复）+ -ant（表“场所/人”的后缀）→ 让人恢复精力的地方 → 餐馆"},
-        examples:[
-          {en:"We had dinner at a famous <B>restaurant</B> near the park.",cn:"我们在公园附近一家有名的餐馆吃了晚饭。"},
-          {en:"The <B>restaurant</B> is famous for its fresh seafood and friendly <B>waiter</B>.",cn:"这家餐馆以新鲜的海鲜和友好的服务员而闻名。"},
-          {en:"I'd like to make a <B>reservation</B> at this <B>restaurant</B> for eight o'clock.",cn:"我想在这家餐馆预订八点的位子。"}
-        ]
-      },
-      {
-        word:"menu", cn:"菜单", emoji:"📋",
-        ukPhonetic:"/ˈmenjuː/", usPhonetic:"/ˈmenjuː/",
-        syllables:[{text:"men"},{text:"u"}],
-        related:["order 点餐","dish 菜肴","price 价格","special 特色菜","beverage 饮料","dessert 甜点"],
-        root:{text:"menu", meaning:"源自法语 menu，本义“小的、详细的”", detail:"minute（详细）+ menu（小）→ 详细列出的小单子 → 菜单"},
-        examples:[
-          {en:"Could I have the <B>menu</B>, please? I'd like to <B>order</B> something.",cn:"请给我看一下菜单好吗？我想点些东西。"},
-          {en:"The <B>menu</B> at this <B>restaurant</B> changes every season.",cn:"这家餐馆的菜单每个季节都会更换。"},
-          {en:"There are many delicious <B>dishes</B> on the <B>menu</B>.",cn:"菜单上有很多美味的菜肴。"}
-        ]
-      },
-      {
-        word:"waiter", cn:"服务员", emoji:"🤵",
-        ukPhonetic:"/ˈweɪtə/", usPhonetic:"/ˈweɪtər/",
-        syllables:[{text:"wait"},{text:"er"}],
-        related:["waitress 女服务员","serve 服务","tip 小费","customer 顾客","order 订单","bill 账单"],
-        root:{text:"wait", meaning:"等待，服务", detail:"wait（等待/侍候）+ -er（表“做某事的人”）→ 侍候客人的人 → 服务员"},
-        examples:[
-          {en:"The <B>waiter</B> brought us the <B>bill</B> after dinner.",cn:"晚饭后服务员给我们拿来了账单。"},
-          {en:"I asked the <B>waiter</B> to <B>serve</B> us another glass of water.",cn:"我请服务员再给我们倒一杯水。"},
-          {en:"The polite <B>waiter</B> smiled at every <B>customer</B>.",cn:"那位有礼貌的服务员对每位顾客都微笑。"}
-        ]
-      },
-      {
-        word:"delicious", cn:"美味的", emoji:"😋",
-        ukPhonetic:"/dɪˈlɪʃəs/", usPhonetic:"/dɪˈlɪʃəs/",
-        syllables:[{text:"de"},{text:"li"},{text:"cious"}],
-        related:["tasty 好吃的","yummy 美味的","flavor 味道","appetite 食欲","recipe 食谱","sour 酸的"],
-        root:{text:"delic", meaning:"愉悦，精细（源自拉丁语 delicere）", detail:"delic（愉悦）+ -ious（形容词后缀）→ 令人愉悦的 → 美味的"},
-        examples:[
-          {en:"The soup tastes really <B>delicious</B>.",cn:"这汤尝起来真的很美味。"},
-          {en:"She cooked a <B>delicious</B> meal for us, and everyone had a good <B>appetite</B>.",cn:"她为我们做了一顿美味的饭菜，大家胃口都很好。"},
-          {en:"This <B>restaurant</B> serves the most <B>delicious</B> food in town.",cn:"这家餐馆供应镇上最美味的食物。"}
-        ]
-      },
-      {
-        word:"reservation", cn:"预订", emoji:"📅",
-        ukPhonetic:"/ˌrezəˈveɪʃn/", usPhonetic:"/ˌrezərˈveɪʃn/",
-        syllables:[{text:"re"},{text:"ser"},{text:"va"},{text:"tion"}],
-        related:["book 预订","reserve 保留","table 餐桌","appointment 预约","confirm 确认","cancel 取消"],
-        root:{text:"reserv", meaning:"保留，留存（re + servare）", detail:"re-（再）+ serv（保存）+ -ation（名词后缀）→ 保留下来的 → 预订"},
-        examples:[
-          {en:"I'd like to make a <B>reservation</B> for two at seven.",cn:"我想预订七点两个人的位子。"},
-          {en:"Do you have a <B>reservation</B>? The <B>restaurant</B> is full tonight.",cn:"请问您有预订吗？今晚餐馆客满了。"},
-          {en:"Please <B>confirm</B> your <B>reservation</B> before you come.",cn:"来之前请确认您的预订。"}
-        ]
-      }
-    ]
-  },
-  {
-    name:"旅行篇", emoji:"✈️",
-    passage:{
-      en:"During the holiday, I packed my <B>luggage</B>, took my <B>passport</B> and went to the <B>airport</B>. After the plane took off, I looked out of the window, dreaming of the beautiful <B>destination</B>. On the last day of the trip, I bought a lovely <B>souvenir</B> to remember the journey.",
-      cn:"假期里，我收拾好行李，带上护照，去了机场。飞机起飞后，我望着窗外，憧憬着美丽的旅行目的地。旅行的最后一天，我买了一个可爱的纪念品来记住这段旅程。"
-    },
-    words:[
-      {
-        word:"airport", cn:"机场", emoji:"✈️",
-        ukPhonetic:"/ˈeəpɔːt/", usPhonetic:"/ˈerpɔːrt/",
-        syllables:[{text:"air"},{text:"port"}],
-        related:["flight 航班","passport 护照","luggage 行李","ticket 机票","terminal 航站楼","board 登机"],
-        root:{text:"air + port", meaning:"air（空气/航空）+ port（港口）", detail:"air（航空）+ port（港口）→ 航空港口 → 机场"},
-        examples:[
-          {en:"We arrived at the <B>airport</B> two hours before the <B>flight</B>.",cn:"我们在航班起飞前两小时到达机场。"},
-          {en:"The <B>airport</B> is far from the city center, so we took a taxi.",cn:"机场离市中心很远，所以我们打了车。"},
-          {en:"Please show your <B>passport</B> and <B>ticket</B> at the <B>airport</B>.",cn:"请在机场出示您的护照和机票。"}
-        ]
-      },
-      {
-        word:"passport", cn:"护照", emoji:"🛂",
-        ukPhonetic:"/ˈpɑːspɔːt/", usPhonetic:"/ˈpæspɔːrt/",
-        syllables:[{text:"pass"},{text:"port"}],
-        related:["visa 签证","border 边境","customs 海关","identity 身份","travel 旅行","abroad 国外"],
-        root:{text:"pass + port", meaning:"pass（通过）+ port（港口/关口）", detail:"pass（通过）+ port（港口）→ 通过关口的凭证 → 护照"},
-        examples:[
-          {en:"Please show me your <B>passport</B> at the <B>border</B>.",cn:"请在边境出示您的护照。"},
-          {en:"I lost my <B>passport</B> during the <B>travel</B>.",cn:"旅行途中我丢了护照。"},
-          {en:"You need a <B>visa</B> and a valid <B>passport</B> to go <B>abroad</B>.",cn:"出国需要签证和有效的护照。"}
-        ]
-      },
-      {
-        word:"luggage", cn:"行李", emoji:"🧳",
-        ukPhonetic:"/ˈlʌɡɪdʒ/", usPhonetic:"/ˈlʌɡɪdʒ/",
-        syllables:[{text:"lug"},{text:"gage"}],
-        related:["suitcase 行李箱","baggage 行李","backpack 背包","check-in 托运","carry 携带","pack 打包"],
-        root:{text:"lug", meaning:"拖拽，搬运", detail:"lug（拖拽）+ -age（名词后缀）→ 拖着走的东西 → 行李"},
-        examples:[
-          {en:"How much <B>luggage</B> can I bring on the <B>flight</B>?",cn:"这趟航班我可以带多少行李？"},
-          {en:"He is waiting for his <B>luggage</B> at the <B>airport</B>.",cn:"他正在机场等他的行李。"},
-          {en:"I put my clothes in a <B>suitcase</B> and packed my <B>luggage</B>.",cn:"我把衣服放进行李箱，收拾好行李。"}
-        ]
-      },
-      {
-        word:"destination", cn:"目的地", emoji:"🗺️",
-        ukPhonetic:"/ˌdestɪˈneɪʃn/", usPhonetic:"/ˌdestɪˈneɪʃn/",
-        syllables:[{text:"des"},{text:"ti"},{text:"na"},{text:"tion"}],
-        related:["journey 旅程","route 路线","arrive 到达","depart 出发","map 地图","guide 向导"],
-        root:{text:"destin", meaning:"注定，确定（de + stare）", detail:"de-（向下/确定）+ stin（站立）+ -ation（名词后缀）→ 确定要去的地方 → 目的地"},
-        examples:[
-          {en:"Paris is a popular travel <B>destination</B> for many people.",cn:"巴黎是很多人喜爱的旅行目的地。"},
-          {en:"We finally reached our <B>destination</B> after a long <B>journey</B>.",cn:"经过漫长的旅程，我们终于到达了目的地。"},
-          {en:"The plane will <B>depart</B> soon and <B>arrive</B> at our <B>destination</B> in two hours.",cn:"飞机即将起飞，两小时后到达我们的目的地。"}
-        ]
-      },
-      {
-        word:"souvenir", cn:"纪念品", emoji:"🎁",
-        ukPhonetic:"/ˌsuːvəˈnɪə/", usPhonetic:"/ˌsuːvəˈnɪr/",
-        syllables:[{text:"sou"},{text:"ve"},{text:"nir"}],
-        related:["gift 礼物","memory 回忆","shop 商店","buy 购买","local 当地的","postcard 明信片"],
-        root:{text:"souvenir", meaning:"源自法语 souvenir，本义“想起、记得”", detail:"souvenir（想起）→ 让人想起旅行经历的东西 → 纪念品"},
-        examples:[
-          {en:"I bought a <B>souvenir</B> for my friend as a <B>gift</B>.",cn:"我给朋友买了一件纪念品当礼物。"},
-          {en:"The <B>shop</B> sells <B>local</B> <B>souvenirs</B>.",cn:"这家店卖当地纪念品。"},
-          {en:"This little <B>souvenir</B> brings back happy <B>memories</B> of the trip.",cn:"这件小纪念品勾起了旅行中快乐的回忆。"}
-        ]
-      }
-    ]
-  },
-  {
-    name:"学校篇", emoji:"🏫",
-    passage:{
-      en:"At school, our <B>teacher</B> often tells us to read more <B>library</B> books. My favorite <B>subject</B> is English, and I always listen to the <B>teacher</B> carefully in <B>class</B>. After school, I do my <B>homework</B> at home and review the <B>knowledge</B> I learned.",
-      cn:"在学校，老师经常告诉我们要多读图书馆的书。我最喜欢的科目是英语，课堂上我总是认真听老师讲课。放学后，我在家做作业，复习学过的知识。"
-    },
-    words:[
-      {
-        word:"teacher", cn:"老师，教师", emoji:"👩‍🏫",
-        ukPhonetic:"/ˈtiːtʃə/", usPhonetic:"/ˈtiːtʃər/",
-        syllables:[{text:"teach"},{text:"er"}],
-        related:["teach 教","student 学生","lesson 课","class 班级","school 学校","education 教育"],
-        root:{text:"teach", meaning:"教，教导", detail:"teach（教）+ -er（表“做某事的人”）→ 教书的人 → 老师"},
-        examples:[
-          {en:"Our English <B>teacher</B> always makes the <B>lesson</B> interesting.",cn:"我们的英语老师总能把课上得很有趣。"},
-          {en:"The <B>teacher</B> asked the <B>students</B> to read the text aloud.",cn:"老师让学生们大声朗读课文。"},
-          {en:"A good <B>teacher</B> should care about every <B>student</B>.",cn:"一个好老师应该关心每一个学生。"}
-        ]
-      },
-      {
-        word:"library", cn:"图书馆", emoji:"📚",
-        ukPhonetic:"/ˈlaɪbrəri/", usPhonetic:"/ˈlaɪbreri/",
-        syllables:[{text:"li"},{text:"brar"},{text:"y"}],
-        related:["book 书","read 阅读","borrow 借","shelf 书架","study 学习","quiet 安静的"],
-        root:{text:"libr", meaning:"书（源自拉丁语 liber）", detail:"libr（书）+ -ary（表“场所”）→ 藏书的地方 → 图书馆"},
-        examples:[
-          {en:"I often <B>borrow</B> books from the school <B>library</B>.",cn:"我经常从学校图书馆借书。"},
-          {en:"The <B>library</B> is a <B>quiet</B> place to <B>study</B>.",cn:"图书馆是安静学习的好地方。"},
-          {en:"There are thousands of <B>books</B> on the <B>shelves</B> in the <B>library</B>.",cn:"图书馆的书架上有成千上万本书。"}
-        ]
-      },
-      {
-        word:"subject", cn:"科目，学科", emoji:"📖",
-        ukPhonetic:"/ˈsʌbdʒɪkt/", usPhonetic:"/ˈsʌbdʒekt/",
-        syllables:[{text:"sub"},{text:"ject"}],
-        related:["math 数学","English 英语","science 科学","history 历史","homework 作业","exam 考试"],
-        root:{text:"sub + ject", meaning:"sub（在下方）+ ject（投掷）", detail:"sub（下）+ ject（投）→ 置于其下的事物 → 主题、科目"},
-        examples:[
-          {en:"My favorite <B>subject</B> is <B>English</B>.",cn:"我最喜欢的科目是英语。"},
-          {en:"Which <B>subject</B> do you find the most difficult?",cn:"你觉得哪个科目最难？"},
-          {en:"We have seven <B>subjects</B> at school, including <B>math</B> and <B>science</B>.",cn:"我们在学校有七门科目，包括数学和科学。"}
-        ]
-      },
-      {
-        word:"homework", cn:"家庭作业", emoji:"📝",
-        ukPhonetic:"/ˈhəʊmwɜːk/", usPhonetic:"/ˈhoʊmwɜːrk/",
-        syllables:[{text:"home"},{text:"work"}],
-        related:["task 任务","exercise 练习","review 复习","finish 完成","hand in 上交","exam 考试"],
-        root:{text:"home + work", meaning:"home（家）+ work（工作）", detail:"home（家）+ work（工作）→ 带回家做的工作 → 家庭作业"},
-        examples:[
-          {en:"I usually finish my <B>homework</B> before dinner.",cn:"我通常在晚饭前完成家庭作业。"},
-          {en:"The <B>teacher</B> gave us a lot of <B>homework</B> today.",cn:"老师今天给我们布置了很多作业。"},
-          {en:"Please <B>hand in</B> your <B>homework</B> before Friday.",cn:"请在周五前上交你的作业。"}
-        ]
-      },
-      {
-        word:"knowledge", cn:"知识", emoji:"💡",
-        ukPhonetic:"/ˈnɒlɪdʒ/", usPhonetic:"/ˈnɑːlɪdʒ/",
-        syllables:[{text:"knowl"},{text:"edge"}],
-        related:["learn 学习","understand 理解","wisdom 智慧","skill 技能","information 信息","experience 经验"],
-        root:{text:"know", meaning:"知道，了解", detail:"know（知道）+ -ledge（名词后缀）→ 所知道的东西 → 知识"},
-        examples:[
-          {en:"Reading is a good way to gain <B>knowledge</B>.",cn:"阅读是获取知识的好方法。"},
-          {en:"We can <B>learn</B> a lot of <B>knowledge</B> from books and <B>experience</B>.",cn:"我们可以从书本和经验中学到很多知识。"},
-          {en:"The more <B>knowledge</B> you have, the better you <B>understand</B> the world.",cn:"你拥有的知识越多，就越能理解世界。"}
-        ]
-      }
-    ]
-  },
-  {
-    name:"家庭篇", emoji:"🏠",
-    passage:{
-      en:"I love my <B>family</B>. My <B>father</B> works hard, and my <B>mother</B> takes care of us at home. My <B>sister</B> and I are good <B>friends</B>. On weekends, the whole <B>family</B> cooks dinner together and enjoys a happy time.",
-      cn:"我爱我的家人。爸爸工作努力，妈妈在家照顾我们。姐姐（妹妹）和我是好朋友。周末，全家人一起做晚饭，享受快乐的时光。"
-    },
-    words:[
-      {
-        word:"family", cn:"家庭，家人", emoji:"👨‍👩‍👧‍👦",
-        ukPhonetic:"/ˈfæməli/", usPhonetic:"/ˈfæməli/",
-        syllables:[{text:"fam"},{text:"i"},{text:"ly"}],
-        related:["father 父亲","mother 母亲","parent 父母","relative 亲戚","home 家","member 成员"],
-        root:{text:"famil", meaning:"家庭（源自拉丁语 familia）", detail:"famil（家庭）+ -y（名词后缀）→ 家庭、家人"},
-        examples:[
-          {en:"There are four people in my <B>family</B>.",cn:"我家有四口人。"},
-          {en:"My <B>family</B> often have dinner together at <B>home</B>.",cn:"我的家人经常在家一起吃晚饭。"},
-          {en:"She loves every <B>member</B> of her <B>family</B>.",cn:"她爱家里的每一位成员。"}
-        ]
-      },
-      {
-        word:"father", cn:"父亲，爸爸", emoji:"👨",
-        ukPhonetic:"/ˈfɑːðə/", usPhonetic:"/ˈfɑːðər/",
-        syllables:[{text:"fa"},{text:"ther"}],
-        related:["mother 母亲","parent 父母","son 儿子","daughter 女儿","uncle 叔叔","grandfather 祖父"],
-        root:{text:"father", meaning:"父亲（古英语 fæder）", detail:"father 本义为“养育者、父亲”，是原生词根"},
-        examples:[
-          {en:"My <B>father</B> works as a doctor.",cn:"我的父亲是一名医生。"},
-          {en:"My <B>father</B> and <B>mother</B> both love me very much.",cn:"我的爸爸妈妈都很爱我。"},
-          {en:"He looks just like his <B>father</B>.",cn:"他长得很像他的父亲。"}
-        ]
-      },
-      {
-        word:"mother", cn:"母亲，妈妈", emoji:"👩",
-        ukPhonetic:"/ˈmʌðə/", usPhonetic:"/ˈmʌðər/",
-        syllables:[{text:"moth"},{text:"er"}],
-        related:["father 父亲","parent 父母","son 儿子","daughter 女儿","aunt 阿姨","grandmother 祖母"],
-        root:{text:"mother", meaning:"母亲（古英语 modor）", detail:"mother 本义为“生育者、母亲”，是原生词根"},
-        examples:[
-          {en:"My <B>mother</B> cooks delicious food for us.",cn:"妈妈为我们做美味的饭菜。"},
-          {en:"My <B>mother</B> is a kind and hard-working woman.",cn:"我的母亲是一位善良勤劳的女性。"},
-          {en:"She helps her <B>mother</B> do housework every day.",cn:"她每天帮妈妈做家务。"}
-        ]
-      },
-      {
-        word:"sister", cn:"姐妹", emoji:"👧",
-        ukPhonetic:"/ˈsɪstə/", usPhonetic:"/ˈsɪstər/",
-        syllables:[{text:"sis"},{text:"ter"}],
-        related:["brother 兄弟","family 家庭","twin 双胞胎","cousin 堂/表亲","elder 年长的","younger 年幼的"],
-        root:{text:"sister", meaning:"姐妹（古英语 sweostor）", detail:"sister 是原生词根，指同父母所生的女性"},
-        examples:[
-          {en:"My <B>sister</B> is two years older than me.",cn:"我的姐姐比我大两岁。"},
-          {en:"My <B>sister</B> and I share the same room.",cn:"姐姐（妹妹）和我同住一个房间。"},
-          {en:"She has a younger <B>brother</B> and an elder <B>sister</B>.",cn:"她有一个弟弟和一个姐姐。"}
-        ]
-      },
-      {
-        word:"friend", cn:"朋友", emoji:"🤝",
-        ukPhonetic:"/frend/", usPhonetic:"/frend/",
-        syllables:[{text:"friend"}],
-        related:["friendship 友谊","classmate 同学","partner 伙伴","kind 友善的","help 帮助","trust 信任"],
-        root:{text:"friend", meaning:"朋友（古英语 freond，本义“爱着的人”）", detail:"friend 是原生词根，与 love（爱）同源"},
-        examples:[
-          {en:"She is my best <B>friend</B>.",cn:"她是我最好的朋友。"},
-          {en:"A true <B>friend</B> will <B>help</B> you when you are in trouble.",cn:"真正的朋友会在你困难时帮助你。"},
-          {en:"We have been <B>friends</B> for many years.",cn:"我们已经是多年的朋友了。"}
-        ]
-      }
-    ]
-  }
+/* 词库从 words-data.js 的 WORD_DB 加载（7549 词，按级别分组）
+   字段：w 单词, cn 释义, lv 级别
+   运行时动态补齐：音标(有道)、图片(后端AI)、例句(内置模板) */
+const LEVELS = ["初中", "高中", "四级", "六级"];
+const LEVEL_EMOJI = { "初中":"🌱", "高中":"📚", "四级":"🎓", "六级":"🏛️" };
+
+// 例句模板库（按词义通用模板，目标词动态替换）
+const EXAMPLE_TEMPLATES = [
+  { en:"I learned the word \"__W__\" today.", cn:"今天我学会了单词 __W__。" },
+  { en:"Can you use \"__W__\" in a sentence?", cn:"你能用 __W__ 造个句吗？" },
+  { en:"The word \"__W__\" is very common in English.", cn:"__W__ 这个词在英语中很常见。" }
 ];
+
+// 从 WORD_DB 构建 GROUPS（兼容原有渲染逻辑）
+const GROUPS = LEVELS.map(lv => ({
+  name: lv + "词汇",
+  emoji: LEVEL_EMOJI[lv],
+  level: lv,
+  words: (WORD_DB[lv] || []).map(([w, cn]) => buildWord(w, cn, lv))
+}));
+
+// 构建一个单词对象（动态补齐字段）
+function buildWord(w, cn, lv){
+  return {
+    word: w,
+    cn: cn,
+    level: lv,
+    ukPhonetic: "", usPhonetic: "",   // 音标运行时通过有道查询
+    syllables: autoSyllables(w),       // 音节自动拆分
+    related: [],                        // 同源词运行时生成
+    root: null,                         // 词根词缀运行时生成
+    examples: EXAMPLE_TEMPLATES.map(t=>({
+      en: t.en.replace(/__W__/g, `<B>${w}</B>`),
+      cn: t.cn.replace(/__W__/g, w)
+    })),
+    imageUrl: "",                       // AI图片运行时生成
+    _cn: cn
+  };
+}
+
+// 简单音节拆分（按辅音+元音模式粗略切分，用于音节朗读高亮）
+function autoSyllables(w){
+  if(!w || w.length <= 3) return [{text:w}];
+  // 简单规则：按元音聚类切分
+  const vowels = "aeiouAEIOU";
+  const syls = [];
+  let cur = "";
+  for(let i=0;i<w.length;i++){
+    const ch = w[i];
+    cur += ch;
+    const isVowel = vowels.includes(ch);
+    const nextIsVowel = i+1<w.length && vowels.includes(w[i+1]);
+    // 遇到 元音+辅音 且后面还有内容时切分
+    if(isVowel && !nextIsVowel && i+1<w.length && i+2<=w.length){
+      // 不立即切，继续到下一个元音前
+    }
+    if(isVowel && !nextIsVowel && i<w.length-1){
+      // 检查后面是否还有元音，若有则此处切分
+      let hasMoreVowel=false;
+      for(let j=i+1;j<w.length;j++){ if(vowels.includes(w[j])){hasMoreVowel=true;break;} }
+      if(hasMoreVowel){ syls.push(cur); cur=""; }
+    }
+  }
+  if(cur) syls.push(cur);
+  if(syls.length===1 && w.length>6){
+    // 太长且没切开，按中间切
+    const mid = Math.ceil(w.length/2);
+    return [{text:w.slice(0,mid)},{text:w.slice(mid)}];
+  }
+  return syls.map(s=>({text:s}));
+}
 
 /* ================= 全局状态 ================= */
 let currentGroup = 0;
 let currentStep = 0; // 0学习 1连线 2词义选择 3选词填空 4拼写 5连词成句 6翻译 7语篇 8结果
 let learnIndex = 0;
-const words = () => GROUPS[currentGroup].words;
-const STEP_LABELS = ["学习","连线","词义","填空","拼写","连句","翻译","语篇"];
+let BATCH_SIZE = 15; // 每批学习的单词数
+let currentBatch = []; // 当前批次的学习词（从当前级别随机抽取）
+
+// 获取当前批次的学习词（不是全部词库）
+const words = () => {
+  if(currentBatch.length > 0) return currentBatch;
+  return GROUPS[currentGroup].words.slice(0, BATCH_SIZE);
+};
+// 重新抽一批词
+function newBatch(){
+  const pool = GROUPS[currentGroup].words;
+  const n = Math.min(BATCH_SIZE, pool.length);
+  currentBatch = shuffle(pool).slice(0, n);
+  learnIndex = 0;
+}
+// 典雅书院风命名（标题 / 菜单名 / 图标 / 副标题）
+const STEPS = [
+  {title:"词汇认知", icon:"📖", sub:"观图识词 · 聆听发音 · 析词根词缀"},
+  {title:"语义词联", icon:"🔗", sub:"中英对映 · 连缀成对"},
+  {title:"词义甄别", icon:"🎯", sub:"语境之中 · 辨明真义"},
+  {title:"语境填空", icon:"✍️", sub:"一词入句 · 恰如其分"},
+  {title:"拼写重构", icon:"🔤", sub:"乱序归位 · 重现原词"},
+  {title:"句式组配", icon:"🧩", sub:"缀词成句 · 井然有序"},
+  {title:"双语转译", icon:"🌐", sub:"汉英互译 · 学以致用"},
+  {title:"篇章研读", icon:"📜", sub:"融词入文 · 通读赏析"}
+];
+const STEP_LABELS = STEPS.map(s=>s.title);
 
 /* ================= 工具 ================= */
 const $ = s => document.querySelector(s);
 function toast(msg){ const t=$("#toast"); t.textContent=msg; t.classList.add("show"); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove("show"),1800); }
 function shuffle(a){ const r=[...a]; for(let i=r.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[r[i],r[j]]=[r[j],r[i]];} return r; }
+
+/* ================= 单词搜索 ================= */
+// 构建全库索引（word -> {w,cn,lv}）
+const ALL_WORDS = [];
+LEVELS.forEach(lv=>{
+  (WORD_DB[lv]||[]).forEach(([w,cn])=>{ ALL_WORDS.push({w, cn, lv}); });
+});
+function onSearch(q){
+  const box = $("#searchResult");
+  if(!q || !q.trim()){ box.classList.remove("show"); return; }
+  const kw = q.trim().toLowerCase();
+  const hits = ALL_WORDS.filter(x=>x.w.toLowerCase().startsWith(kw)).slice(0,12);
+  if(hits.length===0){ box.classList.remove("show"); return; }
+  box.innerHTML = hits.map((h,i)=>`<div class="sr-item" onclick="jumpToWord(${i})" data-idx="${i}">` +
+    `<span class="sr-word">${h.w}</span><span class="sr-cn">${h.cn.slice(0,20)}</span>` +
+    `<span class="sr-cn" style="float:right">${h.lv}</span></div>`).join("");
+  box.classList.add("show");
+  box._hits = hits;
+}
+function jumpToWord(i){
+  const hits = $("#searchResult")._hits || [];
+  const hit = hits[i];
+  if(!hit) return;
+  // 切换到对应级别，并定位到该词
+  const lvIdx = LEVELS.indexOf(hit.lv);
+  currentGroup = lvIdx;
+  const wlist = words();
+  const idx = wlist.findIndex(x=>x.word.toLowerCase()===hit.w.toLowerCase());
+  learnIndex = idx>=0 ? idx : 0;
+  currentStep = 0;
+  $("#searchInput").value = "";
+  $("#searchResult").classList.remove("show");
+  renderAll();
+  toast(`已定位到 ${hit.w}`);
+}
 
 /* ================= 音频 ================= */
 let currentAudio = null;
@@ -497,13 +401,27 @@ function speakTTS(text, onEnd){
     speechSynthesis.speak(u);
   }catch(e){ toast("发音失败"); }
 }
-// 例句整句朗读
+// 例句整句朗读（优先整句TTS，逐词兜底仅在TTS彻底失败时触发）
 function speakSentence(sentence){
   stopAudio();
   const plain = sentence.replace(/<[^>]+>/g,"");
   if(window.speechSynthesis){
+    // 直接尝试整句朗读，不依赖预先检测语音列表
+    const u = new SpeechSynthesisUtterance(plain);
+    u.lang = "en-US"; u.rate = .82;
     const voices = speechSynthesis.getVoices();
-    if(voices.some(v=>/en/i.test(v.lang))){ speakTTS(plain); return; }
+    const en = voices.find(v=>/^en(-|_)/i.test(v.lang)) || voices.find(v=>/en/i.test(v.lang));
+    if(en) u.voice = en;
+    let fellBack = false;
+    u.onerror = ()=>{
+      if(!fellBack){ fellBack = true; speakWords(plain); } // TTS整句失败才逐词兜底
+    };
+    speechSynthesis.cancel();
+    speechSynthesis.speak(u);
+    // 兜底：若3秒后仍未开始发声（onstart未触发），切逐词
+    setTimeout(()=>{ if(!u._started){ try{speechSynthesis.cancel();}catch(e){} if(!fellBack){ fellBack=true; speakWords(plain);} } }, 3000);
+    u.onstart = ()=>{ u._started = true; };
+    return;
   }
   speakWords(plain);
 }
@@ -564,13 +482,16 @@ function playSyllables(wordData){
 
 /* ================= 渲染 ================= */
 function renderTabs(){
-  $("#groupTabs").innerHTML = GROUPS.map((g,i)=>`<div class="group-tab ${i===currentGroup?'active':''}" onclick="switchGroup(${i})">${g.emoji} ${g.name}</div>`).join("");
+  $("#groupTabs").innerHTML = GROUPS.map((g,i)=>`<div class="menu-group-tab ${i===currentGroup?'active':''}" onclick="switchGroup(${i})"><span>${g.emoji}</span><span>${g.name}</span></div>`).join("");
 }
 function renderSteps(){
-  $("#steps").innerHTML = STEP_LABELS.map((l,i)=>{
+  $("#steps").innerHTML = STEPS.map((s,i)=>{
     const cls = i===currentStep?"active":(i<currentStep?"done":"");
-    return `<div class="step ${cls}" onclick="goStep(${i})">${i<currentStep?'<span class="n">✓</span>':`<span class="n">${i+1}</span>`}${l}</div>` + (i<STEP_LABELS.length-1?'<span class="step-arrow">›</span>':'');
+    return `<div class="menu-item ${cls}" onclick="goStep(${i})"><span class="mi-icon">${s.icon}</span><span>${s.title}</span><span class="mi-num">${i<currentStep?'✓':(i+1)}</span></div>`;
   }).join("");
+  // 更新主区标题
+  $("#mainTitle").textContent = currentStep<STEPS.length ? STEPS[currentStep].title : "研习完成";
+  $("#mainSub").textContent = currentStep<STEPS.length ? STEPS[currentStep].sub : "";
 }
 function updateProgress(){
   const w = words();
@@ -585,6 +506,8 @@ function goStep(i){
 }
 function switchGroup(i){
   currentGroup = i; currentStep=0; learnIndex=0; stopAudio();
+  currentBatch = [];  // 清空批次，触发重新抽取
+  newBatch();
   renderAll();
 }
 function renderAll(){
@@ -615,12 +538,23 @@ function renderLearn(){
     const plainEn = e.en.replace(/<[^>]+>/g,"");
     return `<div class="example"><div class="en"><button class="ex-speak" onclick="speakSentence(\`${plainEn.replace(/'/g,"\\'")}\`)" title="听例句">🔊</button>${enHtml}</div><div class="cn">${e.cn}</div></div>`;
   }).join("");
+  // 相关词/词根：动态词库为空时隐藏
+  const relatedHtml = (w.related && w.related.length) ? `
+    <h3>📎 相关词汇（同源词）</h3>
+    <div class="chips">${w.related.map(r=>{const parts=r.split(" "); const en=parts[0]; const cn=parts.slice(1).join(" "); return `<span class="chip">${en} <span class="cn">${cn}</span></span>`;}).join("")}</div>` : "";
+  const rootHtml = w.root ? `
+    <h3>🧩 词根词缀</h3>
+    <div class="root-box"><b>${w.root.text}</b> —— ${w.root.meaning}<br>${w.root.detail}</div>` : "";
+  // 图片：有则显示，无则占位（异步加载）
+  const imgHtml = w.imageUrl
+    ? `<img src="${w.imageUrl}" alt="${w.word}" onerror="this.parentElement.innerHTML='<span class=&quot;emoji&quot;>🖼️</span>'">`
+    : `<span class="emoji" id="imgPlaceholder">🖼️</span>`;
   $("#learnPage").innerHTML = `
     <div class="learn-grid">
       <div class="word-main">
-        <div class="word-img"><span class="emoji">${w.emoji}</span></div>
+        <div class="word-img" id="wordImg">${imgHtml}</div>
         <div class="word-text">${wordSpans}</div>
-        <div class="word-phonetic">英 ${w.ukPhonetic} &nbsp; 美 ${w.usPhonetic}</div>
+        <div class="word-phonetic" id="phoneticBox">${w.ukPhonetic ? `英 ${w.ukPhonetic} &nbsp; 美 ${w.usPhonetic}` : '<span class="phonetic-loading">音标加载中…</span>'}</div>
         <div class="word-cn">${w.cn}</div>
         <div class="speak-row">
           <button class="btn-speak" onclick="playWordAudio('${w.word}')">🔊 整词发音</button>
@@ -628,11 +562,9 @@ function renderLearn(){
         </div>
       </div>
       <div class="word-info">
-        <h3>📎 相关词汇（同源词）</h3>
-        <div class="chips">${w.related.map(r=>{const parts=r.split(" "); const en=parts[0]; const cn=parts.slice(1).join(" "); return `<span class="chip">${en} <span class="cn">${cn}</span></span>`;}).join("")}</div>
-        <h3>🧩 词根词缀</h3>
-        <div class="root-box"><b>${w.root.text}</b> —— ${w.root.meaning}<br>${w.root.detail}</div>
-        <h3>💬 串联例句（目标词+拓展词联动）</h3>
+        ${relatedHtml}
+        ${rootHtml}
+        <h3>💬 常用例句</h3>
         ${exHtml}
       </div>
     </div>
@@ -644,6 +576,52 @@ function renderLearn(){
   `;
   // 自动播放读音
   setTimeout(()=>playWordAudio(w.word), 300);
+  // 异步加载音标和图片
+  loadPhonetic(w);
+  loadImage(w);
+}
+
+/* 音标按需查询（走后端中转，解决有道接口 CORS 限制） */
+async function loadPhonetic(w){
+  const box = $("#phoneticBox");
+  if(!box) return;
+  try{
+    const resp = await fetch(`/api/phonetic?q=${encodeURIComponent(w.word)}`);
+    if(!resp.ok) throw new Error('http '+resp.status);
+    const data = await resp.json();
+    let uk = data.uk || "", us = data.us || "";
+    if(uk) uk = "/"+uk+"/"; if(us) us = "/"+us+"/";
+    if(uk || us){
+      w.ukPhonetic = uk; w.usPhonetic = us;
+      box.innerHTML = `英 ${uk} &nbsp; 美 ${us}`;
+    } else {
+      box.innerHTML = '';
+    }
+  }catch(e){
+    if(box) box.innerHTML = '';
+  }
+}
+
+/* 图片按需生成（走自己的后端中转，key 不暴露） */
+async function loadImage(w){
+  const imgEl = $("#wordImg");
+  if(!imgEl) return;
+  if(w.imageUrl){ return; }
+  try{
+    const resp = await fetch('/api/generate-image', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ word: w.word, cn: w._cn || w.cn })
+    });
+    if(!resp.ok) throw new Error('http '+resp.status);
+    const data = await resp.json();
+    if(data.url){
+      w.imageUrl = data.url;
+      imgEl.innerHTML = `<img src="${data.url}" alt="${w.word}" onerror="this.parentElement.innerHTML='<span class=&quot;emoji&quot;>🖼️</span>'">`;
+    }
+  }catch(e){
+    // 生成失败则保留占位
+  }
 }
 function nextWord(){ if(learnIndex<words().length-1){ learnIndex++; renderLearn(); updateProgress(); } else { goStep(1); } }
 function prevWord(){ if(learnIndex>0){ learnIndex--; renderLearn(); updateProgress(); } }
@@ -657,8 +635,8 @@ function renderMatch(){
   matchState.cn = shuffle(w.map(x=>x.cn));
   $("#matchPage").classList.remove("hidden");
   $("#matchPage").innerHTML = `
-    <h2 class="page-title">🔗 题型1 · 中英连线</h2>
-    <p class="page-sub">点击英文单词，再点击对应的中文释义</p>
+    <h2 class="page-title">🔗 语义词联</h2>
+    <p class="page-sub">点击英文单词，再点击对应的中文释义，连缀成对</p>
     <div class="match-grid">
       <div class="match-col"><h3>英文</h3>${matchState.en.map((x,i)=>`<div class="match-item" id="en-${i}" onclick="matchClick('en',${i})">${x}</div>`).join("")}</div>
       <div class="match-col"><h3>中文</h3>${matchState.cn.map((x,i)=>`<div class="match-item" id="cn-${i}" onclick="matchClick('cn',${i})">${x}</div>`).join("")}</div>
@@ -702,8 +680,8 @@ function renderChoiceQ(){
   const enHtml = example.en.replace(/<B>(.*?)<\/B>/g, (m,p1)=>`<b>${p1}</b>`);
   $("#choicePage").classList.remove("hidden");
   $("#choicePage").innerHTML = `
-    <h2 class="page-title">📝 题型2 · 词义匹配</h2>
-    <p class="page-sub">选择句中加粗单词的正确释义</p>
+    <h2 class="page-title">🎯 词义甄别</h2>
+    <p class="page-sub">语境之中，辨明加粗单词的真义</p>
     <div class="question">
       <div class="q-index">第 ${choiceState.idx+1} / ${words().length} 题</div>
       <div class="q-sentence">${enHtml}</div>
@@ -751,8 +729,8 @@ function renderFillQ(){
   fillState.answer = w.word;
   $("#fillPage").classList.remove("hidden");
   $("#fillPage").innerHTML = `
-    <h2 class="page-title">✍️ 题型3 · 选词填空</h2>
-    <p class="page-sub">选择正确的单词填入空格</p>
+    <h2 class="page-title">✍️ 语境填空</h2>
+    <p class="page-sub">一词入句，选择恰如其分的单词</p>
     <div class="question">
       <div class="q-index">第 ${fillState.idx+1} / ${words().length} 题 · 中文：${w.cn}</div>
       <div class="q-sentence">${sentenceHtml}</div>
@@ -783,8 +761,8 @@ function renderSpellWord(){
   spellState.letters = shuffle(w.word.split(""));
   $("#spellPage").classList.remove("hidden");
   $("#spellPage").innerHTML = `
-    <h2 class="page-title">🔤 题型4 · 单词拼写</h2>
-    <p class="page-sub">点击字母拼出正确单词（点击已填字母可删除修改）</p>
+    <h2 class="page-title">🔤 拼写重构</h2>
+    <p class="page-sub">乱序字母归位，重现原词（点击已填字母可修改）</p>
     <div style="text-align:center">
       <div class="spell-cn">释义：${w.cn} &nbsp; <span style="color:var(--muted)">(${w.word.length} 个字母)</span></div>
       <button class="btn btn-ghost" style="padding:8px 20px;font-size:14px;margin-bottom:14px" onclick="playWordAudio('${w.word}')">🔊 听发音</button>
@@ -858,8 +836,8 @@ function renderSentenceQ(){
   sentenceState.target = tokens;
   $("#sentencePage").classList.remove("hidden");
   $("#sentencePage").innerHTML = `
-    <h2 class="page-title">🧩 题型5 · 连词成句</h2>
-    <p class="page-sub">点击下方碎片，按正确顺序拼出完整句子（点击已选碎片可撤回）</p>
+    <h2 class="page-title">🧩 句式组配</h2>
+    <p class="page-sub">缀词成句，拼出完整句式（点击已选碎片可撤回）</p>
     <div class="question">
       <div class="q-index">第 ${sentenceState.idx+1} / ${words().length} 题</div>
       <div class="q-sentence" style="color:var(--muted)">参考中文：${example.cn}</div>
@@ -914,8 +892,8 @@ function renderTransQ(){
   transState.answer = example.en.replace(/<[^>]+>/g,"");
   $("#transPage").classList.remove("hidden");
   $("#transPage").innerHTML = `
-    <h2 class="page-title">🌐 题型6 · 句子翻译</h2>
-    <p class="page-sub">把下面的中文翻译成英文（运用本节课单词）</p>
+    <h2 class="page-title">🌐 双语转译</h2>
+    <p class="page-sub">汉译英，运用本节课所学单词</p>
     <div class="question">
       <div class="q-index">第 ${transState.idx+1} / ${words().length} 题 · 提示单词：${w.word}</div>
       <div class="q-sentence">${example.cn}</div>
@@ -945,16 +923,21 @@ function nextTrans(){
 
 /* ================= 题型7：语篇短文 ================= */
 function renderPassage(){
-  const g = GROUPS[currentGroup];
-  const passage = g.passage;
-  // 目标词高亮
-  const enHtml = passage.en.replace(/<B>(.*?)<\/B>/g, (m,p1)=>`<span class="hl">${p1}</span>`);
+  const w = words();
+  // 动态词库：把本批词的例句串联成一篇复习短文（目标词标黄）
+  const sentences = w.map(x=>{
+    const ex = x.examples[0];
+    const plain = ex.en.replace(/<[^>]+>/g,"");
+    const hl = plain.replace(new RegExp(x.word,"i"), m=>`<span class="hl">${m}</span>`);
+    return `<p style="margin-bottom:12px">${hl}</p>`;
+  }).join("");
+  const cnList = w.map(x=>`<p style="margin-bottom:6px"><b>${x.word}</b> — ${x.cn}</p>`).join("");
   $("#passagePage").classList.remove("hidden");
   $("#passagePage").innerHTML = `
-    <h2 class="page-title">📖 题型7 · 语篇短文训练</h2>
-    <p class="page-sub">目标单词已标黄高亮，先通读，再看下方译文理解</p>
-    <div class="passage">${enHtml}</div>
-    <div class="passage-trans"><b>中文译文：</b><br>${passage.cn}</div>
+    <h2 class="page-title">📜 篇章研读</h2>
+    <p class="page-sub">本批词汇融于例句，目标词已标黄，通读复习</p>
+    <div class="passage">${sentences}</div>
+    <div class="passage-trans"><b>本批词汇释义：</b><br>${cnList}</div>
     <div style="text-align:center;margin-top:20px">
       <button class="btn btn-ghost" onclick="speakPassage()">🔊 朗读短文</button>
       <button class="btn btn-primary" onclick="goStep(8)">完成，查看结果 →</button>
@@ -962,8 +945,9 @@ function renderPassage(){
   `;
 }
 function speakPassage(){
-  const plain = GROUPS[currentGroup].passage.en.replace(/<[^>]+>/g,"");
-  speakWords(plain);
+  const w = words();
+  const plain = w.map(x=>x.examples[0].en.replace(/<[^>]+>/g,"")).join(". ");
+  speakSentence(plain);
 }
 
 /* ================= 结果页 ================= */
@@ -973,16 +957,26 @@ function renderResult(){
     <div class="result-box">
       <div class="result-emoji">🎉</div>
       <div class="result-score">完成！</div>
-      <div class="result-msg">你已完成「${GROUPS[currentGroup].name}」全部学习与练习：<br>学习 → 连线 → 词义 → 填空 → 拼写 → 连句 → 翻译 → 语篇</div>
+      <div class="result-msg">你已完成「${GROUPS[currentGroup].name}」本批 ${words().length} 词研习：<br>词汇认知 → 语义词联 → 词义甄别 → 语境填空 → 拼写重构 → 句式组配 → 双语转译 → 篇章研读</div>
       <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap">
-        <button class="btn btn-ghost" onclick="goStep(0)">🔁 再学一遍</button>
-        <button class="btn btn-primary" onclick="switchGroup((currentGroup+1)%GROUPS.length)">下一组 →</button>
+        <button class="btn btn-ghost" onclick="againBatch()">🔁 再学一遍</button>
+        <button class="btn btn-primary" onclick="nextBatch()">换一批词 →</button>
       </div>
     </div>
   `;
 }
+function againBatch(){
+  currentStep = 0; learnIndex = 0;
+  renderAll();
+}
+function nextBatch(){
+  currentStep = 0; learnIndex = 0;
+  newBatch();
+  renderAll();
+}
 
 /* ================= 初始化 ================= */
+newBatch();
 renderAll();
 </script>
 </body>

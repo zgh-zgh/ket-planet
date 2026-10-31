@@ -214,6 +214,51 @@
   #deckWords{resize:vertical}
   .btn-danger{background:var(--red);color:#fff}
 
+  /* ===== 游戏化激励：段位卡 / 积分 / 消消乐 / 成就 ===== */
+  .rank-card{background:linear-gradient(135deg,#2b2f4a,#3d3566);border-radius:16px;padding:16px 14px;margin:6px 4px 2px;color:#fff;position:relative;overflow:hidden}
+  .rank-card::after{content:"";position:absolute;right:-20px;top:-20px;width:90px;height:90px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.16),transparent 70%)}
+  .rank-top{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+  .rank-icon{font-size:34px;line-height:1;filter:drop-shadow(0 2px 6px rgba(0,0,0,.3))}
+  .rank-name{font-size:16px;font-weight:800;letter-spacing:.5px}
+  .rank-pts{font-size:12px;color:#c9c4e8;margin-top:1px}
+  .rank-pts b{color:#ffd76a;font-size:14px}
+  .rank-bar{height:6px;background:rgba(255,255,255,.18);border-radius:3px;overflow:hidden}
+  .rank-bar>div{height:100%;background:linear-gradient(90deg,#ffd76a,#ff9a5a);border-radius:3px;transition:width .5s}
+  .rank-next{font-size:11px;color:#b7b2d8;margin-top:5px}
+  .rank-next b{color:#fff}
+  .rank-up{position:absolute;left:0;right:0;top:0;bottom:0;display:flex;align-items:center;justify-content:center;background:rgba(20,22,40,.75);font-weight:800;font-size:15px;opacity:0;pointer-events:none;transition:.3s;z-index:2}
+  .rank-up.show{opacity:1}
+
+  .bomb-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:6px}
+  .bomb-cell{padding:14px 10px;border-radius:14px;background:#fbfbfe;border:2px solid var(--border);cursor:pointer;text-align:center;font-size:15px;font-weight:600;transition:.18s;user-select:none;min-height:52px;display:flex;align-items:center;justify-content:center;word-break:break-all}
+  .bomb-cell.en{background:linear-gradient(135deg,#eef2ff,#e7ecff);border-color:#dbe2ff;color:#3a4bb8}
+  .bomb-cell.cn{background:linear-gradient(135deg,#fff6ec,#fff0e6);border-color:#ffe0c4;color:#c0691f}
+  .bomb-cell:hover{transform:translateY(-2px);box-shadow:0 6px 14px rgba(0,0,0,.10)}
+  .bomb-cell.selected{transform:translateY(-2px) scale(1.04);border-color:var(--primary);box-shadow:0 0 0 3px rgba(79,110,247,.22)}
+  .bomb-cell.right{animation:bombPop .4s forwards}
+  .bomb-cell.wrong{animation:bombShake .4s;border-color:var(--red);background:#ffeef0;color:var(--red)}
+  .bomb-cell.cleared{opacity:.16;pointer-events:none;transform:scale(.82);border-color:var(--green)}
+  @keyframes bombPop{0%{transform:scale(1)}40%{transform:scale(1.12);border-color:var(--green);background:#e9fbf4;color:var(--green)}100%{transform:scale(.82);opacity:.16}}
+  @keyframes bombShake{0%,100%{transform:translateX(0)}20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+  .bomb-hud{display:flex;justify-content:center;gap:18px;align-items:center;margin-bottom:4px;color:var(--muted);font-size:14px}
+  .bomb-hud b{color:var(--primary);font-size:16px}
+
+  .ach-rank{display:flex;align-items:center;gap:16px;background:linear-gradient(135deg,#2b2f4a,#3d3566);border-radius:18px;padding:24px;color:#fff;margin-bottom:20px}
+  .ach-rank .rank-icon{font-size:52px}
+  .ach-rank .rank-name{font-size:22px}
+  .ach-pts{font-size:13px;color:#c9c4e8;margin-top:2px}
+  .badge-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:14px;margin-top:8px}
+  .badge{background:#f8f9fd;border:2px solid var(--border);border-radius:16px;padding:18px 10px;text-align:center;transition:.2s}
+  .badge.unlocked{border-color:#ffe3a8;background:linear-gradient(160deg,#fffbf0,#fff6e2);box-shadow:0 4px 14px rgba(255,176,32,.18)}
+  .badge.locked{opacity:.5;filter:grayscale(.7)}
+  .badge .bd-icon{font-size:36px;line-height:1;margin-bottom:8px}
+  .badge .bd-name{font-size:14px;font-weight:700}
+  .badge .bd-min{font-size:11px;color:#999;margin-top:3px}
+  .rule-box{background:#f8f9fd;border-radius:14px;padding:16px 18px;margin-top:8px;font-size:13px;color:#555;line-height:2}
+  .rule-box b{color:var(--primary)}
+  .pts-float{position:fixed;z-index:120;font-weight:800;font-size:15px;color:var(--amber);pointer-events:none;animation:ptsFloat 1s forwards}
+  @keyframes ptsFloat{0%{opacity:0;transform:translateY(0)}20%{opacity:1}100%{opacity:0;transform:translateY(-34px)}}
+
   @media(max-width:720px){
     .learn-grid,.match-grid,.options{grid-template-columns:1fr}
     .word-text{font-size:32px}
@@ -238,6 +283,18 @@
         <div class="brand-sub">中高考词汇研习</div>
       </div>
     </div>
+    <div class="rank-card" id="rankCard" onclick="openMode('achievement')" style="cursor:pointer">
+      <div class="rank-top">
+        <div class="rank-icon" id="rankIcon">🥉</div>
+        <div>
+          <div class="rank-name" id="rankName">青铜学徒</div>
+          <div class="rank-pts">积分 <b id="rankPts">0</b></div>
+        </div>
+      </div>
+      <div class="rank-bar"><div id="rankBar" style="width:0%"></div></div>
+      <div class="rank-next" id="rankNext"></div>
+      <div class="rank-up" id="rankUp">🎉 段位晋升！</div>
+    </div>
     <div class="menu-label">词库专题</div>
     <div class="menu-group-tabs" id="groupTabs"></div>
     <div class="menu-label">检索单词</div>
@@ -252,6 +309,10 @@
       <div class="menu-item" id="miReview" onclick="openMode('review')"><span class="mi-icon">📅</span><span>今日复习</span><span class="mi-num" id="dueBadge"></span></div>
       <div class="menu-item" id="miWrongbook" onclick="openMode('wrongbook')"><span class="mi-icon">📕</span><span>错题本</span><span class="mi-num" id="wrongBadge"></span></div>
       <div class="menu-item" id="miDecks" onclick="openMode('decks')"><span class="mi-icon">📚</span><span>我的词库</span></div>
+    </div>
+    <div class="menu-label">成长激励</div>
+    <div class="menu-group" id="growthMenu">
+      <div class="menu-item" id="miAchievement" onclick="openMode('achievement')"><span class="mi-icon">🏆</span><span>段位成就</span><span class="mi-num" id="ptsBadge"></span></div>
     </div>
     <div class="sidebar-foot">墨词 Lexi · 词汇训练系统</div>
   </aside>
@@ -273,6 +334,7 @@
     <section id="reviewPage" class="card hidden"></section>
     <section id="wrongbookPage" class="card hidden"></section>
     <section id="decksPage" class="card hidden"></section>
+    <section id="achievementPage" class="card hidden"></section>
   </main>
 </div>
 <div class="toast" id="toast"></div>
@@ -505,6 +567,7 @@ let learnIndex = 0;
 let BATCH_SIZE = 15; // 每批学习的单词数
 let currentBatch = []; // 当前批次的学习词（从当前级别随机抽取）
 let activeCustomWords = null; // 激活的自定义词库词对象数组（null=内置词库）
+let resultRewarded = false; // 本批是否已发放通关奖励
 
 // 获取当前批次的学习词（不是全部词库）
 const words = () => {
@@ -518,11 +581,12 @@ function newBatch(){
   const n = Math.min(BATCH_SIZE, pool.length);
   currentBatch = shuffle(pool).slice(0, n);
   learnIndex = 0;
+  resultRewarded = false;
 }
 // 典雅书院风命名（标题 / 菜单名 / 图标 / 副标题）
 const STEPS = [
   {title:"词汇认知", icon:"📖", sub:"观图识词 · 聆听发音 · 析词根词缀"},
-  {title:"语义词联", icon:"🔗", sub:"中英对映 · 连缀成对"},
+  {title:"语义词联", icon:"🍬", sub:"消消乐 · 配对消除 · 积学闯关"},
   {title:"词义甄别", icon:"🎯", sub:"语境之中 · 辨明真义"},
   {title:"语境填空", icon:"✍️", sub:"一词入句 · 恰如其分"},
   {title:"拼写重构", icon:"🔤", sub:"乱序归位 · 重现原词"},
@@ -707,16 +771,17 @@ function switchGroup(i){
   renderAll();
 }
 function renderAll(){
-  renderTabs(); renderSteps(); updateProgress(); updateBadges();
-  ["learnPage","matchPage","choicePage","fillPage","spellPage","sentencePage","transPage","passagePage","resultPage","reviewPage","wrongbookPage","decksPage"].forEach(id=>$("#"+id).classList.add("hidden"));
-  // 复习巩固菜单高亮
-  const miMap = { review:'miReview', wrongbook:'miWrongbook', decks:'miDecks' };
-  ["miReview","miWrongbook","miDecks"].forEach(id=>{ const el=$("#"+id); if(el) el.classList.remove("active"); });
+  renderTabs(); renderSteps(); updateProgress(); updateBadges(); updateRankUI();
+  ["learnPage","matchPage","choicePage","fillPage","spellPage","sentencePage","transPage","passagePage","resultPage","reviewPage","wrongbookPage","decksPage","achievementPage"].forEach(id=>$("#"+id).classList.add("hidden"));
+  // 复习巩固 + 成长激励菜单高亮
+  const miMap = { review:'miReview', wrongbook:'miWrongbook', decks:'miDecks', achievement:'miAchievement' };
+  ["miReview","miWrongbook","miDecks","miAchievement"].forEach(id=>{ const el=$("#"+id); if(el) el.classList.remove("active"); });
   if(miMap[appMode]){ const el=$("#"+miMap[appMode]); if(el) el.classList.add("active"); }
   stopAudio();
   if(appMode==='review'){ renderReview(); window.scrollTo({top:0}); return; }
   if(appMode==='wrongbook'){ renderWrongbook(); window.scrollTo({top:0}); return; }
   if(appMode==='decks'){ renderDecks(); window.scrollTo({top:0}); return; }
+  if(appMode==='achievement'){ renderAchievement(); window.scrollTo({top:0}); return; }
   if(currentStep===0) renderLearn();
   else if(currentStep===1) renderMatch();
   else if(currentStep===2) renderChoice();
@@ -758,7 +823,10 @@ function getWrongWords(){ return Object.entries(loadWrongbook()).sort((a,b)=>b[1
 function loadStudylog(){ return loadStore(LS.studylog, {}); }
 function markLearned(word, level){
   const log = loadStudylog();
-  if(!log[word]){ log[word] = { level, stage:0, nextDue: Date.now()+EBB_INTERVALS[0]*DAY }; }
+  if(!log[word]){
+    log[word] = { level, stage:0, nextDue: Date.now()+EBB_INTERVALS[0]*DAY };
+    addPoints(5, '学习新词'); // 每个新单词第一次学习 +5 分
+  }
   saveStore(LS.studylog, log);
   updateBadges();
 }
@@ -778,7 +846,113 @@ function reviewResult(word, result){
   else r.stage = 0;
   r.nextDue = Date.now() + EBB_INTERVALS[r.stage]*DAY;
   saveStore(LS.studylog, log);
+  // 复习奖励：认识 +3，模糊 +1，忘记 +0
+  if(result==='know') addPoints(3, '复习·认识');
+  else if(result==='fuzzy') addPoints(1, '复习·模糊');
 }
+
+/* ================= 游戏化激励：积分 + 段位 + 成就 ================= */
+const LS_POINTS = 'lx_points';
+const RANKS = [
+  { name:'青铜学徒', icon:'🥉', min:0 },
+  { name:'白银新秀', icon:'🥈', min:100 },
+  { name:'黄金勇士', icon:'🥇', min:300 },
+  { name:'铂金大师', icon:'💎', min:600 },
+  { name:'钻石学霸', icon:'🔷', min:1000 },
+  { name:'星耀学霸', icon:'⭐', min:1600 },
+  { name:'王者之师', icon:'👑', min:2400 },
+  { name:'传奇宗师', icon:'🏆', min:3400 },
+];
+function loadPoints(){ return loadStore(LS_POINTS, { total:0, today:0, todayKey:'', earned:{} }); }
+function savePoints(p){ saveStore(LS_POINTS, p); }
+function getRank(total){ let r=0; for(let i=0;i<RANKS.length;i++){ if(total>=RANKS[i].min) r=i; } return r; }
+// 加分：自动处理段位晋升检测，返回是否晋升
+function addPoints(n, reason){
+  if(!n || n<=0) return false;
+  const p = loadPoints();
+  const before = p.total;
+  const prevRank = getRank(before);
+  p.total += n;
+  // 今日积分
+  const tk = new Date().toDateString();
+  if(p.todayKey !== tk){ p.todayKey = tk; p.today = 0; }
+  p.today += n;
+  p.earned[reason] = (p.earned[reason]||0) + n;
+  savePoints(p);
+  const newRank = getRank(p.total);
+  updateRankUI();
+  if(newRank > prevRank){ showRankUp(); }
+  return true;
+}
+function showRankUp(){
+  const el = $("#rankUp");
+  if(!el) return;
+  el.classList.add("show");
+  setTimeout(()=>el.classList.remove("show"), 1800);
+}
+function updateRankUI(){
+  const p = loadPoints();
+  const r = getRank(p.total);
+  const cur = RANKS[r], next = RANKS[r+1] || null;
+  const icon = $("#rankIcon"), name = $("#rankName"), pts = $("#rankPts"), bar = $("#rankBar"), nxt = $("#rankNext"), badge = $("#ptsBadge");
+  if(icon) icon.textContent = cur.icon;
+  if(name) name.textContent = cur.name;
+  if(pts) pts.textContent = p.total;
+  if(badge) badge.textContent = p.total>0 ? p.total : '';
+  if(next){
+    const prog = Math.min(100, Math.round((p.total - cur.min) / (next.min - cur.min) * 100));
+    if(bar) bar.style.width = prog + "%";
+    if(nxt) nxt.innerHTML = `距 <b>${next.icon} ${next.name}</b> 还差 <b>${next.min - p.total}</b> 分`;
+  } else {
+    if(bar) bar.style.width = "100%";
+    if(nxt) nxt.innerHTML = `已登顶最高段位 🏆`;
+  }
+}
+// 积分飘字动画
+function floatPoints(x, y, n){
+  const el = document.createElement("div");
+  el.className = "pts-float";
+  el.textContent = "+" + n;
+  el.style.left = x + "px";
+  el.style.top = y + "px";
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(), 1000);
+}
+// 成就页渲染
+function renderAchievement(){
+  const p = loadPoints();
+  const r = getRank(p.total);
+  const cur = RANKS[r];
+  $("#achievementPage").classList.remove("hidden");
+  $("#achievementPage").innerHTML = `
+    <h2 class="page-title">🏆 段位成就</h2>
+    <p class="page-sub">积学累功，拾级而上</p>
+    <div class="ach-rank">
+      <div class="rank-icon">${cur.icon}</div>
+      <div>
+        <div class="rank-name">${cur.name}</div>
+        <div class="ach-pts">当前积分：<b style="color:#ffd76a">${p.total}</b>　·　今日 +${p.today}</div>
+        <div style="font-size:12px;color:#b7b2d8;margin-top:4px">${RANKS[r+1] ? '下一段位：'+RANKS[r+1].icon+' '+RANKS[r+1].name+'（'+RANKS[r+1].min+'分）' : '已达最高段位'}</div>
+      </div>
+    </div>
+    <h3 style="font-size:15px;color:var(--primary);margin-bottom:6px">🎖️ 全部段位勋章</h3>
+    <div class="badge-grid">${RANKS.map((rk,i)=>`
+      <div class="badge ${i<=r?'unlocked':'locked'}">
+        <div class="bd-icon">${rk.icon}</div>
+        <div class="bd-name">${rk.name}</div>
+        <div class="bd-min">${rk.min} 分${i<=r?' · 已解锁':''}</div>
+      </div>`).join("")}</div>
+    <h3 style="font-size:15px;color:var(--primary);margin:22px 0 6px">📋 积分获取规则</h3>
+    <div class="rule-box">
+      <b>学习</b>：每学一个新单词 +5 分<br>
+      <b>练习</b>：语义词联（消消乐）每对 +2 分 · 词义甄别 +2 分 · 语境填空 +2 分 · 拼写重构 +3 分 · 句式组配 +3 分 · 双语转译 +2 分<br>
+      <b>复习</b>：艾宾浩斯复习「认识」+3 分 ·「模糊」+1 分<br>
+      <b>通关</b>：完成一整批 15 词研习，额外奖励 +20 分<br>
+      <span style="color:#999">正确率越高，得分越多；答错不扣分，只计学习与复习的正向积累。</span>
+    </div>
+  `;
+}
+
 
 /* ---- 自定义词库 ---- */
 function loadDecks(){ return loadStore(LS.decks, []); }
@@ -792,7 +966,7 @@ function findCn(word){
 }
 
 /* ---- 模式切换与徽标 ---- */
-let appMode = 'learn'; // learn | review | wrongbook | decks
+let appMode = 'learn'; // learn | review | wrongbook | decks | achievement
 function openMode(mode){ appMode = mode; currentStep = 0; stopAudio(); renderAll(); }
 function updateBadges(){
   const due = getDueReviews().length;
@@ -1109,40 +1283,64 @@ async function onImgFail(el, word){
 function nextWord(){ if(learnIndex<words().length-1){ learnIndex++; renderLearn(); updateProgress(); } else { goStep(1); } }
 function prevWord(){ if(learnIndex>0){ learnIndex--; renderLearn(); updateProgress(); } }
 
-/* ================= 题型1：中英连线 ================= */
-let matchState = { selected:null, right:new Set() };
+/* ================= 题型1：语义词联（开心消消乐玩法） ================= */
+let matchState = { selected:null, cleared:0, total:0, cells:[] };
 function renderMatch(){
   const w = words();
-  matchState = { selected:null, right:new Set() };
-  matchState.en = shuffle(w.map(x=>x.word));
-  matchState.cn = shuffle(w.map(x=>x.cn));
+  const cells = [];
+  w.forEach((x,i)=>{ cells.push({ type:'en', text:x.word, pair:i }); cells.push({ type:'cn', text:x.cn, pair:i }); });
+  matchState = { selected:null, cleared:0, total:w.length, cells: shuffle(cells) };
   $("#matchPage").classList.remove("hidden");
   $("#matchPage").innerHTML = `
-    <h2 class="page-title">🔗 语义词联</h2>
-    <p class="page-sub">点击英文单词，再点击对应的中文释义，连缀成对</p>
-    <div class="match-grid">
-      <div class="match-col"><h3>英文</h3>${matchState.en.map((x,i)=>`<div class="match-item" id="en-${i}" onclick="matchClick('en',${i})">${x}</div>`).join("")}</div>
-      <div class="match-col"><h3>中文</h3>${matchState.cn.map((x,i)=>`<div class="match-item" id="cn-${i}" onclick="matchClick('cn',${i})">${x}</div>`).join("")}</div>
+    <h2 class="page-title">🍬 语义词联 · 消消乐</h2>
+    <p class="page-sub">点选英文与对应中文释义，配对消除，全部消除即过关</p>
+    <div class="bomb-hud">
+      <span>已消除 <b id="bombCleared">0</b> / ${matchState.total}</span>
+      <span>本关得分 <b id="bombScore">0</b></span>
+    </div>
+    <div class="bomb-grid">
+      ${matchState.cells.map((c,i)=>`<div class="bomb-cell ${c.type}" id="bomb-${i}" onclick="bombClick(${i})">${c.text}</div>`).join("")}
     </div>
     <div style="text-align:center;margin-top:20px"><button class="btn btn-skip" onclick="goStep(2)">跳过本题型 →</button></div>
   `;
 }
-function matchClick(side,i){
-  if(side==="en"){
-    matchState.selected = {side:"en",i};
-    document.querySelectorAll(".match-item").forEach(e=>e.classList.remove("selected"));
-    $("#en-"+i).classList.add("selected");
-  } else {
-    if(!matchState.selected || matchState.selected.side!=="en") return;
-    const enIdx = matchState.selected.i;
-    const enWord = matchState.en[enIdx];
-    const cnWord = matchState.cn[i];
-    const correct = words().find(x=>x.word===enWord)?.cn === cnWord;
-    const enEl = $("#en-"+enIdx), cnEl = $("#cn-"+i);
-    if(correct){ enEl.classList.remove("selected","wrong"); enEl.classList.add("right","done"); cnEl.classList.add("right","done"); matchState.right.add(enWord); toast("✅ 配对正确！"); }
-    else { enEl.classList.add("wrong"); cnEl.classList.add("wrong"); addWrong(enWord, cnWord); setTimeout(()=>{enEl.classList.remove("wrong");cnEl.classList.remove("wrong");},400); toast("❌ 再想想～"); }
+function bombClick(i){
+  const cell = matchState.cells[i];
+  const el = $("#bomb-"+i);
+  if(!el || el.classList.contains("cleared") || el.classList.contains("right")) return;
+  if(matchState.selected === null){
+    matchState.selected = i;
+    el.classList.add("selected");
+    return;
+  }
+  if(matchState.selected === i){
     matchState.selected = null;
-    if(matchState.right.size === words().length){ setTimeout(()=>{ toast("🎉 全部配对完成！"); setTimeout(()=>goStep(2),1200); },800); }
+    el.classList.remove("selected");
+    return;
+  }
+  const j = matchState.selected;
+  const a = matchState.cells[j], b = cell;
+  const elA = $("#bomb-"+j);
+  const isPair = (a.pair === b.pair) && (a.type !== b.type);
+  if(isPair){
+    elA.classList.remove("selected");
+    elA.classList.add("right");
+    el.classList.add("right");
+    matchState.cleared++;
+    $("#bombCleared").textContent = matchState.cleared;
+    $("#bombScore").textContent = matchState.cleared * 2;
+    addPoints(2, '语义词联');
+    matchState.selected = null;
+    if(matchState.cleared === matchState.total){
+      setTimeout(()=>{ toast("🎉 全部消除！"); setTimeout(()=>goStep(2),1200); }, 700);
+    }
+  } else {
+    const enCell = a.type==='en' ? a : b;
+    addWrong(enCell.text, words().find(x=>x.word===enCell.text)?.cn || '');
+    el.classList.add("wrong"); elA.classList.add("wrong");
+    matchState.selected = null;
+    setTimeout(()=>{ el.classList.remove("wrong","selected"); elA.classList.remove("wrong","selected"); },400);
+    toast("❌ 不是一对，再试试");
   }
 }
 
@@ -1176,7 +1374,7 @@ function renderChoiceQ(){
 function answerChoice(i, el){
   const opts = el.parentElement.querySelectorAll(".option");
   const correct = el.textContent.trim() === choiceState.answer;
-  if(correct){ el.classList.add("right"); toast("✅ 正确！"); }
+  if(correct){ el.classList.add("right"); addPoints(2, '词义甄别'); toast("✅ 正确！ +2"); }
   else { el.classList.add("wrong"); addWrong(words()[choiceState.idx].word, words()[choiceState.idx].cn); opts.forEach(o=>{ if(o.textContent.trim()===choiceState.answer) o.classList.add("right"); }); toast("❌ 正确答案已标绿"); }
   opts.forEach(o=>o.style.pointerEvents="none");
   setTimeout(()=>{
@@ -1225,7 +1423,7 @@ function renderFillQ(){
 function answerFill(i, el){
   const opts = el.parentElement.querySelectorAll(".option");
   const correct = el.textContent.trim() === fillState.answer;
-  if(correct){ el.classList.add("right"); toast("✅ 正确！"); }
+  if(correct){ el.classList.add("right"); addPoints(2, '语境填空'); toast("✅ 正确！ +2"); }
   else { el.classList.add("wrong"); addWrong(words()[fillState.idx].word, words()[fillState.idx].cn); opts.forEach(o=>{ if(o.textContent.trim()===fillState.answer) o.classList.add("right"); }); toast("❌ 正确答案已标绿"); }
   opts.forEach(o=>o.style.pointerEvents="none");
   setTimeout(()=>{ if(fillState.idx<words().length-1){ fillState.idx++; renderFillQ(); } else { goStep(4); } }, 1200);
@@ -1306,7 +1504,8 @@ function checkSpell(){
   const slots = document.querySelectorAll("#spellPage .slot");
   if(ans === w.word){
     slots.forEach(s=>s.classList.add("right"));
-    toast("✅ 拼写正确！");
+    addPoints(3, '拼写重构');
+    toast("✅ 拼写正确！ +3");
     setTimeout(()=>{ if(spellState.idx<words().length-1){ spellState.idx++; renderSpellWord(); } else { goStep(5); } },900);
   } else {
     slots.forEach((s,i)=>s.classList.add(w.word[i]===ans[i]?"right":"wrong"));
@@ -1370,7 +1569,8 @@ function checkSentence(){
   const area = $("#buildArea");
   if(builtStr === targetStr){
     area.querySelectorAll(".frag").forEach(f=>f.classList.add("right"));
-    toast("✅ 拼句正确！");
+    addPoints(3, '句式组配');
+    toast("✅ 拼句正确！ +3");
     setTimeout(()=>{ if(sentenceState.idx<words().length-1){ sentenceState.idx++; renderSentenceQ(); } else { goStep(6); } },1100);
   } else {
     addWrong(words()[sentenceState.idx].word, words()[sentenceState.idx].cn);
@@ -1408,7 +1608,7 @@ function checkTrans(){
   const target = words()[transState.idx].word.toLowerCase();
   const hasTarget = input.toLowerCase().includes(target);
   let msg = "";
-  if(hasTarget){ msg = "✅ 很好！你正确使用了目标单词 "+words()[transState.idx].word; }
+  if(hasTarget){ addPoints(2, '双语转译'); msg = "✅ 很好！你正确使用了目标单词 "+words()[transState.idx].word+" +2"; }
   else { msg = "⚠️ 建议在句中用上目标单词 "+words()[transState.idx].word; addWrong(words()[transState.idx].word, words()[transState.idx].cn); }
   // 显示参考答案
   toast(msg);
@@ -1450,12 +1650,15 @@ function speakPassage(){
 
 /* ================= 结果页 ================= */
 function renderResult(){
+  if(!resultRewarded){ addPoints(20, '通关奖励'); resultRewarded = true; }
   $("#resultPage").classList.remove("hidden");
+  const p = loadPoints();
+  const r = getRank(p.total);
   $("#resultPage").innerHTML = `
     <div class="result-box">
       <div class="result-emoji">🎉</div>
       <div class="result-score">完成！</div>
-      <div class="result-msg">你已完成「${GROUPS[currentGroup].name}」本批 ${words().length} 词研习：<br>词汇认知 → 语义词联 → 词义甄别 → 语境填空 → 拼写重构 → 句式组配 → 双语转译 → 篇章研读</div>
+      <div class="result-msg">你已完成「${GROUPS[currentGroup].name}」本批 ${words().length} 词研习：<br>词汇认知 → 语义词联 → 词义甄别 → 语境填空 → 拼写重构 → 句式组配 → 双语转译 → 篇章研读<br><span style="color:var(--amber);font-weight:700;font-size:15px">🏆 通关奖励 +20 分 · 当前 ${RANKS[r].icon} ${RANKS[r].name} · 累计 ${p.total} 分</span></div>
       <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap">
         <button class="btn btn-ghost" onclick="againBatch()">🔁 再学一遍</button>
         <button class="btn btn-primary" onclick="nextBatch()">换一批词 →</button>
@@ -1465,10 +1668,12 @@ function renderResult(){
 }
 function againBatch(){
   currentStep = 0; learnIndex = 0;
+  resultRewarded = false;
   renderAll();
 }
 function nextBatch(){
   currentStep = 0; learnIndex = 0;
+  resultRewarded = false;
   newBatch();
   renderAll();
 }

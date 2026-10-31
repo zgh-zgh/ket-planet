@@ -498,10 +498,15 @@ function jumpToWord(i){
   if(!hit) return;
   // 切换到对应级别，并定位到该词
   const lvIdx = LEVELS.indexOf(hit.lv);
+  if(lvIdx < 0) return;
   currentGroup = lvIdx;
-  const wlist = words();
-  const idx = wlist.findIndex(x=>x.word.toLowerCase()===hit.w.toLowerCase());
-  learnIndex = idx>=0 ? idx : 0;
+  // 从该级别完整词库中定位目标词（不是当前15词批次），并重建批次：目标词放首位
+  const pool = GROUPS[lvIdx].words;
+  const target = pool.find(x=>x.word.toLowerCase()===hit.w.toLowerCase());
+  if(!target) return;
+  const rest = pool.filter(x=>x !== target);
+  currentBatch = [target].concat(shuffle(rest).slice(0, BATCH_SIZE-1));
+  learnIndex = 0;
   currentStep = 0;
   $("#searchInput").value = "";
   $("#searchResult").classList.remove("show");

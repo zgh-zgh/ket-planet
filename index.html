@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>轻松背单词 - 图片联想记忆法</title>
+<style>
+  :root{
+    --bg:#f6f7fb; --card:#ffffff; --primary:#4f6ef7; --primary2:#7c5cf0;
+    --text:#1f2430; --muted:#8a90a3; --border:#e7e9f2;
+    --green:#22c58b; --red:#ff6b6b; --amber:#ffb020;
+    --shadow:0 6px 24px rgba(70,80,130,.08);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+    background:var(--bg); color:var(--text); line-height:1.6; -webkit-font-smoothing:antialiased;
+  }
+  .app{max-width:980px;margin:0 auto;padding:20px 16px 60px}
+
+  /* 顶部 */
+  header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:12px}
+  .logo{font-size:22px;font-weight:800;background:linear-gradient(135deg,var(--primary),var(--primary2));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+  .logo small{font-size:12px;font-weight:500;-webkit-text-fill-color:var(--muted);margin-left:8px}
+  .group-tabs{display:flex;gap:8px;flex-wrap:wrap}
+  .group-tab{padding:8px 16px;border-radius:20px;background:#fff;border:1px solid var(--border);cursor:pointer;font-size:14px;color:var(--muted);transition:.2s}
+  .group-tab:hover{border-color:var(--primary);color:var(--primary)}
+  .group-tab.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+
+  /* 步骤条 */
+  .steps{display:flex;align-items:center;justify-content:center;gap:0;margin:18px 0 24px}
+  .step{display:flex;align-items:center;gap:8px;padding:8px 18px;border-radius:24px;background:#fff;border:1px solid var(--border);font-size:14px;color:var(--muted);cursor:pointer;transition:.2s}
+  .step .n{width:22px;height:22px;border-radius:50%;background:#eef0f7;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700}
+  .step.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+  .step.active .n{background:rgba(255,255,255,.25)}
+  .step.done{color:var(--green);border-color:var(--green)}
+  .step.done .n{background:var(--green);color:#fff}
+  .step-arrow{color:#c4c9d8;margin:0 6px;font-size:16px}
+
+  .card{background:var(--card);border-radius:20px;box-shadow:var(--shadow);padding:28px;margin-bottom:20px}
+
+  /* 学习卡片 */
+  .learn-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+  .word-main{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+  .word-img{width:100%;max-width:320px;aspect-ratio:4/3;border-radius:16px;overflow:hidden;margin-bottom:18px;background:linear-gradient(135deg,#eef1ff,#f7f0ff);display:flex;align-items:center;justify-content:center}
+  .word-img .emoji{font-size:110px;line-height:1}
+  .word-text{font-size:44px;font-weight:800;letter-spacing:.5px}
+  .word-phonetic{color:var(--muted);font-size:16px;margin:6px 0 2px}
+  .word-speak{margin-top:8px;padding:8px 20px;border-radius:20px;border:1px solid var(--primary);background:#fff;color:var(--primary);cursor:pointer;font-size:14px}
+  .word-speak:hover{background:var(--primary);color:#fff}
+  .word-cn{font-size:20px;font-weight:600;color:var(--primary);margin-top:10px}
+
+  .word-info h3{font-size:15px;color:var(--primary);margin:0 0 10px;display:flex;align-items:center;gap:6px}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+  .chip{padding:6px 12px;border-radius:14px;background:#f0f3ff;color:#4a5ad0;font-size:13px;border:1px solid #dfe5ff}
+  .root-box{background:#f8f9fd;border-radius:12px;padding:12px 14px;margin-bottom:14px;font-size:14px;border-left:3px solid var(--primary2)}
+  .root-box b{color:var(--primary2)}
+  .example{margin-bottom:10px;padding:10px 14px;border-radius:12px;background:#fbfbfe;border:1px solid var(--border)}
+  .example .en{font-weight:600;font-size:15px}
+  .example .cn{color:var(--muted);font-size:13px}
+
+  .nav-btns{display:flex;justify-content:space-between;align-items:center;margin-top:8px}
+  .btn{padding:12px 26px;border-radius:26px;border:none;cursor:pointer;font-size:15px;font-weight:600;transition:.2s}
+  .btn-primary{background:linear-gradient(135deg,var(--primary),var(--primary2));color:#fff}
+  .btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(79,110,247,.35)}
+  .btn-ghost{background:#fff;border:1px solid var(--border);color:var(--text)}
+  .btn-ghost:hover{border-color:var(--primary);color:var(--primary)}
+  .progress-info{color:var(--muted);font-size:14px}
+  .progress-bar{height:8px;background:#eef0f7;border-radius:4px;overflow:hidden;margin-bottom:20px}
+  .progress-bar>div{height:100%;background:linear-gradient(90deg,var(--primary),var(--primary2));transition:width .3s}
+
+  /* 连线测试 */
+  .match-grid{display:grid;grid-template-columns:1fr 1fr;gap:40px}
+  .match-col{display:flex;flex-direction:column;gap:12px}
+  .match-col h3{text-align:center;font-size:15px;color:var(--muted);margin-bottom:4px}
+  .match-item{padding:14px 16px;border-radius:14px;background:#fbfbfe;border:2px solid var(--border);cursor:pointer;text-align:center;font-size:16px;font-weight:600;transition:.15s;user-select:none}
+  .match-item:hover{border-color:var(--primary)}
+  .match-item.selected{border-color:var(--primary);background:#eef2ff}
+  .match-item.right{border-color:var(--green);background:#e9fbf4;color:var(--green)}
+  .match-item.wrong{border-color:var(--red);background:#ffeef0;color:var(--red)}
+  .match-item.done{opacity:.4;pointer-events:none}
+
+  /* 拼写测试 */
+  .spell-word{font-size:20px;font-weight:700;margin-bottom:6px}
+  .spell-cn{color:var(--muted);margin-bottom:14px}
+  .spell-hint{font-size:12px;color:var(--amber);margin-bottom:12px}
+  .letters{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:18px;min-height:44px}
+  .letter-tile{padding:12px 16px;border-radius:12px;background:linear-gradient(135deg,#f0f3ff,#eef0ff);border:1px solid #dfe5ff;cursor:pointer;font-size:18px;font-weight:700;min-width:44px;text-align:center;transition:.15s;user-select:none}
+  .letter-tile:hover{transform:translateY(-2px)}
+  .letter-tile.used{opacity:.25;pointer-events:none}
+  .answer-slots{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:20px;min-height:48px}
+  .slot{width:48px;height:48px;border-radius:12px;border:2px dashed #c4c9d8;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;cursor:pointer;background:#fff}
+  .slot.filled{border-style:solid;border-color:var(--primary);background:#f7f9ff}
+  .slot.right{border-color:var(--green);background:#e9fbf4;color:var(--green)}
+  .slot.wrong{border-color:var(--red);background:#ffeef0;color:var(--red)}
+
+  /* 运用测试 */
+  .passage{font-size:16px;line-height:2.1;background:#fbfbfe;border-radius:14px;padding:20px;border:1px solid var(--border);margin-bottom:20px}
+  .blank{display:inline-block;min-width:80px;border-bottom:2px solid var(--primary);text-align:center;padding:0 6px;margin:0 3px;color:var(--primary);font-weight:700}
+  .blank.filled{color:var(--green)}
+  .option-chips{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-bottom:18px}
+  .opt-chip{padding:10px 18px;border-radius:20px;background:#fff;border:1px solid var(--border);cursor:pointer;font-size:15px;font-weight:600;transition:.15s}
+  .opt-chip:hover{border-color:var(--primary);color:var(--primary)}
+  .opt-chip.used{opacity:.3;pointer-events:none}
+
+  /* 结果 */
+  .result-box{text-align:center;padding:40px 20px}
+  .result-emoji{font-size:72px}
+  .result-score{font-size:48px;font-weight:800;margin:10px 0}
+  .result-msg{color:var(--muted);margin-bottom:24px}
+  .score-ring{width:120px;height:120px;border-radius:50%;margin:0 auto 16px;display:flex;align-items:center;justify-content:center;font-size:34px;font-weight:800;color:#fff;background:conic-gradient(var(--green) 0 100%)}
+
+  .hidden{display:none!important}
+  .toast{position:fixed;top:24px;left:50%;transform:translateX(-50%);background:#1f2430;color:#fff;padding:12px 22px;border-radius:26px;font-size:14px;opacity:0;transition:.3s;z-index:99;pointer-events:none}
+  .toast.show{opacity:1}
+  @media(max-width:720px){
+    .learn-grid,.match-grid{grid-template-columns:1fr}
+    .word-text{font-size:34px}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="logo">轻松背单词<small>图片联想记忆法</small></div>
+    <div class="group-tabs" id="groupTabs"></div>
+  </header>
+
+  <div class="progress-bar"><div id="progressBar" style="width:0%"></div></div>
+
+  <div class="steps" id="steps"></div>
+
+  <!-- 学习页 -->
+  <section id="learnPage" class="card"></section>
+
+  <!-- 连线测试 -->
+  <section id="matchPage" class="card hidden"></section>
+
+  <!-- 拼写测试 -->
+  <section id="spellPage" class="card hidden"></section>
+
+  <!-- 运用测试 -->
+  <section id="applyPage" class="card hidden"></section>
+
+  <!-- 结果页 -->
+  <section id="resultPage" class="card hidden"></section>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ================= 单词数据 ================= */
+const GROUPS = [
+  {
+    name:"餐厅篇", emoji:"🍽️",
+    words:[
+      {
+        word:"restaurant", phonetic:"/ˈrestrɒnt/", cn:"餐馆，饭店", emoji:"🍽️",
+        related:["chef 厨师","menu 菜单","waiter 服务员","reservation 预订","cuisine 菜肴"],
+        root:{text:"restaur", meaning:"恢复，修复（源自拉丁语 restaurare）", detail:"restaur（恢复）+ -ant（表“场所/人”的后缀）→ 让人恢复精力的地方 → 餐馆"},
+        examples:[
+          {en:"We had dinner at an Italian restaurant.",cn:"我们在一家意大利餐馆吃了晚饭。"},
+          {en:"This restaurant is famous for its seafood.",cn:"这家餐馆以海鲜闻名。"}
+        ]
+      },
+      {
+        word:"menu", phonetic:"/ˈmenjuː/", cn:"菜单", emoji:"📋",
+        related:["order 点餐","dish 菜肴","price 价格","special 特色菜","beverage 饮料"],
+        root:{text:"menu", meaning:"源自法语 menu，本义“小的、详细的”", detail:"minute（详细）+ menu（小）→ 详细列出的小单子 → 菜单"},
+        examples:[
+          {en:"Could I have the menu, please?",cn:"请给我看一下菜单好吗？"},
+          {en:"The menu changes every season.",cn:"菜单每个季节都会更换。"}
+        ]
+      },
+      {
+        word:"waiter", phonetic:"/ˈweɪtə/", cn:"服务员", emoji:"🤵",
+        related:["waitress 女服务员","serve 服务","tip 小费","customer 顾客","order 订单"],
+        root:{text:"wait", meaning:"等待，服务", detail:"wait（等待/侍候）+ -er（表“做某事的人”）→ 侍候客人的人 → 服务员"},
+        examples:[
+          {en:"The waiter brought us the bill.",cn:"服务员给我们拿来了账单。"},
+          {en:"I asked the waiter for a glass of water.",cn:"我向服务员要了一杯水。"}
+        ]
+      },
+      {
+        word:"delicious", phonetic:"/dɪˈlɪʃəs/", cn:"美味的", emoji:"😋",
+        related:["tasty 好吃的","yummy 美味的","flavor 味道","appetite 食欲","recipe 食谱"],
+        root:{text:"delic", meaning:"愉悦，精细（源自拉丁语 delicere）", detail:"delic（愉悦）+ -ious（形容词后缀）→ 令人愉悦的 → 美味的"},
+        examples:[
+          {en:"The soup is really delicious.",cn:"这汤真的很好喝。"},
+          {en:"She cooked a delicious meal for us.",cn:"她为我们做了一顿美味的饭菜。"}
+        ]
+      },
+      {
+        word:"reservation", phonetic:"/ˌrezəˈveɪʃn/", cn:"预订", emoji:"📅",
+        related:["book 预订","reserve 保留","table 餐桌","appointment 预约","confirm 确认"],
+        root:{text:"reserv", meaning:"保留，留存（re + servare）", detail:"re-（再）+ serv（保存）+ -ation（名词后缀）→ 保留下来的 → 预订"},
+        examples:[
+          {en:"I'd like to make a reservation for two.",cn:"我想预订两个人的位子。"},
+          {en:"Do you have a reservation?",cn:"请问您有预订吗？"}
+        ]
+      }
+    ]
+  },
+  {
+    name:"旅行篇", emoji:"✈️",
+    words:[
+      {
+        word:"airport", phonetic:"/ˈeəpɔːt/", cn:"机场", emoji:"✈️",
+        related:["flight 航班","passport 护照","luggage 行李","ticket 机票","terminal 航站楼"],
+        root:{text:"air + port", meaning:"air（空气/航空）+ port（港口）", detail:"air（航空）+ port（港口）→ 航空港口 → 机场"},
+        examples:[
+          {en:"We arrived at the airport two hours early.",cn:"我们提前两小时到达机场。"},
+          {en:"The airport is far from the city center.",cn:"机场离市中心很远。"}
+        ]
+      },
+      {
+        word:"passport", phonetic:"/ˈpɑːspɔːt/", cn:"护照", emoji:"🛂",
+        related:["visa 签证","border 边境","customs 海关","identity 身份","travel 旅行"],
+        root:{text:"pass + port", meaning:"pass（通过）+ port（港口/关口）", detail:"pass（通过）+ port（港口）→ 通过关口的凭证 → 护照"},
+        examples:[
+          {en:"Please show me your passport.",cn:"请出示您的护照。"},
+          {en:"I lost my passport during the trip.",cn:"旅行途中我丢了护照。"}
+        ]
+      },
+      {
+        word:"luggage", phonetic:"/ˈlʌɡɪdʒ/", cn:"行李", emoji:"🧳",
+        related:["suitcase 行李箱","baggage 行李","backpack 背包","check-in 托运","carry 携带"],
+        root:{text:"lug", meaning:"拖拽，搬运", detail:"lug（拖拽）+ -age（名词后缀）→ 拖着走的东西 → 行李"},
+        examples:[
+          {en:"How much luggage can I bring?",cn:"我可以带多少行李？"},
+          {en:"He is waiting for his luggage.",cn:"他正在等他的行李。"}
+        ]
+      },
+      {
+        word:"destination", phonetic:"/ˌdestɪˈneɪʃn/", cn:"目的地", emoji:"🗺️",
+        related:["journey 旅程","route 路线","arrive 到达","depart 出发","map 地图"],
+        root:{text:"destin", meaning:"注定，确定（de + stare）", detail:"de-（向下/确定）+ stin（站立）+ -ation（名词后缀）→ 确定要去的地方 → 目的地"},
+        examples:[
+          {en:"Paris is a popular travel destination.",cn:"巴黎是一个热门的旅行目的地。"},
+          {en:"We finally reached our destination.",cn:"我们终于到达了目的地。"}
+        ]
+      },
+      {
+        word:"souvenir", phonetic:"/ˌsuːvəˈnɪə/", cn:"纪念品", emoji:"🎁",
+        related:["gift 礼物","memory 回忆","shop 商店","buy 购买","local 当地的"],
+        root:{text:"souvenir", meaning:"源自法语 souvenir，本义“想起、记得”", detail:"souvenir（想起）→ 让人想起旅行经历的东西 → 纪念品"},
+        examples:[
+          {en:"I bought a souvenir for my friend.",cn:"我给朋友买了一件纪念品。"},
+          {en:"The shop sells local souvenirs.",cn:"这家店卖当地纪念品。"}
+        ]
+      }
+    ]
+  }
+];
+
+let currentGroup = 0;
+let currentStep = 0; // 0学习 1连线 2拼写 3运用 4结果
+let learnIndex = 0;
+const words = () => GROUPS[currentGroup].words;
+
+/* ================= 工具 ================= */
+const $ = s => document.querySelector(s);
+function toast(msg){
+  const t = $("#toast"); t.textContent = msg; t.classList.add("show");
+  clearTimeout(t._t); t._t = setTimeout(()=>t.classList.remove("show"),1800);
+}
+function speak(text){
+  if(!window.speechSynthesis) return toast("浏览器不支持发音");
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text); u.lang="en-US"; u.rate=.9;
+  speechSynthesis.speak(u);
+}
+
+/* ================= 渲染 ================= */
+function renderTabs(){
+  $("#groupTabs").innerHTML = GROUPS.map((g,i)=>
+    `<div class="group-tab ${i===currentGroup?'active':''}" onclick="switchGroup(${i})">${g.emoji} ${g.name}</div>`
+  ).join("");
+}
+function renderSteps(){
+  const labels = ["学习","连线","拼写","运用"];
+  $("#steps").innerHTML = labels.map((l,i)=>{
+    const cls = i===currentStep?"active":(i<currentStep?"done":"");
+    return `<div class="step ${cls}" onclick="goStep(${i})">${i<currentStep?'<span class="n">✓</span>':`<span class="n">${i+1}</span>`}${l}</div>` + (i<3?'<span class="step-arrow">›</span>':'');
+  }).join("");
+}
+function updateProgress(){
+  const w = words();
+  if(currentStep===0){
+    const p = (learnIndex) / w.length * 100;
+    $("#progressBar").style.width = p+"%";
+  } else if(currentStep>=1 && currentStep<=3){
+    $("#progressBar").style.width = ((currentStep)/4*100)+"%";
+  } else {
+    $("#progressBar").style.width = "100%";
+  }
+}
+function goStep(i){
+  if(i>currentStep && i>0){
+    // 允许自由跳转已解锁步骤
+  }
+  currentStep = i;
+  if(i===0) learnIndex = 0;
+  renderAll();
+}
+function switchGroup(i){
+  currentGroup = i; currentStep=0; learnIndex=0;
+  renderAll();
+}
+function renderAll(){
+  renderTabs(); renderSteps(); updateProgress();
+  ["learnPage","matchPage","spellPage","applyPage","resultPage"].forEach(id=>$("#"+id).classList.add("hidden"));
+  if(currentStep===0) renderLearn();
+  else if(currentStep===1) renderMatch();
+  else if(currentStep===2) renderSpell();
+  else if(currentStep===3) renderApply();
+  else renderResult();
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+/* ================= 学习页 ================= */
+function renderLearn(){
+  const w = words()[learnIndex];
+  $("#learnPage").classList.remove("hidden");
+  $("#learnPage").innerHTML = `
+    <div class="learn-grid">
+      <div class="word-main">
+        <div class="word-img"><span class="emoji">${w.emoji}</span></div>
+        <div class="word-text">${w.word}</div>
+        <div class="word-phonetic">${w.phonetic}</div>
+        <div class="word-cn">${w.cn}</div>
+        <button class="word-speak" onclick="speak('${w.word}')">🔊 听发音</button>
+      </div>
+      <div class="word-info">
+        <h3>📎 相关词</h3>
+        <div class="chips">${w.related.map(r=>`<span class="chip">${r}</span>`).join("")}</div>
+        <h3>🧩 词根词缀</h3>
+        <div class="root-box"><b>${w.root.text}</b> —— ${w.root.meaning}<br>${w.root.detail}</div>
+        <h3>💬 常用例句</h3>
+        ${w.examples.map(e=>`<div class="example"><div class="en">${e.en}</div><div class="cn">${e.cn}</div></div>`).join("")}
+      </div>
+    </div>
+    <div class="nav-btns">
+      <button class="btn btn-ghost" onclick="prevWord()">← 上一个</button>
+      <span class="progress-info">第 ${learnIndex+1} / ${words().length} 个</span>
+      <button class="btn ${learnIndex===words().length-1?'btn-primary':'btn-ghost'}" onclick="nextWord()">${learnIndex===words().length-1?'去测试 →':'下一个 →'}</button>
+    </div>
+  `;
+}
+function nextWord(){
+  if(learnIndex < words().length-1){ learnIndex++; renderLearn(); updateProgress(); }
+  else { goStep(1); }
+}
+function prevWord(){
+  if(learnIndex>0){ learnIndex--; renderLearn(); updateProgress(); }
+}
+
+/* ================= 连线测试 ================= */
+let matchState = { selected:null, pairs:[], right:new Set(), wrong:new Set(), used:new Set() };
+function shuffle(a){ const r=[...a]; for(let i=r.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[r[i],r[j]]=[r[j],r[i]];} return r; }
+function renderMatch(){
+  const w = words();
+  matchState = { selected:null, right:new Set(), wrong:new Set(), used:new Set() };
+  matchState.en = shuffle(w.map(x=>x.word));
+  matchState.cn = shuffle(w.map(x=>x.cn));
+  $("#matchPage").classList.remove("hidden");
+  $("#matchPage").innerHTML = `
+    <h2 style="text-align:center;margin-bottom:6px">🔗 中英连线</h2>
+    <p style="text-align:center;color:var(--muted);margin-bottom:22px">点击一个英文单词，再点击对应的中文释义，将它们配对</p>
+    <div class="match-grid">
+      <div class="match-col"><h3>英文</h3>${matchState.en.map((x,i)=>`<div class="match-item" id="en-${i}" onclick="matchClick('en',${i})">${x}</div>`).join("")}</div>
+      <div class="match-col"><h3>中文</h3>${matchState.cn.map((x,i)=>`<div class="match-item" id="cn-${i}" onclick="matchClick('cn',${i})">${x}</div>`).join("")}</div>
+    </div>
+  `;
+}
+function matchClick(side,i){
+  if(side==="en"){
+    matchState.selected = {side:"en",i};
+    document.querySelectorAll(".match-item").forEach(e=>e.classList.remove("selected"));
+    $("#en-"+i).classList.add("selected");
+  } else {
+    if(!matchState.selected || matchState.selected.side!=="en") return;
+    const enIdx = matchState.selected.i;
+    const enWord = matchState.en[enIdx];
+    const cnWord = matchState.cn[i];
+    const correct = words().find(x=>x.word===enWord)?.cn === cnWord;
+    const enEl = $("#en-"+enIdx), cnEl = $("#cn-"+i);
+    if(correct){
+      enEl.classList.remove("selected","wrong"); enEl.classList.add("right","done");
+      cnEl.classList.add("right","done");
+      matchState.right.add(enWord);
+      toast("✅ 配对正确！");
+    } else {
+      enEl.classList.add("wrong"); cnEl.classList.add("wrong");
+      setTimeout(()=>{ enEl.classList.remove("wrong"); cnEl.classList.remove("wrong"); },400);
+      toast("❌ 再想想～");
+    }
+    matchState.selected = null;
+    if(matchState.right.size === words().length){
+      setTimeout(()=>{ toast("🎉 全部配对完成！进入下一步"); setTimeout(()=>goStep(2),1200); },800);
+    }
+  }
+}
+
+/* ================= 拼写测试 ================= */
+let spellState = { idx:0, slots:[], used:new Set(), letters:[] };
+function renderSpell(){
+  spellState = { idx:0 };
+  renderSpellWord();
+}
+function renderSpellWord(){
+  const w = words()[spellState.idx];
+  spellState.slots = [];
+  spellState.used = new Set();
+  spellState.letters = shuffle(w.word.split(""));
+  $("#spellPage").classList.remove("hidden");
+  $("#spellPage").innerHTML = `
+    <h2 style="text-align:center;margin-bottom:6px">✍️ 听写拼写</h2>
+    <p style="text-align:center;color:var(--muted);margin-bottom:22px">第 ${spellState.idx+1} / ${words().length} 个 · 点击字母拼出正确的单词</p>
+    <div style="text-align:center">
+      <div class="spell-cn">释义：${w.cn}</div>
+      <button class="btn btn-ghost" style="padding:8px 20px;font-size:14px;margin-bottom:14px" onclick="speak('${w.word}')">🔊 听发音</button>
+      <div class="answer-slots">${w.word.split("").map((_,i)=>`<div class="slot" id="slot-${i}" onclick="removeLetter(${i})"></div>`).join("")}</div>
+      <div class="letters">${spellState.letters.map((ch,i)=>`<div class="letter-tile" id="lt-${i}" onclick="addLetter(${i})">${ch}</div>`).join("")}</div>
+      <button class="btn btn-primary" id="spellCheckBtn" onclick="checkSpell()">提交答案</button>
+    </div>
+  `;
+}
+function addLetter(i){
+  const ch = spellState.letters[i];
+  const slotIdx = spellState.slots.length;
+  if(slotIdx >= words()[spellState.idx].word.length) return;
+  spellState.slots.push(ch);
+  spellState.used.add(i);
+  $("#lt-"+i).classList.add("used");
+  const s = $("#slot-"+slotIdx); s.textContent = ch; s.classList.add("filled");
+}
+function removeLetter(i){
+  if(spellState.slots[i]===undefined) return;
+  spellState.slots.splice(i,1);
+  // 重新渲染 slots
+  const w = words()[spellState.idx];
+  const slots = $("#spellPage").querySelectorAll(".slot");
+  slots.forEach((s,idx)=>{
+    s.textContent = spellState.slots[idx]||""; 
+    s.classList.toggle("filled", !!spellState.slots[idx]);
+  });
+  // 恢复字母
+  const ch = spellState.slots[i];
+  // 由于 splice 已经移除，需要找到对应的 letter
+  // 简化：重新从 used 恢复
+  spellState.used.forEach(ui=>{});
+}
+function checkSpell(){
+  const w = words()[spellState.idx];
+  const ans = spellState.slots.join("");
+  const slots = $("#spellPage").querySelectorAll(".slot");
+  if(ans.length < w.word.length){ toast("还没拼完哦"); return; }
+  if(ans === w.word){
+    slots.forEach(s=>s.classList.add("right"));
+    toast("✅ 拼写正确！");
+    setTimeout(()=>{
+      if(spellState.idx < words().length-1){ spellState.idx++; renderSpellWord(); }
+      else { goStep(3); }
+    },900);
+  } else {
+    slots.forEach((s,i)=>s.classList.add(w.word[i]===ans[i]?"right":"wrong"));
+    toast("❌ 拼错了，再试一次");
+    setTimeout(()=>{
+      slots.forEach(s=>s.classList.remove("right","wrong"));
+    },800);
+  }
+}
+
+/* ================= 运用测试 ================= */
+let applyState = { blanks:[], answers:[], used:new Set() };
+const PASSAGE_TEMPLATE = {
+  "餐厅篇":`周末的晚上，我走进了一家很有名的<blank data-word="restaurant">____</blank>。服务员<blank data-word="waiter">____</blank>微笑着递给我一份<blank data-word="menu">____</blank>。我点了一道招牌菜，尝了一口，味道真是<blank data-word="delicious">____</blank>极了。原来，我早就打电话做好了<blank data-word="reservation">____</blank>，所以不用排队等位。`,
+  "旅行篇":`假期到了，我收拾好<blank data-word="luggage">____</blank>，带上<blank data-word="passport">____</blank>，打车去了<blank data-word="airport">____</blank>。飞机起飞后，我望着窗外，想象着到达<blank data-word="destination">____</blank>后的美好时光。旅行的最后一天，我买了一个漂亮的<blank data-word="souvenir">____</blank>留作纪念。`
+};
+function renderApply(){
+  const g = GROUPS[currentGroup];
+  const w = words();
+  applyState = { used:new Set(), done:new Set() };
+  applyState.answers = shuffle(w.map(x=>x.word));
+  let html = PASSAGE_TEMPLATE[g.name] || "这段文章还在准备中……";
+  $("#applyPage").classList.remove("hidden");
+  $("#applyPage").innerHTML = `
+    <h2 style="text-align:center;margin-bottom:6px">📖 运用练习</h2>
+    <p style="text-align:center;color:var(--muted);margin-bottom:22px">把下面的单词填进文章的空格里（点击单词再点击空格）</p>
+    <div class="passage" id="passage">${html}</div>
+    <div class="option-chips" id="optChips">${applyState.answers.map((x,i)=>`<div class="opt-chip" id="oc-${i}" onclick="selectOpt(${i})">${x}</div>`).join("")}</div>
+    <div style="text-align:center"><button class="btn btn-primary" id="applyCheckBtn" onclick="checkApply()">提交答案</button></div>
+  `;
+}
+let applySelected = null;
+function selectOpt(i){
+  const ch = $("#oc-"+i);
+  if(ch.classList.contains("used")) return;
+  applySelected = i;
+  document.querySelectorAll(".opt-chip").forEach(e=>e.classList.remove("selected"));
+  ch.classList.add("selected");
+  ch.style.borderColor = "var(--primary)";
+  ch.style.color = "var(--primary)";
+  toast("现在点击文章中的一个空格来填入");
+}
+// 点击空格填入
+document.addEventListener("click", function(e){
+  if(!applySelected && applySelected!==0) return;
+  if(e.target.classList && e.target.classList.contains("blank")){
+    const word = applyState.answers[applySelected];
+    const chip = $("#oc-"+applySelected);
+    if(!word || chip.classList.contains("used")) return;
+    e.target.textContent = word;
+    e.target.classList.add("filled");
+    e.target.dataset.filled = word;
+    chip.classList.add("used");
+    chip.style.borderColor="";
+    chip.style.color="";
+    applySelected = null;
+  }
+});
+function checkApply(){
+  const blanks = document.querySelectorAll("#passage .blank");
+  let right=0;
+  blanks.forEach(b=>{
+    const correct = b.dataset.word;
+    const filled = b.dataset.filled;
+    if(correct && filled === correct){ b.classList.add("filled"); right++; }
+    else { b.textContent = correct; b.classList.add("filled"); b.style.borderColor="var(--red)"; }
+  });
+  const total = blanks.length;
+  const score = Math.round(right/total*100);
+  toast(`🎯 答对 ${right}/${total}`);
+  setTimeout(()=>{ showResult(score); },1200);
+}
+
+/* ================= 结果页 ================= */
+function showResult(score){
+  currentStep = 4;
+  renderTabs(); renderSteps(); updateProgress();
+  ["learnPage","matchPage","spellPage","applyPage"].forEach(id=>$("#"+id).classList.add("hidden"));
+  $("#resultPage").classList.remove("hidden");
+  let emoji,msg;
+  if(score>=90){emoji="🏆";msg="太棒了！这些单词你已经完全掌握啦！";}
+  else if(score>=70){emoji="🎉";msg="很不错！再巩固一下就更完美了。";}
+  else if(score>=50){emoji="💪";msg="继续加油，多复习几遍一定行！";}
+  else {emoji="📚";msg="别灰心，回到学习页再记一记吧。";}
+  $("#resultPage").innerHTML = `
+    <div class="result-box">
+      <div class="result-emoji">${emoji}</div>
+      <div class="result-score">${score}分</div>
+      <div class="result-msg">${msg}</div>
+      <p style="color:var(--muted);margin-bottom:22px">本组 ${words().length} 个单词 · 已完成学习、连线、拼写、运用全部环节</p>
+      <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap">
+        <button class="btn btn-ghost" onclick="goStep(0)">🔁 再学一遍</button>
+        <button class="btn btn-primary" onclick="switchGroup((currentGroup+1)%GROUPS.length)">下一组 →</button>
+      </div>
+    </div>
+  `;
+}
+function renderResult(){
+  // 从结果页重新进入时保留，用默认分数
+  showResult(100);
+}
+
+/* ================= 初始化 ================= */
+renderAll();
+</script>
+</body>
+</html>

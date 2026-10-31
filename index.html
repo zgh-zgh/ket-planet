@@ -247,8 +247,8 @@
 /* 词库从 words-data.js 的 WORD_DB 加载（7549 词，按级别分组）
    字段：w 单词, cn 释义, lv 级别
    运行时动态补齐：音标(有道)、图片(后端AI)、例句(内置模板) */
-const LEVELS = ["初中", "高中", "四级", "六级"];
-const LEVEL_EMOJI = { "初中":"🌱", "高中":"📚", "四级":"🎓", "六级":"🏛️" };
+const LEVELS = ["初中", "高中"];
+const LEVEL_EMOJI = { "初中":"🌱", "高中":"📚" };
 
 // 例句模板库（按词义通用模板，目标词动态替换）
 const EXAMPLE_TEMPLATES = [
@@ -538,29 +538,15 @@ function speakTTS(text, onEnd){
     speechSynthesis.speak(u);
   }catch(e){ toast("发音失败"); }
 }
-// 例句整句朗读（优先整句TTS，逐词兜底仅在TTS彻底失败时触发）
+// 例句整句朗读：走后端 edge-tts（微软神经网络 TTS）生成自然整句音频
+// 解决浏览器原生 speechSynthesis 无声音 / 逐词读（像念单词）的问题
 function speakSentence(sentence){
   stopAudio();
   const plain = sentence.replace(/<[^>]+>/g,"");
-  if(window.speechSynthesis){
-    // 直接尝试整句朗读，不依赖预先检测语音列表
-    const u = new SpeechSynthesisUtterance(plain);
-    u.lang = "en-US"; u.rate = .82;
-    const voices = speechSynthesis.getVoices();
-    const en = voices.find(v=>/^en(-|_)/i.test(v.lang)) || voices.find(v=>/en/i.test(v.lang));
-    if(en) u.voice = en;
-    let fellBack = false;
-    u.onerror = ()=>{
-      if(!fellBack){ fellBack = true; speakWords(plain); } // TTS整句失败才逐词兜底
-    };
-    speechSynthesis.cancel();
-    speechSynthesis.speak(u);
-    // 兜底：若3秒后仍未开始发声（onstart未触发），切逐词
-    setTimeout(()=>{ if(!u._started){ try{speechSynthesis.cancel();}catch(e){} if(!fellBack){ fellBack=true; speakWords(plain);} } }, 3000);
-    u.onstart = ()=>{ u._started = true; };
-    return;
-  }
-  speakWords(plain);
+  const a = new Audio("/api/tts?text=" + encodeURIComponent(plain) + "&lang=en-US");
+  currentAudio = a;
+  a.onerror = ()=>{ toast("例句朗读失败，请稍后重试"); };
+  a.play().catch(()=>{ toast("例句朗读失败，请稍后重试"); });
 }
 function speakWords(sentence){
   const wordsArr = sentence.replace(/[^\w\s']/g," ").split(/\s+/).filter(w=>w.length>0);

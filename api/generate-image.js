@@ -18,7 +18,8 @@ export default async function handler(req, res) {
   }
 
   // 构造图片提示词：优先用最长例句的语境（画例句场景），否则只用词义
-  const prompt = `A clean, cute cartoon illustration for the English word "${word}"${cn ? ` (meaning: ${cn})` : ''}${sentence ? `, illustrating this context: "${sentence}"` : ''}, simple flat design, soft colors, clear and recognizable subject, vocabulary learning style, no text, no watermark`;
+  // 写实照片风格（真实感），替代之前的卡通插画
+  const prompt = `A realistic photograph representing the English word "${word}"${cn ? ` (meaning: ${cn})` : ''}${sentence ? `, illustrating this context: "${sentence}"` : ''}, photorealistic, natural lighting, sharp focus, clear and recognizable subject, high quality photography, no text, no watermark`;
 
   try {
     const upstream = await fetch('https://apihub.agnes-ai.com/v1/images/generations', {

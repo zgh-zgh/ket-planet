@@ -14,9 +14,25 @@
   *{box-sizing:border-box;margin:0;padding:0}
   body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text);line-height:1.6;-webkit-font-smoothing:antialiased}
 
-  /* ===== 左侧菜单栏布局（DeepSeek 风格） ===== */
-  .layout{display:flex;min-height:100vh}
-  .sidebar{width:260px;flex-shrink:0;background:#fff;border-right:1px solid var(--border);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto;padding:20px 14px}
+  /* ===== 顶栏 + 左上功能按钮抽屉菜单（DeepSeek 手机版风格） ===== */
+  .layout{display:flex;flex-direction:column;min-height:100vh}
+  .topbar{position:sticky;top:0;z-index:60;height:56px;background:#fff;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:6px;padding:0 14px}
+  .menu-btn{width:42px;height:42px;border-radius:11px;border:none;background:transparent;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text);transition:.15s;flex-shrink:0}
+  .menu-btn:hover{background:#f3f5fc}
+  .topbar-brand{display:flex;align-items:center;gap:9px;font-weight:800;font-size:16px}
+  .topbar-brand .brand-logo{width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,var(--primary),var(--primary2));display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;font-weight:800;flex-shrink:0}
+  .topbar-brand .brand-name{font-size:15px;font-weight:800;background:linear-gradient(135deg,var(--primary),var(--primary2));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:.5px}
+  .topbar-rank{margin-left:auto;display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;font-weight:700;color:var(--text);background:#f5f6fb;border-radius:999px;padding:6px 12px;transition:.15s}
+  .topbar-rank:hover{background:#eef0fb}
+  .topbar-rank .rank-icon{font-size:20px;line-height:1}
+  .topbar-rank .rank-pts{color:var(--amber);font-size:13px}
+  .drawer-overlay{position:fixed;inset:0;background:rgba(23,26,40,.45);z-index:70;opacity:0;pointer-events:none;transition:opacity .25s}
+  .drawer-overlay.show{opacity:1;pointer-events:auto}
+  .sidebar{position:fixed;left:0;top:0;bottom:0;width:280px;max-width:86vw;background:#fff;z-index:80;transform:translateX(-102%);transition:transform .28s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;overflow-y:auto;padding:16px 14px;box-shadow:0 0 40px rgba(0,0,0,.18)}
+  .sidebar.open{transform:translateX(0)}
+  .drawer-head{display:flex;align-items:center;justify-content:space-between;padding:2px 6px 14px}
+  .drawer-close{width:36px;height:36px;border-radius:10px;border:none;background:transparent;font-size:20px;cursor:pointer;color:var(--muted);display:flex;align-items:center;justify-content:center}
+  .drawer-close:hover{background:#f3f5fc;color:var(--text)}
   .brand{display:flex;align-items:center;gap:10px;padding:4px 8px 20px}
   .brand-logo{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,var(--primary),var(--primary2));display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px;font-weight:800;flex-shrink:0}
   .brand-name{font-size:17px;font-weight:800;background:linear-gradient(135deg,var(--primary),var(--primary2));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:.5px}
@@ -262,26 +278,37 @@
   @media(max-width:720px){
     .learn-grid,.match-grid,.options{grid-template-columns:1fr}
     .word-text{font-size:32px}
-    .layout{flex-direction:column}
-    .sidebar{width:100%;height:auto;position:static;flex-direction:row;flex-wrap:wrap;align-items:center;gap:6px;padding:12px;border-right:none;border-bottom:1px solid var(--border)}
-    .brand{padding:0 6px 0 0}
-    .menu-label,.menu-group-tabs,.sidebar-foot{display:none}
-    .menu-group{flex-direction:row;flex-wrap:wrap}
-    .menu-item{width:auto}
-    .menu-item.active::before{display:none}
+    .topbar{height:50px;padding:0 10px}
     .main{padding:18px 14px 50px}
+    .bomb-grid{grid-template-columns:repeat(2,1fr)}
+    .badge-grid{grid-template-columns:repeat(2,1fr)}
   }
 </style>
 </head>
 <body>
 <div class="layout">
-  <aside class="sidebar">
-    <div class="brand">
+  <header class="topbar">
+    <button class="menu-btn" onclick="toggleDrawer()" aria-label="打开功能菜单">☰</button>
+    <div class="topbar-brand">
       <div class="brand-logo">词</div>
-      <div>
-        <div class="brand-name">墨词 · Lexi</div>
-        <div class="brand-sub">中高考词汇研习</div>
+      <div class="brand-name">墨词 · Lexi</div>
+    </div>
+    <div class="topbar-rank" onclick="openMode('achievement')">
+      <span class="rank-icon" id="topRankIcon">🥉</span>
+      <span class="rank-pts" id="topRankPts">0</span>
+    </div>
+  </header>
+  <div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+  <aside class="sidebar" id="sidebar">
+    <div class="drawer-head">
+      <div class="brand" style="padding:0">
+        <div class="brand-logo">词</div>
+        <div>
+          <div class="brand-name">墨词 · Lexi</div>
+          <div class="brand-sub">中高考词汇研习</div>
+        </div>
       </div>
+      <button class="drawer-close" onclick="closeDrawer()" aria-label="关闭菜单">✕</button>
     </div>
     <div class="rank-card" id="rankCard" onclick="openMode('achievement')" style="cursor:pointer">
       <div class="rank-top">
@@ -349,8 +376,8 @@
 /* 词库从 words-data.js 的 WORD_DB 加载（7549 词，按级别分组）
    字段：w 单词, cn 释义, lv 级别
    运行时动态补齐：音标(有道)、图片(后端AI)、例句(内置模板) */
-const LEVELS = ["初中", "高中"];
-const LEVEL_EMOJI = { "初中":"🌱", "高中":"📚" };
+const LEVELS = ["初中", "高中", "四级", "六级"];
+const LEVEL_EMOJI = { "初中":"🌱", "高中":"📚", "四级":"🎓", "六级":"🏛️" };
 
 // 例句模板库（按词义通用模板，目标词动态替换）
 const EXAMPLE_TEMPLATES = [
@@ -759,15 +786,28 @@ function updateProgress(){
   else if(currentStep>=1 && currentStep<STEP_LABELS.length){ $("#progressBar").style.width = (currentStep/STEP_LABELS.length*100)+"%"; }
   else { $("#progressBar").style.width = "100%"; }
 }
+function toggleDrawer(){
+  const sb = $("#sidebar"), ov = $("#drawerOverlay");
+  if(!sb) return;
+  const open = sb.classList.toggle("open");
+  if(ov) ov.classList.toggle("show", open);
+}
+function closeDrawer(){
+  const sb = $("#sidebar"), ov = $("#drawerOverlay");
+  if(sb) sb.classList.remove("open");
+  if(ov) ov.classList.remove("show");
+}
 function goStep(i){
   if(i===0) learnIndex = 0;
   currentStep = i;
+  closeDrawer();
   renderAll();
 }
 function switchGroup(i){
   currentGroup = i; currentStep=0; learnIndex=0; stopAudio();
   currentBatch = [];  // 清空批次，触发重新抽取
   newBatch();
+  closeDrawer();
   renderAll();
 }
 function renderAll(){
@@ -895,10 +935,14 @@ function updateRankUI(){
   const r = getRank(p.total);
   const cur = RANKS[r], next = RANKS[r+1] || null;
   const icon = $("#rankIcon"), name = $("#rankName"), pts = $("#rankPts"), bar = $("#rankBar"), nxt = $("#rankNext"), badge = $("#ptsBadge");
+  const tIcon = $("#topRankIcon"), tPts = $("#topRankPts");
   if(icon) icon.textContent = cur.icon;
   if(name) name.textContent = cur.name;
   if(pts) pts.textContent = p.total;
   if(badge) badge.textContent = p.total>0 ? p.total : '';
+  // 同步顶栏段位图标与积分
+  if(tIcon) tIcon.textContent = cur.icon;
+  if(tPts) tPts.textContent = p.total;
   if(next){
     const prog = Math.min(100, Math.round((p.total - cur.min) / (next.min - cur.min) * 100));
     if(bar) bar.style.width = prog + "%";
@@ -967,7 +1011,7 @@ function findCn(word){
 
 /* ---- 模式切换与徽标 ---- */
 let appMode = 'learn'; // learn | review | wrongbook | decks | achievement
-function openMode(mode){ appMode = mode; currentStep = 0; stopAudio(); renderAll(); }
+function openMode(mode){ appMode = mode; currentStep = 0; stopAudio(); closeDrawer(); renderAll(); }
 function updateBadges(){
   const due = getDueReviews().length;
   const wrong = Object.keys(loadWrongbook()).length;
@@ -1219,15 +1263,7 @@ async function loadImage(w){
     imgEl.innerHTML = imgTag(cached, w.word);
     return;
   }
-  // 2. Word Atlas 插画优先（开源 CC BY 4.0，覆盖74%含抽象词）
-  const at = (typeof ATLAS_PICS !== 'undefined' && ATLAS_PICS[w.word.toLowerCase()]) || '';
-  if(at){
-    w.imageUrl = at;
-    setCachedImage(w.word, at);
-    imgEl.innerHTML = imgTag(at, w.word);
-    return;
-  }
-  // 3. 有道图解词典兜底（具体名词）
+  // 2. 有道图解词典优先（真实照片，免费国内直连，约59%具体名词）
   const yd = (typeof PICS_DATA !== 'undefined' && PICS_DATA[w.word.toLowerCase()]) || '';
   if(yd){
     w.imageUrl = yd;
@@ -1235,7 +1271,15 @@ async function loadImage(w){
     imgEl.innerHTML = imgTag(yd, w.word);
     return;
   }
-  // 4. 最后 AI 生成兜底（抽象词）
+  // 3. Word Atlas 插画兜底（抽象词用具体场景插画表达，开源 CC BY 4.0）
+  const at = (typeof ATLAS_PICS !== 'undefined' && ATLAS_PICS[w.word.toLowerCase()]) || '';
+  if(at){
+    w.imageUrl = at;
+    setCachedImage(w.word, at);
+    imgEl.innerHTML = imgTag(at, w.word);
+    return;
+  }
+  // 4. 最后 AI 生成兜底（写实照片风格）
   await genImage(w, imgEl);
 }
 async function genImage(w, imgEl){
@@ -1263,19 +1307,23 @@ async function genImage(w, imgEl){
     // AI 失败（额度用尽等）保留占位，下次进入重试
   }
 }
-// 图片加载失败：按顺序回退 有道图 → AI，全部失败则显示占位符
+// 图片加载失败：按顺序回退 有道图 → Word Atlas 插画 → AI，全部失败则显示占位符
 async function onImgFail(el, word){
   try{ localStorage.removeItem(IMG_CACHE_PREFIX + word); }catch(e){}
   const w = words().find(x=>x.word === word);
   if(!w){ el.innerHTML = '<span class="emoji">🖼️</span>'; return; }
   const lw = word.toLowerCase();
   const yd = (typeof PICS_DATA !== 'undefined' && PICS_DATA[lw]) || '';
+  const at = (typeof ATLAS_PICS !== 'undefined' && ATLAS_PICS[lw]) || '';
   const fail = (w._imgFail = (w._imgFail||0) + 1);
   w.imageUrl = '';
-  if(fail === 1 && yd){ // 第一次失败 → 试有道图
+  if(fail === 1 && yd){ // 第一次失败 → 试有道真实照片
     w.imageUrl = yd; setCachedImage(word, yd); el.innerHTML = imgTag(yd, word); return;
   }
-  if(fail <= 2 && !w._aiTried){ // 第二次失败 → 试 AI 生成
+  if(fail === 2 && at){ // 第二次失败 → 试 Word Atlas 插画
+    w.imageUrl = at; setCachedImage(word, at); el.innerHTML = imgTag(at, word); return;
+  }
+  if(fail <= 3 && !w._aiTried){ // 第三次失败 → 试 AI 生成
     w._aiTried = true; await genImage(w, el);
   }
   if(!w.imageUrl){ el.innerHTML = '<span class="emoji">🖼️</span>'; }

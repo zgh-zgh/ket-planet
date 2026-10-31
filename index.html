@@ -475,18 +475,20 @@ function autoSyllables(w){
   // 2. cmudict 权威校准：音节数 + 主重音位置（覆盖 98.8% 词）
   const info = (typeof SYLLABLES_DATA !== 'undefined' && SYLLABLES_DATA[w.toLowerCase()]) || null;
   let stress = -1;
-  if(info){
+  // 防护：cmudict 中个别词（如缩写 mm）音节数为 0，此时跳过校准，避免死循环
+  if(info && info.n >= 1){
     let arr = segs;
     // 音节数多拆了（如 silent e）→ 合并最短的相邻对
-    while(arr.length > info.n){
+    while(arr.length > 1 && arr.length > info.n){
       let bi = 0, bl = Infinity;
       for(let k=0;k<arr.length-1;k++){ const c = arr[k].length + arr[k+1].length; if(c < bl){ bl = c; bi = k; } }
       arr[bi] = arr[bi] + arr[bi+1]; arr.splice(bi+1, 1);
     }
-    // 音节数少拆了 → 拆分最长的音节
+    // 音节数少拆了 → 拆分最长的音节（只拆长度>=2的音节，避免拆出空串）
     while(arr.length < info.n){
-      let mi = 0;
-      for(let k=0;k<arr.length;k++) if(arr[k].length > arr[mi].length) mi = k;
+      let mi = -1;
+      for(let k=0;k<arr.length;k++) if(arr[k].length >= 2 && (mi === -1 || arr[k].length > arr[mi].length)) mi = k;
+      if(mi === -1) break; // 没有可拆的音节，终止
       const s = arr[mi], mid = Math.floor(s.length / 2);
       arr.splice(mi, 1, s.slice(0, mid), s.slice(mid));
     }

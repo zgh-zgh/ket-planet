@@ -1384,6 +1384,46 @@ function answerChoice(i, el){
 }
 
 /* ================= 题型3：选词填空 ================= */
+// 高频易混形近/义近词表（中高考常考辨析）
+const CONFUSABLE = {
+  restaurant:["rest","reservation"], menu:["memo","manual"], waiter:["water","writer"], delicious:["delicate","delight"], reservation:["preservation","observation"],
+  airport:["seaport","air"], passport:["pass","port"], luggage:["baggage","language"], destination:["station","designation"], souvenir:["memory","remember"],
+  teacher:["teach","reacher"], library:["liberty","literary"], subject:["object","project"], homework:["housework","work"], knowledge:["know","acknowledge"],
+  family:["familiar","famous"], father:["farther","feature"], mother:["other","month"], sister:["resister","sisterly"], friend:["fiend","fried"],
+  accept:["except","expect"], affect:["effect","effort"], alone:["lonely","along"], alive:["living","live"], rise:["raise","arise"],
+  borrow:["lend","blow"], bring:["take","ring"], beside:["besides","behind"], farther:["further","father"], especially:["specially","special"],
+  travel:["trip","journey"], voice:["sound","noise"], custom:["habit","customer"], clothes:["cloth","clothing"], expect:["except","inspect"],
+  invent:["discover","invite"], lose:["loose","lost"], quiet:["quite","quit"], worth:["worthy","while"], receive:["accept","believe"],
+  adapt:["adopt","adept"], advice:["advise","advice"], principle:["principal","prince"], weather:["whether","wither"],
+  desert:["dessert","deserve"], access:["excess","assess"], breath:["breathe","breadth"], quite:["quiet","quit"], through:["though","thorough"],
+  success:["succeed","success"], health:["healthy","wealth"], nature:["natural","mature"], difficult:["different","difficulty"], important:["import","importance"],
+  careful:["careless","care"], careless:["careful","careless"], culture:["cultural","agriculture"], environment:["environmental","government"],
+  continue:["contain","continent"], compare:["compete","complete"], protect:["project","predict"], produce:["product","reduce"], include:["conclude","exclude"],
+  attract:["attack","contract"], celebrate:["celery","celebrity"], communicate:["community","comment"], consider:["consist","constant"], decide:["divide","declare"]
+};
+// 生成选词填空选项：正确词 + 易混词 + 同源词 + 已学旧词 + 全库随机兜底
+function buildFillOptions(w){
+  const correct = w.word;
+  const used = new Set([correct.toLowerCase()]);
+  const opts = [correct];
+  // 1. 易混形近/义近词（CONFUSABLE 表）
+  (CONFUSABLE[w.word] || []).filter(x => !used.has(x.toLowerCase())).slice(0, 2).forEach(x => { opts.push(x); used.add(x.toLowerCase()); });
+  // 2. 同源词（词根词缀相关）
+  if(w._affixKey){
+    const same = (AFFIX_INDEX[w._affixKey] || []).filter(x => x.word !== w.word && !used.has(x.word.toLowerCase()));
+    if(same.length){ opts.push(same[0].word); used.add(same[0].word.toLowerCase()); }
+  }
+  // 3. 过往复习的旧词（艾宾浩斯已学过的词）
+  const studied = Object.keys(loadStudylog()).filter(x => x.toLowerCase() !== correct.toLowerCase() && !used.has(x.toLowerCase()));
+  for(const s of shuffle(studied)){ if(opts.length >= 4) break; opts.push(s); used.add(s.toLowerCase()); }
+  // 4. 全词库随机兜底（保证始终有 4 个选项）
+  if(opts.length < 4){
+    const all = [];
+    for(const lv of Object.keys(WORD_DB)) for(const [word] of WORD_DB[lv]){ if(!used.has(word.toLowerCase())) all.push(word); }
+    shuffle(all).slice(0, 4 - opts.length).forEach(x => opts.push(x));
+  }
+  return shuffle(opts.slice(0, 4));
+}
 let fillState = { idx:0 };
 function renderFill(){
   fillState = { idx:0 };
@@ -1397,16 +1437,8 @@ function renderFillQ(){
   const target = w.word;
   const sentence = plain.replace(new RegExp(target,"i"), "______");
   const sentenceHtml = plain.replace(new RegExp(target,"i"), "<b>______</b>");
-  // 选项：目标词 + 干扰词（本组其他词 + 易混词）
-  const distractorPool = [];
-  words().forEach(x=>{ if(x.word!==w.word) distractorPool.push(x.word); });
-  // 易混词补充（形近）
-  const confusable = { restaurant:["rest","reservation"], menu:["memo","manual"], waiter:["water","writer"], delicious:["delicate","delight"], reservation:["preservation","observation"],
-    airport:["seaport","air"], passport:["pass","port"], luggage:["baggage","language"], destination:["station","designation"], souvenir:["memory","remember"],
-    teacher:["teach","reacher"], library:["liberty","literary"], subject:["object","project"], homework:["housework","work"], knowledge:["know","acknowledge"],
-    family:["familiar","famous"], father:["farther","feature"], mother:["other","month"], sister:["resister","sisterly"], friend:["fiend","fried"] };
-  const conf = (confusable[w.word]||[]);
-  const opts = shuffle([w.word, ...shuffle(distractorPool).slice(0,2), ...conf.slice(0,1)].slice(0,4));
+  // 选项：正确词 + 易混词 + 同源词 + 已学旧词（buildFillOptions 统一生成）
+  const opts = buildFillOptions(w);
   fillState.answer = w.word;
   $("#fillPage").classList.remove("hidden");
   $("#fillPage").innerHTML = `
@@ -1541,7 +1573,7 @@ function renderSentenceQ(){
     <div class="sentence-build" id="buildArea"></div>
     <div class="sentence-frag" id="fragArea">${sentenceState.frags.map((f,i)=>`<span class="frag" id="fr-${i}" onclick="pickFrag(${i})">${f}</span>`).join("")}</div>
     <div style="text-align:center;margin-top:16px"><button class="btn btn-primary" onclick="checkSentence()">提交答案</button></div>
-    <div style="text-align:center;margin-top:14px"><button class="btn btn-skip" onclick="goStep(6)">跳过本题型 →</button></div>
+    <div style="text-align:center;margin-top:14px"><button class="btn btn-skip" onclick="goStep(6)">跳过本题型 →（基础薄弱可跳过）</button></div>
   `;
 }
 function pickFrag(i){
@@ -1598,7 +1630,7 @@ function renderTransQ(){
     </div>
     <div class="trans-area"><textarea id="transInput" placeholder="在此输入英文翻译..."></textarea></div>
     <div style="text-align:center;margin-top:16px"><button class="btn btn-primary" onclick="checkTrans()">提交并查看答案</button></div>
-    <div style="text-align:center;margin-top:14px"><button class="btn btn-skip" onclick="goStep(7)">跳过本题型 →</button></div>
+    <div style="text-align:center;margin-top:14px"><button class="btn btn-skip" onclick="goStep(7)">跳过本题型 →（基础薄弱可跳过）</button></div>
   `;
 }
 function checkTrans(){

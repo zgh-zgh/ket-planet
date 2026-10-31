@@ -242,6 +242,7 @@
 
 <script src="words-data.js"></script>
 <script src="examples_data.js"></script>
+<script src="pics_data.js"></script>
 <script>
 /* ================= 单词数据 ================= */
 /* 词库从 words-data.js 的 WORD_DB 加载（7549 词，按级别分组）
@@ -732,8 +733,10 @@ async function loadPhonetic(w){
   }
 }
 
-/* 图片按需生成（走自己的后端中转，key 不暴露）
-   优化：图片 URL 用 localStorage 缓存，每个单词只生成一次，节省 API 额度 */
+/* 单词配图三级策略：
+   ① 本地缓存（有道图/AI图都缓存，刷新秒开）
+   ② 有道图解词典（PICS_DATA，免费、国内直连，约60%词有图）
+   ③ Agnes AI 生成兜底（仅抽象词，额度需求减半） */
 const IMG_CACHE_PREFIX = 'wordimg_';
 function getCachedImage(word){
   try{ return localStorage.getItem(IMG_CACHE_PREFIX + word) || ''; }catch(e){ return ''; }
@@ -741,18 +744,32 @@ function getCachedImage(word){
 function setCachedImage(word, url){
   try{ localStorage.setItem(IMG_CACHE_PREFIX + word, url); }catch(e){}
 }
+function imgTag(url, word){
+  return `<img src="${url}" alt="${word}" onerror="onImgFail(this.parentElement,'${word}')">`;
+}
 async function loadImage(w){
   const imgEl = $("#wordImg");
   if(!imgEl) return;
   if(w.imageUrl){ return; }
-  // 1. 先查本地缓存（已生成过的单词直接复用，不重复请求）
+  // 1. 本地缓存
   const cached = getCachedImage(w.word);
   if(cached){
     w.imageUrl = cached;
-    imgEl.innerHTML = `<img src="${cached}" alt="${w.word}" onerror="this.parentElement.innerHTML='<span class=&quot;emoji&quot;>🖼️</span>'">`;
+    imgEl.innerHTML = imgTag(cached, w.word);
     return;
   }
-  // 2. 缓存未命中才调用后端生成
+  // 2. 有道图解词典优先
+  const yd = (typeof PICS_DATA !== 'undefined' && PICS_DATA[w.word.toLowerCase()]) || '';
+  if(yd){
+    w.imageUrl = yd;
+    setCachedImage(w.word, yd);
+    imgEl.innerHTML = imgTag(yd, w.word);
+    return;
+  }
+  // 3. 有道无图（抽象词）→ AI 生成兜底
+  await genImage(w, imgEl);
+}
+async function genImage(w, imgEl){
   try{
     const resp = await fetch('/api/generate-image', {
       method:'POST',
@@ -764,11 +781,22 @@ async function loadImage(w){
     if(data.url){
       w.imageUrl = data.url;
       setCachedImage(w.word, data.url);
-      imgEl.innerHTML = `<img src="${data.url}" alt="${w.word}" onerror="this.parentElement.innerHTML='<span class=&quot;emoji&quot;>🖼️</span>'">`;
+      imgEl.innerHTML = imgTag(data.url, w.word);
     }
   }catch(e){
-    // 生成失败（如额度用尽）则保留占位，下次进入会重试
+    // AI 失败（额度用尽等）保留占位，下次进入重试
   }
+}
+// 图片加载失败：清除缓存；有道图失败回退 AI 一次，AI 也失败则显示占位符
+async function onImgFail(el, word){
+  try{ localStorage.removeItem(IMG_CACHE_PREFIX + word); }catch(e){}
+  const w = words().find(x=>x.word === word);
+  if(!w){ el.innerHTML = '<span class="emoji">🖼️</span>'; return; }
+  if(w._aiTried){ el.innerHTML = '<span class="emoji">🖼️</span>'; return; }
+  w.imageUrl = '';
+  w._aiTried = true;
+  await genImage(w, el);
+  if(!w.imageUrl){ el.innerHTML = '<span class="emoji">🖼️</span>'; }
 }
 function nextWord(){ if(learnIndex<words().length-1){ learnIndex++; renderLearn(); updateProgress(); } else { goStep(1); } }
 function prevWord(){ if(learnIndex>0){ learnIndex--; renderLearn(); updateProgress(); } }

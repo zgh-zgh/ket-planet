@@ -241,6 +241,7 @@
 <div class="toast" id="toast"></div>
 
 <script src="words-data.js"></script>
+<script src="examples_data.js"></script>
 <script>
 /* ================= 单词数据 ================= */
 /* 词库从 words-data.js 的 WORD_DB 加载（7549 词，按级别分组）
@@ -359,6 +360,18 @@ GROUPS.forEach(g => g.words.forEach(w => {
   }
 }));
 
+// 构建例句：优先用 EXAMPLES_DATA（Tatoeba 真实例句），否则用模板兜底
+function buildExamples(w){
+  const data = (typeof EXAMPLES_DATA !== 'undefined' && EXAMPLES_DATA[w.toLowerCase()]) || [];
+  if(data.length){
+    return data.slice(0, 5).map(e => ({ en: e.en, cn: e.cn }));
+  }
+  return EXAMPLE_TEMPLATES.map(t=>({
+    en: t.en.replace(/__W__/g, `<B>${w}</B>`),
+    cn: t.cn.replace(/__W__/g, w)
+  }));
+}
+
 // 构建一个单词对象（动态补齐字段）
 function buildWord(w, cn, lv){
   let cachedImg = "";
@@ -372,10 +385,7 @@ function buildWord(w, cn, lv){
     syllables: autoSyllables(w),       // 音节自动拆分
     related: [],                        // 同源词（AFFIX_INDEX 构建后填充）
     root: affix ? { text: affix.text, meaning: affix.meaning, type: affix.type, key: affix.key } : null,
-    examples: EXAMPLE_TEMPLATES.map(t=>({
-      en: t.en.replace(/__W__/g, `<B>${w}</B>`),
-      cn: t.cn.replace(/__W__/g, w)
-    })),
+    examples: buildExamples(w),         // 真实例句优先，模板兜底
     imageUrl: cachedImg,                // 优先从本地缓存读取（已生成的单词直接复用，节省额度）
     _cn: cn,
     _affixKey: affix ? affix.key : null // 用于同源词索引

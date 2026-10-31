@@ -250,6 +250,8 @@ const GROUPS = LEVELS.map(lv => ({
 
 // 构建一个单词对象（动态补齐字段）
 function buildWord(w, cn, lv){
+  let cachedImg = "";
+  try{ cachedImg = localStorage.getItem('wordimg_' + w) || ""; }catch(e){}
   return {
     word: w,
     cn: cn,
@@ -262,7 +264,7 @@ function buildWord(w, cn, lv){
       en: t.en.replace(/__W__/g, `<B>${w}</B>`),
       cn: t.cn.replace(/__W__/g, w)
     })),
-    imageUrl: "",                       // AI图片运行时生成
+    imageUrl: cachedImg,                // 优先从本地缓存读取（已生成的单词直接复用，节省额度）
     _cn: cn
   };
 }
@@ -602,11 +604,27 @@ async function loadPhonetic(w){
   }
 }
 
-/* 图片按需生成（走自己的后端中转，key 不暴露） */
+/* 图片按需生成（走自己的后端中转，key 不暴露）
+   优化：图片 URL 用 localStorage 缓存，每个单词只生成一次，节省 API 额度 */
+const IMG_CACHE_PREFIX = 'wordimg_';
+function getCachedImage(word){
+  try{ return localStorage.getItem(IMG_CACHE_PREFIX + word) || ''; }catch(e){ return ''; }
+}
+function setCachedImage(word, url){
+  try{ localStorage.setItem(IMG_CACHE_PREFIX + word, url); }catch(e){}
+}
 async function loadImage(w){
   const imgEl = $("#wordImg");
   if(!imgEl) return;
   if(w.imageUrl){ return; }
+  // 1. 先查本地缓存（已生成过的单词直接复用，不重复请求）
+  const cached = getCachedImage(w.word);
+  if(cached){
+    w.imageUrl = cached;
+    imgEl.innerHTML = `<img src="${cached}" alt="${w.word}" onerror="this.parentElement.innerHTML='<span class=&quot;emoji&quot;>🖼️</span>'">`;
+    return;
+  }
+  // 2. 缓存未命中才调用后端生成
   try{
     const resp = await fetch('/api/generate-image', {
       method:'POST',
@@ -617,10 +635,11 @@ async function loadImage(w){
     const data = await resp.json();
     if(data.url){
       w.imageUrl = data.url;
+      setCachedImage(w.word, data.url);
       imgEl.innerHTML = `<img src="${data.url}" alt="${w.word}" onerror="this.parentElement.innerHTML='<span class=&quot;emoji&quot;>🖼️</span>'">`;
     }
   }catch(e){
-    // 生成失败则保留占位
+    // 生成失败（如额度用尽）则保留占位，下次进入会重试
   }
 }
 function nextWord(){ if(learnIndex<words().length-1){ learnIndex++; renderLearn(); updateProgress(); } else { goStep(1); } }

@@ -269,36 +269,48 @@ function buildWord(w, cn, lv){
   };
 }
 
-// 简单音节拆分（按辅音+元音模式粗略切分，用于音节朗读高亮）
+// 音节拆分（英文 VCV/VCCV 规则：每个元音组一个音节核心，辅音按规则归属前后）
 function autoSyllables(w){
-  if(!w || w.length <= 3) return [{text:w}];
-  // 简单规则：按元音聚类切分
-  const vowels = "aeiouAEIOU";
-  const syls = [];
-  let cur = "";
-  for(let i=0;i<w.length;i++){
-    const ch = w[i];
-    cur += ch;
-    const isVowel = vowels.includes(ch);
-    const nextIsVowel = i+1<w.length && vowels.includes(w[i+1]);
-    // 遇到 元音+辅音 且后面还有内容时切分
-    if(isVowel && !nextIsVowel && i+1<w.length && i+2<=w.length){
-      // 不立即切，继续到下一个元音前
-    }
-    if(isVowel && !nextIsVowel && i<w.length-1){
-      // 检查后面是否还有元音，若有则此处切分
-      let hasMoreVowel=false;
-      for(let j=i+1;j<w.length;j++){ if(vowels.includes(w[j])){hasMoreVowel=true;break;} }
-      if(hasMoreVowel){ syls.push(cur); cur=""; }
+  if(!w) return [{text:''}];
+  const vowels = "aeiouyAEIOUY";
+  const n = w.length;
+  // 标记每个字符是否为元音
+  const isV = [];
+  for(let i=0;i<n;i++) isV.push(vowels.includes(w[i]));
+  // 找出所有元音组（连续元音视为一个音节核心）的 [起始, 结束] 索引
+  const vGroups = [];
+  let i = 0;
+  while(i < n){
+    if(isV[i]){
+      let j = i;
+      while(j+1 < n && isV[j+1]) j++;
+      vGroups.push([i, j]);
+      i = j + 1;
+    } else {
+      i++;
     }
   }
-  if(cur) syls.push(cur);
-  if(syls.length===1 && w.length>6){
-    // 太长且没切开，按中间切
-    const mid = Math.ceil(w.length/2);
-    return [{text:w.slice(0,mid)},{text:w.slice(mid)}];
+  // 0 或 1 个元音组 → 单音节，不拆分
+  if(vGroups.length <= 1) return [{text:w}];
+  // 依据相邻元音组之间的辅音数量切分音节
+  const segs = [];
+  let start = 0;
+  for(let g=0; g<vGroups.length; g++){
+    const ge = vGroups[g][1];               // 当前元音组结束位置
+    if(g === vGroups.length - 1){
+      segs.push(w.slice(start));            // 最后一个音节取到词尾
+    } else {
+      const ns = vGroups[g+1][0];           // 下一元音组起始位置
+      const consCount = ns - ge - 1;        // 两元音组之间的辅音数量
+      let end = ge;                          // 默认辅音归后一音节 (VCV)
+      if(consCount >= 2){                    // VCCV：第一个辅音归前一音节
+        end = ge + 1;
+      }
+      segs.push(w.slice(start, end + 1));
+      start = end + 1;
+    }
   }
-  return syls.map(s=>({text:s}));
+  return segs.map(s=>({text:s}));
 }
 
 /* ================= 全局状态 ================= */
@@ -788,6 +800,7 @@ function renderSpellWord(){
       <div class="answer-slots">${w.word.split("").map((_,i)=>`<div class="slot" id="slot-${i}" onclick="removeLetter(${i})"></div>`).join("")}</div>
       <div class="letters">${spellState.letters.map((ch,i)=>`<div class="letter-tile" id="lt-${i}" onclick="addLetter(${i})">${ch}</div>`).join("")}</div>
       <button class="btn btn-primary" onclick="checkSpell()">提交答案</button>
+      <button class="btn btn-ghost" onclick="clearSpell()">清空重来</button>
     </div>
     <div style="text-align:center;margin-top:20px"><button class="btn btn-skip" onclick="goStep(5)">跳过本题型 →</button></div>
   `;
@@ -795,10 +808,22 @@ function renderSpellWord(){
 function addLetter(i){
   const w = words()[spellState.idx];
   if(spellState.slots.length >= w.word.length) return;
+  // 防止同一字母被重复选用
+  if(spellState.letterIndex.includes(i)) return;
   const ch = spellState.letters[i];
   spellState.slots.push(ch);
   spellState.letterIndex.push(i);
   $("#lt-"+i).classList.add("used");
+  renderSlots();
+}
+function clearSpell(){
+  // 一键清空：恢复所有已用字母，重新拼写
+  spellState.letterIndex.forEach(li=>{
+    const tile = $("#lt-"+li);
+    if(tile) tile.classList.remove("used");
+  });
+  spellState.slots = [];
+  spellState.letterIndex = [];
   renderSlots();
 }
 function removeLetter(slotIdx){

@@ -126,6 +126,42 @@
   .root-box{background:#f8f9fd;border-radius:12px;padding:12px 14px;margin-bottom:14px;font-size:14px;border-left:3px solid var(--primary2)}
   .root-box b{color:var(--primary2)}
   /* 思维导图：词根词缀中心 + 同源词发散 */
+  /* ===== 词汇发散：词根拆解 + 词族折叠卡 ===== */
+  .vf-card{background:#fbfbff;border:1px solid var(--border);border-radius:16px;padding:16px 18px;margin-bottom:16px}
+  .vf-sec + .vf-sec{margin-top:14px;padding-top:13px;border-top:1px dashed #e8eaf5}
+  .vf-title{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700;color:var(--primary);margin-bottom:10px}
+  .vf-title .vf-num{font-size:12px;font-weight:500;color:var(--muted)}
+  .vf-parts{display:flex;flex-wrap:wrap;gap:8px 18px}
+  .vf-part{display:inline-flex;align-items:baseline;gap:6px;font-size:13.5px;color:#4a5070}
+  .vf-part code{font-family:inherit;font-weight:800;color:var(--primary2);font-size:14px}
+  .vf-tag{font-size:11px;background:#eef0fb;color:#6b72a8;border-radius:6px;padding:1px 6px;line-height:1.6}
+  .vf-eq{margin-top:10px;font-size:13.5px;color:#41476b;background:#f2f4ff;border-left:3px solid var(--primary);border-radius:0 8px 8px 0;padding:9px 12px;line-height:1.85}
+  .vf-eq b{color:var(--primary2)}
+  .fam-list{display:flex;flex-direction:column}
+  .fam-item{display:flex;align-items:baseline;gap:10px;padding:7px 0;border-bottom:1px dashed #eef0f6;font-size:13.5px}
+  .fam-item:last-child{border-bottom:none}
+  .fam-list.collapsed .fam-extra{display:none}
+  .fam-w{font-weight:700;color:var(--text);min-width:104px}
+  .fam-ph{color:#8a90a3;font-size:12.5px;min-width:110px}
+  .fam-cn{color:#555;flex:1;line-height:1.7}
+  .fam-toggle{display:inline-flex;align-items:center;gap:6px;margin-top:10px;border:1px solid var(--border);background:#fff;color:var(--primary);font-size:13px;padding:6px 16px;border-radius:16px;cursor:pointer;transition:.15s}
+  .fam-toggle:hover{background:#eef1ff}
+  .syn-group{display:flex;flex-direction:column;gap:2px}
+  .syn-row{display:flex;gap:10px;font-size:13.5px;line-height:1.85;padding:4px 0}
+  .syn-w{font-weight:700;color:var(--primary2);min-width:104px}
+  .syn-d{flex:1;color:#4a5070}
+  /* 手机端：单词/音标一行，释义另起一行，避免逐字折行 */
+  @media (max-width: 640px){
+    .vf-card{padding:14px 14px}
+    .fam-item{flex-wrap:wrap;gap:2px 8px;padding:9px 0}
+    .fam-w{min-width:0;flex:1 1 100%}
+    .fam-ph{min-width:0;flex:0 0 auto}
+    .fam-cn{flex:1 1 100%;margin-top:2px}
+    .syn-row{flex-wrap:wrap;gap:2px 8px}
+    .syn-w{min-width:0;flex:1 1 100%}
+    .vf-parts{gap:6px 14px}
+    .vf-eq{font-size:13px;line-height:1.8}
+  }
   .mindmap{background:linear-gradient(135deg,#f5f7ff,#fdf3ff);border-radius:18px;padding:18px;margin-bottom:16px;position:relative;overflow:hidden}
   .mindmap::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 50% 28%,rgba(99,102,241,.10),transparent 62%);pointer-events:none}
   .mm-center{position:relative;display:flex;flex-direction:column;align-items:center;margin-bottom:16px;text-align:center}
@@ -420,6 +456,8 @@
 <script src="words-data.js"></script>
 <script src="examples_data.js"></script>
 <script src="extras_data.js"></script>
+<script src="families_data.js"></script>
+<script src="synonyms_data.js"></script>
 <script src="pics_data.js"></script>
 <script src="syllables_data.js"></script>
 <script src="atlas_pics.js"></script>
@@ -1044,6 +1082,135 @@ async function playSyllables(wordData){
   if(token !== playToken) return;
   sylEls.forEach(el=>el.classList.remove("active"));
   playing = false;
+}
+
+/* ================= 词汇发散：词根拆解 + 词族（可折叠）+ 近义词辨析 ================= */
+let VOCAB_CN = null;
+function vocabCnMap(){
+  if(VOCAB_CN) return VOCAB_CN;
+  VOCAB_CN = Object.create(null);
+  for(const lv of Object.keys(WORD_DB)) for(const [w,cn] of WORD_DB[lv]) VOCAB_CN[w.toLowerCase()] = cn;
+  return VOCAB_CN;
+}
+let FAM_IDX = null;
+function famIndex(){
+  if(FAM_IDX) return FAM_IDX;
+  FAM_IDX = { byWord:new Map(), roots:{}, fams:{}, w2f:{}, pfx:{}, sfx:{} };
+  if(typeof FAMILY_DATA === 'undefined') return FAM_IDX;
+  const d = FAMILY_DATA;
+  FAM_IDX.roots = d.roots || {};
+  FAM_IDX.fams = d.fams || {};
+  FAM_IDX.w2f = d.w2f || {};
+  FAM_IDX.pfx = (d.meta && d.meta.pfx) || {};
+  FAM_IDX.free = (d.meta && d.meta.free) || {};
+  FAM_IDX.sfx = (d.meta && d.meta.sfx) || {};
+  for(const root in FAM_IDX.roots){
+    for(const it of FAM_IDX.roots[root].w){
+      FAM_IDX.byWord.set(String(it[0]).toLowerCase(), { root, m: FAM_IDX.roots[root].m, pre: it[3] || '', suf: it[4] || '' });
+    }
+  }
+  return FAM_IDX;
+}
+// 词族成员 → {w, ph, cn}：数据里词表内只存词形，音标/释义在此回填
+function famMember(item){
+  const w = item[0];
+  const lw = w.toLowerCase();
+  let ph = item[1] || '', cn = item[2] || '';
+  if(!ph && typeof ECDICT_DATA !== 'undefined' && ECDICT_DATA[lw] && ECDICT_DATA[lw].ph){
+    // ECDICT 用 ' 表重音、: 表长音，转成国际音标符号
+    ph = '/' + String(ECDICT_DATA[lw].ph).replace(/'/g, 'ˈ').replace(/:/g, 'ː') + '/';
+  }
+  if(!cn) cn = vocabCnMap()[lw] || '';
+  cn = cn.replace(/\[网络\]/g, '').trim();
+  if(cn.length > 30) cn = cn.slice(0, 30) + '…';
+  return { w, ph, cn };
+}
+// 选哪套词族：词根"透明"（词根本身是常用词，如 view/form/port）→ 用词根族；否则用有道同根词族
+function pickFamily(w){
+  const idx = famIndex();
+  const key = w.word.toLowerCase();
+  const rinfo = idx.byWord.get(key);
+  const famKey = idx.w2f[key];
+  const stem = famKey ? (idx.fams[famKey] || []) : [];
+  const root = rinfo ? (idx.roots[rinfo.root] ? idx.roots[rinfo.root].w : []) : [];
+  const rootIsWord = !!(rinfo && vocabCnMap()[rinfo.root]);
+  const useRoot = !!(rinfo && root.length >= 2 && (rootIsWord || stem.length < 2));
+  const raw = useRoot ? root : stem;
+  const list = [], seen = new Set([key]);
+  for(const it of raw){
+    const m = famMember(it);
+    const k = m.w.toLowerCase();
+    if(seen.has(k)) continue;
+    seen.add(k);
+    list.push(m);
+  }
+  return { rinfo, list, useRoot, rootMeaning: rinfo ? rinfo.m : '' };
+}
+function renderVocabFamily(w){
+  const idx = famIndex();
+  const { rinfo, list } = pickFamily(w);
+  const syn = (typeof SYNONYM_DATA !== 'undefined') ? SYNONYM_DATA[w.word.toLowerCase()] : null;
+  if(!rinfo && !list.length && !syn) return '';
+
+  let html = '<h3>🧬 词汇发散 · 词根与词族</h3><div class="vf-card">';
+
+  // ① 词根拆解
+  if(rinfo){
+    const preM = rinfo.pre ? (idx.pfx[rinfo.pre] || '') : '';
+    const isCompound = !!(rinfo.suf && idx.free[rinfo.suf] && !idx.sfx[rinfo.suf]);
+    const sufM = rinfo.suf ? (isCompound ? idx.free[rinfo.suf] : (idx.sfx[rinfo.suf] || '')) : '';
+    const sufLabel = isCompound ? '复合' : '后缀';
+    const parts = [];
+    if(rinfo.pre) parts.push(`<span class="vf-part"><code>${rinfo.pre}-</code><span class="vf-tag">前缀</span>${preM || '—'}</span>`);
+    parts.push(`<span class="vf-part"><code>${rinfo.root}</code><span class="vf-tag">词根</span>${rinfo.m}</span>`);
+    if(rinfo.suf) parts.push(`<span class="vf-part"><code>${isCompound ? '+' + rinfo.suf : '-' + rinfo.suf}</code><span class="vf-tag">${sufLabel}</span>${sufM || '—'}</span>`);
+    const formula = [
+      rinfo.pre ? `${rinfo.pre}（${preM || '前缀'}）` : '',
+      `${rinfo.root}（${rinfo.m}）`,
+      rinfo.suf ? `${rinfo.suf}（${sufM || sufLabel}）` : ''
+    ].filter(Boolean).join(' + ');
+    const coreCn = String(w.cn || '').split(/[，；,;]/)[0].replace(/^(n|v|vt|vi|adj|adv|prep|conj|pron|num|art|int)\.\s*/i, '');
+    html += `<div class="vf-sec">
+      <div class="vf-title">词根拆解</div>
+      <div class="vf-parts">${parts.join('')}</div>
+      <div class="vf-eq"><b>${w.word}</b> = ${formula}${coreCn ? `　→　引申为：<b>${coreCn}</b>` : ''}</div>
+    </div>`;
+  }
+
+  // ② 词族（默认 5 个，可展开）
+  if(list.length){
+    const CORE = 5;
+    const items = list.map((m, i) => `<div class="fam-item${i >= CORE ? ' fam-extra' : ''}">
+        <span class="fam-w">${i + 1}. ${m.w}</span>
+        <span class="fam-ph">${m.ph || ''}</span>
+        <span class="fam-cn">${m.cn || '—'}</span>
+      </div>`).join('');
+    const more = list.length - CORE;
+    html += `<div class="vf-sec">
+      <div class="vf-title">同源词 / 派生词 <span class="vf-num">共 ${list.length} 个</span></div>
+      <div class="fam-list collapsed" data-count="${list.length}">${items}</div>
+      ${more > 0 ? `<button class="fam-toggle" onclick="toggleFamily(this)">展开全部 ${list.length} 个 ▾</button>` : ''}
+    </div>`;
+  }
+
+  // ③ 近义词辨析
+  if(syn){
+    html += `<div class="vf-sec">
+      <div class="vf-title">近义词辨析 <span class="vf-num">${syn.topic}</span></div>
+      <div class="syn-group">
+        ${syn.words.map(it => `<div class="syn-row"><span class="syn-w">${it.w}</span><span class="syn-d">${it.d}</span></div>`).join('')}
+      </div>
+    </div>`;
+  }
+
+  return html + '</div>';
+}
+function toggleFamily(btn){
+  const list = btn.previousElementSibling;
+  if(!list) return;
+  const collapsed = list.classList.toggle('collapsed');
+  const n = list.dataset.count || '';
+  btn.textContent = collapsed ? `展开全部 ${n} 个 ▾` : '收起 ▴';
 }
 
 /* ================= 渲染 ================= */
@@ -1883,21 +2050,8 @@ function renderLearn(){
   const phHtml = (w.ukPhonetic || w.usPhonetic)
     ? `${w.ukPhonetic ? '<span class="src-tag">英·ECDICT</span> ' + w.ukPhonetic : ''}${w.usPhonetic ? ' &nbsp; <span class="src-tag">IPA·Wiktionary</span> ' + w.usPhonetic : ''}`
     : '<span class="phonetic-loading">音标加载中…</span>';
-  // 词根词缀 + 同源词 整合为思维导图发散展示
-  const MM_COLORS = ["#6366f1","#8b5cf6","#ec4899","#f59e0b","#10b981","#06b6d4","#f43f5e","#84cc16"];
-  const affixLabel = w.root ? (w.root.type==='prefix'?'前缀':w.root.type==='suffix'?'后缀':'词根') : '';
-  const mindmapHtml = (w.root || (w.related && w.related.length)) ? `
-    <h3>🧠 词汇发散 · 同源联想</h3>
-    <div class="mindmap">
-      <div class="mm-center">
-        ${w.root ? `<div class="mm-afix"><span class="mm-tag">${affixLabel}</span>${w.root.text}<span class="mm-mean">${w.root.meaning}</span></div>` : ''}
-        <div class="mm-core">${w.word}<span class="mm-core-cn">${w.cn.split(/[，；,;]/)[0]}</span></div>
-      </div>
-      <div class="mm-nodes">
-        ${(w.related||[]).map((r,i)=>{const parts=r.split(" "); const en=parts[0]; const cn=parts.slice(1).join(" "); const c=MM_COLORS[i%MM_COLORS.length]; return `<div class="mm-node" style="border-color:${c}"><div class="mm-en" style="color:${c}">${en}</div><div class="mm-cn">${cn}</div></div>`;}).join("")}
-        ${!(w.related&&w.related.length) ? `<div class="mm-empty">该词暂无同源词</div>` : ''}
-      </div>
-    </div>` : "";
+  // 词汇发散：词根拆解 + 词族折叠卡 + 近义词辨析
+  const mindmapHtml = renderVocabFamily(w);
   // 图片：有则显示，无则占位（异步加载）
   const imgHtml = w.imageUrl
     ? `<img src="${w.imageUrl}" alt="${w.word}" onerror="this.parentElement.innerHTML='<span class=&quot;emoji&quot;>🖼️</span>'">`

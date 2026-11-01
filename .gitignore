@@ -7,3 +7,4 @@ server.js
 .fetch_progress.json
 .ecdict.csv
 .wiktionary_progress.json
+.family_cache.json

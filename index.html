@@ -30,6 +30,7 @@
   .drawer-overlay.show{opacity:1;pointer-events:auto}
   .sidebar{position:fixed;left:0;top:0;bottom:0;width:280px;max-width:86vw;background:#fff;z-index:80;transform:translateX(-102%);transition:transform .28s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;overflow-y:auto;padding:16px 14px;box-shadow:0 0 40px rgba(0,0,0,.18)}
   .sidebar.open{transform:translateX(0)}
+  .sidebar>*{flex-shrink:0}   /* 抽屉是 flex 列且可滚动：禁止子项被压缩，避免段位卡被挤成一条 */
   .drawer-head{display:flex;align-items:center;justify-content:space-between;padding:2px 6px 14px}
   .drawer-close{width:36px;height:36px;border-radius:10px;border:none;background:transparent;font-size:20px;cursor:pointer;color:var(--muted);display:flex;align-items:center;justify-content:center}
   .drawer-close:hover{background:#f3f5fc;color:var(--text)}
@@ -468,6 +469,44 @@
   .pts-float{position:fixed;z-index:120;font-weight:800;font-size:15px;color:var(--amber);pointer-events:none;animation:ptsFloat 1s forwards}
   @keyframes ptsFloat{0%{opacity:0;transform:translateY(0)}20%{opacity:1}100%{opacity:0;transform:translateY(-34px)}}
 
+  /* ===== 返回栏 / 页面跳转 ===== */
+  .back-bar{display:flex;align-items:center;gap:10px;margin-bottom:10px;min-height:32px}
+  .back-btn{display:inline-flex;align-items:center;gap:6px;background:#fff;border:1px solid var(--border);color:var(--text);font-family:inherit;font-size:13px;font-weight:600;padding:6px 14px;border-radius:999px;cursor:pointer;transition:.16s}
+  .back-btn:hover{border-color:var(--primary);color:var(--primary);background:#f7f8ff}
+  .back-hint{font-size:12px;color:var(--muted)}
+  .btn:disabled{opacity:.42;cursor:not-allowed;box-shadow:none}
+  .btn:disabled:hover{transform:none;box-shadow:none}
+
+  /* ===== 段位体系（多层级） ===== */
+  .rank-streak{display:inline-flex;align-items:center;gap:4px;font-size:11px;color:#ffd76a;background:rgba(255,255,255,.12);border-radius:10px;padding:1px 8px;margin-left:6px;vertical-align:middle}
+  .ach-bar{height:8px;background:rgba(255,255,255,.18);border-radius:4px;overflow:hidden;margin-top:10px}
+  .ach-bar>i{display:block;height:100%;background:linear-gradient(90deg,#ffd76a,#ff9a5a);border-radius:4px;transition:width .6s}
+  .ach-next{font-size:11.5px;color:#b7b2d8;margin-top:6px}
+  .ach-next b{color:#fff}
+  .ach-dims{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:22px}
+  .ach-dim{background:#f8f9fd;border:1px solid var(--border);border-radius:14px;padding:14px 12px;text-align:center}
+  .ach-dim .ad-icon{font-size:22px;line-height:1.2}
+  .ach-dim .ad-label{font-size:12px;color:var(--muted);margin-top:4px}
+  .ach-dim .ad-val{font-size:17px;font-weight:800;color:var(--text);margin-top:2px}
+  .ach-dim .ad-sub{font-size:11.5px;color:var(--primary);margin-top:4px}
+  .ach-dim .ad-bar{height:4px;background:#e9ecf6;border-radius:3px;overflow:hidden;margin-top:8px}
+  .ach-dim .ad-bar>i{display:block;height:100%;background:linear-gradient(90deg,var(--primary),var(--primary2));border-radius:3px}
+  .rank-ladder{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+  .rl-row{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:11px;background:#fbfbfe;border:1px solid #eef0f6;font-size:13px}
+  .rl-row .rl-icon{font-size:17px;width:24px;text-align:center}
+  .rl-row .rl-name{font-weight:700;color:var(--text);min-width:104px}
+  .rl-row .rl-range{margin-left:auto;color:var(--muted);font-size:12px}
+  .rl-row.done{background:#f5fbf7;border-color:#dff2e6}
+  .rl-row.done .rl-name{color:#2f8f5b}
+  .rl-row.now{background:linear-gradient(135deg,#eef2ff,#f6f0ff);border-color:#c9d2f7;box-shadow:0 4px 12px rgba(99,102,241,.12)}
+  .rl-row.now .rl-name{color:var(--primary2)}
+  .rl-row.now .rl-range{color:var(--primary);font-weight:700}
+  .rl-row.lock{opacity:.62}
+  .rl-tag{font-size:10.5px;border-radius:7px;padding:0 6px;line-height:1.7;background:#eef0fb;color:#6b72a8}
+  .rl-row.now .rl-tag{background:var(--primary);color:#fff}
+  .rl-row.done .rl-tag{background:#e2f5ea;color:#2f8f5b}
+  .rank-note{font-size:12px;color:var(--muted);line-height:1.9;margin-top:10px}
+
   @media(max-width:720px){
     .learn-grid,.match-grid,.options{grid-template-columns:1fr}
     .word-text{font-size:32px}
@@ -475,6 +514,17 @@
     .main{padding:18px 14px 50px}
     .bomb-grid{grid-template-columns:repeat(2,1fr)}
     .badge-grid{grid-template-columns:repeat(2,1fr)}
+    .ach-dims{grid-template-columns:1fr;gap:8px}
+    .ach-dim{display:flex;align-items:center;flex-wrap:wrap;gap:4px 10px;text-align:left;padding:11px 14px}
+    .ach-dim .ad-label{margin-top:0;min-width:52px}
+    .ach-dim .ad-val{margin-top:0;margin-left:auto;font-size:16px}
+    .ach-dim .ad-sub{flex:1 1 100%;margin-top:0;padding-left:32px}
+    .ach-dim .ad-bar{display:none}
+    .rl-row{padding:8px 10px;gap:8px}
+    .rl-row .rl-name{min-width:0;flex:1;font-size:12.5px}
+    .rl-row .rl-range{font-size:11px}
+    .nav-btns{flex-wrap:wrap;gap:8px}
+    .nav-btns .progress-info{order:-1;flex:1 1 100%;text-align:center;margin-bottom:4px}
   }
 </style>
 </head>
@@ -545,6 +595,10 @@
       <div class="main-title" id="mainTitle">词汇认知</div>
       <div class="main-sub" id="mainSub"></div>
       <div class="progress-bar"><div id="progressBar" style="width:0%"></div></div>
+    </div>
+    <div class="back-bar hidden" id="backBar">
+      <button class="back-btn" id="backBtn" onclick="backToStudy()">← 返回词汇认知</button>
+      <span class="back-hint" id="backHint"></span>
     </div>
     <section id="learnPage" class="card"></section>
     <section id="matchPage" class="card hidden"></section>
@@ -902,6 +956,8 @@ let BATCH_SIZE = 15; // 每批学习的单词数
 let currentBatch = []; // 当前批次的学习词（从当前级别随机抽取）
 let activeCustomWords = null; // 激活的自定义词库词对象数组（null=内置词库）
 let resultRewarded = false; // 本批是否已发放通关奖励
+let batchStat = { ans:0, right:0 };  // 本批答题统计（用于通关正确率奖励）
+let lastResult = null;               // 本批结算数据（正确率 / 额外奖励）
 
 // 获取当前批次的学习词（不是全部词库）
 const words = () => {
@@ -916,6 +972,8 @@ function newBatch(){
   currentBatch = shuffle(pool).slice(0, n);
   learnIndex = 0;
   resultRewarded = false;
+  batchStat = { ans:0, right:0 };
+  lastResult = null;
 }
 // 典雅书院风命名（标题 / 菜单名 / 图标 / 副标题）
 const STEPS = [
@@ -980,8 +1038,10 @@ let currentAudio = null;
 let playing = false;
 // 播放代次：每次停止/切换自增，旧的异步播放链检测到代次变化即退出，避免“旧朗读串到新单词”
 let playToken = 0;
+let learnAudioTimer = null;   // 学习页自动发音的延时器，切页时必须清掉
 function stopAudio(){
   playToken++;
+  if(learnAudioTimer){ clearTimeout(learnAudioTimer); learnAudioTimer = null; }
   if(currentAudio){ try{currentAudio.pause();}catch(e){} currentAudio=null; }
   if(window.speechSynthesis){ try{speechSynthesis.cancel();}catch(e){} }
   playing = false;
@@ -1330,7 +1390,8 @@ function renderTabs(){
 }
 function renderSteps(){
   $("#steps").innerHTML = STEPS.map((s,i)=>{
-    const cls = i===currentStep?"active":(i<currentStep?"done":"");
+    // 只有在学习流程里才高亮步骤；切到词库/成就等页面时不该继续亮着
+    const cls = appMode!=='learn' ? "" : (i===currentStep?"active":(i<currentStep?"done":""));
     return `<div class="menu-item ${cls}" onclick="goStep(${i})"><span class="mi-icon">${s.icon}</span><span>${s.title}</span><span class="mi-num">${i<currentStep?'✓':(i+1)}</span></div>`;
   }).join("");
   // 更新主区标题
@@ -1354,11 +1415,41 @@ function closeDrawer(){
   if(sb) sb.classList.remove("open");
   if(ov) ov.classList.remove("show");
 }
-function goStep(i){
-  if(i===0) learnIndex = 0;
+function exitBattleIfNeeded(nextMode){
+  if(appMode !== 'battle' || nextMode === 'battle') return;
+  try{ stopPkTimer(); }catch(e){}
+  try{ if(typeof pkPollStop === 'function') pkPollStop(); }catch(e){}
+  try{ pk = null; }catch(e){}
+  try{ online = null; }catch(e){}
+}
+// 对战是否正在进行（用于返回时二次确认，避免手滑丢掉对局）
+function battleInProgress(){
+  try{ return !!(pk && pk.phase === 'q') || !!(online && online.state && online.state.phase === 'playing'); }catch(e){ return false; }
+}
+function goStep(i, opts){
+  if(typeof i !== 'number' || i < 0 || i > STEPS.length) i = 0;
+  exitBattleIfNeeded('learn');
+  stopAudio();
+  // 关键修复：回到「词汇认知」不再把 learnIndex 重置为 0，学生可以从上次停留的单词继续
+  appMode = 'learn';
   currentStep = i;
+  lastStudyStep = i;
   closeDrawer();
   renderAll();
+  if(!opts || !opts.silent) pushRoute();
+}
+// 从词库 / 错题本 / 成就 / 对战返回学习区，回到离开时的步骤，而不是硬跳第 1 步
+function backToStudy(){
+  if(appMode === 'battle' && battleInProgress() && !confirm('对战还没结束，确定离开吗？')) return;
+  exitBattleIfNeeded('learn');
+  stopAudio();
+  const target = (appMode === 'learn') ? 0 : Math.min(lastStudyStep || 0, STEPS.length);
+  appMode = 'learn';
+  currentStep = target;
+  if(currentStep === 0 && (!words() || !words().length)) newBatch();
+  closeDrawer();
+  renderAll();
+  pushRoute();
 }
 function switchGroup(i){
   currentGroup = i; currentStep=0; learnIndex=0; stopAudio();
@@ -1366,15 +1457,35 @@ function switchGroup(i){
   newBatch();
   closeDrawer();
   renderAll();
+  pushRoute();
 }
-function renderAll(){
+const MODE_META = {
+  review:      ['复习巩固', '按艾宾浩斯遗忘曲线安排到期复习'],
+  wrongbook:   ['错题本', '易错词集中复盘，可一键转成词库'],
+  decks:       ['我的词库', '内置词库 + 自主导入，多套独立管理'],
+  achievement: ['段位成就', '词汇量 · 正确率 · 对战战绩共同晋级'],
+  battle:      ['单词对战', '限时竞技 · 比准确率也比手速']
+};
+function renderAll(opts){
+  // 兜底：批次/词库变化后 learnIndex 可能越界，先夹紧再渲染
+  if(appMode === 'learn'){ const n = words().length; if(n && learnIndex >= n) learnIndex = n - 1; }
   renderTabs(); renderSteps(); updateProgress(); updateBadges(); updateRankUI();
-  ["learnPage","matchPage","choicePage","fillPage","spellPage","sentencePage","transPage","passagePage","resultPage","reviewPage","wrongbookPage","decksPage","achievementPage","battlePage"].forEach(id=>$("#"+id).classList.add("hidden"));
+  if(appMode !== 'learn' && MODE_META[appMode]){
+    if($("#mainTitle")) $("#mainTitle").textContent = MODE_META[appMode][0];
+    if($("#mainSub")) $("#mainSub").textContent = MODE_META[appMode][1];
+  }
+  // 内容没变就只切显示、不重渲染：避免返回时整页闪烁、图片重载、发音被重复触发
+  const keepLearn = appMode === 'learn' && currentStep === 0 && learnSig && learnSig === learnSignature();
+  ["learnPage","matchPage","choicePage","fillPage","spellPage","sentencePage","transPage","passagePage","resultPage","reviewPage","wrongbookPage","decksPage","achievementPage","battlePage"].forEach(id=>{
+    if(id === "learnPage" && keepLearn) return;
+    const el = $("#"+id); if(el) el.classList.add("hidden");
+  });
   // 复习巩固 + 成长激励菜单高亮
   const miMap = { review:'miReview', wrongbook:'miWrongbook', decks:'miDecks', achievement:'miAchievement', battle:'miBattle' };
   ["miReview","miWrongbook","miDecks","miAchievement","miBattle"].forEach(id=>{ const el=$("#"+id); if(el) el.classList.remove("active"); });
   if(miMap[appMode]){ const el=$("#"+miMap[appMode]); if(el) el.classList.add("active"); }
   stopAudio();
+  updateBackBar();
   if(appMode==='review'){ renderReview(); window.scrollTo({top:0}); return; }
   if(appMode==='wrongbook'){ renderWrongbook(); window.scrollTo({top:0}); return; }
   if(appMode==='decks'){ renderDecks(); window.scrollTo({top:0}); return; }
@@ -1384,7 +1495,10 @@ function renderAll(){
     if($("#mainSub")) $("#mainSub").textContent = '限时竞技 · 比准确率也比手速';
     renderBattleHome(); window.scrollTo({top:0}); return;
   }
-  if(currentStep===0) renderLearn();
+  if(currentStep===0){
+    if(keepLearn){ $("#learnPage").classList.remove("hidden"); updateProgress(); }
+    else renderLearn();
+  }
   else if(currentStep===1) renderMatch();
   else if(currentStep===2) renderChoice();
   else if(currentStep===3) renderFill();
@@ -1393,7 +1507,20 @@ function renderAll(){
   else if(currentStep===6) renderTrans();
   else if(currentStep===7) renderPassage();
   else renderResult();
-  window.scrollTo({top:0,behavior:"smooth"});
+  if(!opts || !opts.keepScroll) window.scrollTo({top:0});
+}
+
+// 返回栏：学习流程第 2 步以后、以及词库/错题本/成就/对战页常驻，一键回到学习区
+function updateBackBar(){
+  const bar = $("#backBar");
+  if(!bar) return;
+  const inStudy = appMode === 'learn';
+  const show = !inStudy || currentStep > 0;
+  bar.classList.toggle("hidden", !show);
+  if(!show) return;
+  const btn = $("#backBtn"), hint = $("#backHint");
+  if(btn) btn.textContent = inStudy ? "← 返回词汇认知" : "← 返回学习";
+  if(hint) hint.textContent = inStudy ? "" : "学习进度已保留，回来可继续";
 }
 
 /* ================= 复习巩固：错题本 + 艾宾浩斯 + 自定义词库 ================= */
@@ -1473,8 +1600,11 @@ function markLearned(word, level, deckId){
   if(!log[word]){
     log[word] = { level, stage:0, nextDue: Date.now()+EBB_INTERVALS[0]*DAY, addedAt: Date.now() };
     if(deckId) log[word].deck = deckId;
-    addPoints(5, '学习新词'); // 每个新单词第一次学习 +5 分
+    addPoints(5, '学习新词', 'vocab'); // 每个新单词第一次学习 +5 分
     saveStore(LS.studylog, log);
+    // 词汇量里程碑：每累计 25 个新词额外奖励，鼓励持续扩词
+    const learnedN = Object.keys(log).length;
+    if(learnedN % 25 === 0) addPoints(25, '词汇里程碑', 'vocab');
   }
   updateBadges();
 }
@@ -1495,48 +1625,149 @@ function reviewResult(word, result){
   r.nextDue = Date.now() + EBB_INTERVALS[r.stage]*DAY;
   saveStore(LS.studylog, log);
   // 复习奖励：认识 +3，模糊 +1，忘记 +0
-  if(result==='know') addPoints(3, '复习·认识');
-  else if(result==='fuzzy') addPoints(1, '复习·模糊');
+  if(result==='know') addPoints(3, '复习·认识', 'vocab');
+  else if(result==='fuzzy') addPoints(1, '复习·模糊', 'vocab');
 }
 
-/* ================= 游戏化激励：积分 + 段位 + 成就 ================= */
+/* ================= 游戏化激励：积分 + 段位（22 级） + 三维成长 ================= */
 const LS_POINTS = 'lx_points';
+const LS_STATS  = 'lx_stats';
+
+/* 段位设计：8 大段位 × 3 小阶 + 传奇宗师 = 22 级
+   区间逐级拉长（200 → 4000 分），越到后期晋升越需要真功夫，避免“早早见顶没动力” */
 const RANKS = [
-  { name:'青铜学徒', icon:'🥉', min:0 },
-  { name:'白银新秀', icon:'🥈', min:100 },
-  { name:'黄金勇士', icon:'🥇', min:300 },
-  { name:'铂金大师', icon:'💎', min:600 },
-  { name:'钻石学霸', icon:'🔷', min:1000 },
-  { name:'星耀学霸', icon:'⭐', min:1600 },
-  { name:'王者之师', icon:'👑', min:2400 },
-  { name:'传奇宗师', icon:'🏆', min:3400 },
+  { name:'青铜学徒 Ⅰ', tier:'青铜', icon:'🥉', min:0 },
+  { name:'青铜学徒 Ⅱ', tier:'青铜', icon:'🥉', min:200 },
+  { name:'青铜学徒 Ⅲ', tier:'青铜', icon:'🥉', min:500 },
+  { name:'白银新秀 Ⅰ', tier:'白银', icon:'🥈', min:900 },
+  { name:'白银新秀 Ⅱ', tier:'白银', icon:'🥈', min:1400 },
+  { name:'白银新秀 Ⅲ', tier:'白银', icon:'🥈', min:2000 },
+  { name:'黄金勇士 Ⅰ', tier:'黄金', icon:'🥇', min:2700 },
+  { name:'黄金勇士 Ⅱ', tier:'黄金', icon:'🥇', min:3500 },
+  { name:'黄金勇士 Ⅲ', tier:'黄金', icon:'🥇', min:4400 },
+  { name:'铂金精英 Ⅰ', tier:'铂金', icon:'💎', min:5400 },
+  { name:'铂金精英 Ⅱ', tier:'铂金', icon:'💎', min:6500 },
+  { name:'铂金精英 Ⅲ', tier:'铂金', icon:'💎', min:7700 },
+  { name:'钻石学霸 Ⅰ', tier:'钻石', icon:'🔷', min:9000 },
+  { name:'钻石学霸 Ⅱ', tier:'钻石', icon:'🔷', min:10500 },
+  { name:'钻石学霸 Ⅲ', tier:'钻石', icon:'🔷', min:12100 },
+  { name:'星耀大师 Ⅰ', tier:'星耀', icon:'⭐', min:13900 },
+  { name:'星耀大师 Ⅱ', tier:'星耀', icon:'⭐', min:15900 },
+  { name:'星耀大师 Ⅲ', tier:'星耀', icon:'⭐', min:18100 },
+  { name:'王者之师 Ⅰ', tier:'王者', icon:'👑', min:20500 },
+  { name:'王者之师 Ⅱ', tier:'王者', icon:'👑', min:23100 },
+  { name:'王者之师 Ⅲ', tier:'王者', icon:'👑', min:26000 },
+  { name:'传奇宗师',    tier:'传奇', icon:'🏆', min:30000 },
 ];
-function loadPoints(){ return loadStore(LS_POINTS, { total:0, today:0, todayKey:'', earned:{} }); }
+
+// 三维积分来源：词汇量 / 答题正确率 / PK 战绩
+const POINT_CATS = { vocab:'词汇量', answer:'答题', pk:'对战' };
+const ANSWER_REASONS = ['语义词联','词义甄别','语境填空','拼写重构','句式组配','双语转译','通关奖励','正确率奖励'];
+const TYPE_LABEL = { match:'语义词联', choice:'词义甄别', fill:'语境填空', spell:'拼写重构', sentence:'句式组配', trans:'双语转译' };
+
+function guessCat(reason){
+  const r = String(reason||'');
+  if(r.indexOf('对战') >= 0) return 'pk';
+  if(r.indexOf('答题') >= 0 || ANSWER_REASONS.indexOf(r) >= 0) return 'answer';
+  return 'vocab';
+}
+function loadPoints(){
+  const raw = loadStore(LS_POINTS, {});
+  const out = Object.assign({ total:0, today:0, todayKey:'', earned:{}, cat:null }, raw||{});
+  if(!out.cat || typeof out.cat.vocab !== 'number'){
+    // 老用户迁移：按历史得分原因归类，不丢分
+    const cat = { vocab:0, answer:0, pk:0 };
+    for(const [k,v] of Object.entries(out.earned||{})){
+      cat[guessCat(k)] += Number(v) || 0;
+    }
+    if(!cat.vocab && !cat.answer && !cat.pk) cat.vocab = out.total || 0;
+    out.cat = cat;
+  }
+  return out;
+}
 function savePoints(p){ saveStore(LS_POINTS, p); }
 function getRank(total){ let r=0; for(let i=0;i<RANKS.length;i++){ if(total>=RANKS[i].min) r=i; } return r; }
-// 加分：自动处理段位晋升检测，返回是否晋升
-function addPoints(n, reason){
+
+/* ---- 答题统计：正确率与连对（影响每次得分，也用于成就页三维展示） ---- */
+function loadStats(){
+  const raw = loadStore(LS_STATS, {}) || {};
+  const pk = Object.assign({ win:0, lose:0, draw:0, streak:0, best:0 }, raw.pk || {});
+  return Object.assign({ ans:0, right:0, streak:0, best:0, byType:{} }, raw, { pk });
+}
+function saveStats(s){ saveStore(LS_STATS, s); }
+function accuracy(st){ st = st || loadStats(); return st.ans ? Math.round(st.right / st.ans * 100) : 0; }
+// 连对加成：3/6/9/12/15 题分别 +10% ~ +50%
+function streakMult(streak){
+  if(streak >= 15) return 1.5;
+  if(streak >= 12) return 1.4;
+  if(streak >= 9)  return 1.3;
+  if(streak >= 6)  return 1.2;
+  if(streak >= 3)  return 1.1;
+  return 1;
+}
+// 记录一次答题：答对才得分，连对递增加成；答错清零连对但不扣分
+// countAcc=false 用于消消乐这类没有"答错提交"的对拼玩法，避免虚高正确率
+function recordAnswer(type, ok, base, countAcc){
+  const s = loadStats();
+  const count = (countAcc !== false);
+  if(count){
+    s.ans++;
+    if(ok){ s.right++; }
+    if(ok){ s.streak++; if(s.streak > (s.best||0)) s.best = s.streak; }
+    else { s.streak = 0; }
+  }
+  const t = s.byType[type] || { n:0, r:0 };
+  t.n++; if(ok) t.r++;
+  s.byType[type] = t;
+  saveStats(s);
+  if(count && typeof batchStat === 'object' && batchStat){ batchStat.ans++; if(ok) batchStat.right++; }
+  const mult = streakMult(s.streak);
+  const gain = ok ? Math.ceil(base * mult) : 0;
+  if(gain) addPoints(gain, '答题·' + (TYPE_LABEL[type] || type), 'answer');
+  return { gain, mult, streak: s.streak };
+}
+// 记录一场对战：胜/负/平都计入战绩，连胜额外加分
+function recordPk(win){
+  const s = loadStats();
+  const pk = s.pk;
+  if(win === 0){ pk.win++; pk.streak = (pk.streak||0) + 1; if(pk.streak > (pk.best||0)) pk.best = pk.streak; }
+  else if(win === 1){ pk.lose++; pk.streak = 0; }
+  else { pk.draw = (pk.draw||0) + 1; }
+  saveStats(s);
+  const gain = win === 0 ? Math.min(30, 15 + Math.max(0, (pk.streak - 1) * 5)) : (win === 1 ? 5 : 8);
+  addPoints(gain, '单词对战', 'pk');
+  return gain;
+}
+
+// 加分：累计积分 + 分类记账 + 段位晋升检测
+function addPoints(n, reason, cat){
   if(!n || n<=0) return false;
   const p = loadPoints();
   const before = p.total;
   const prevRank = getRank(before);
   p.total += n;
-  // 今日积分
   const tk = new Date().toDateString();
   if(p.todayKey !== tk){ p.todayKey = tk; p.today = 0; }
   p.today += n;
   p.earned[reason] = (p.earned[reason]||0) + n;
+  const c = cat || guessCat(reason);
+  p.cat[c] = (p.cat[c]||0) + n;
   savePoints(p);
   const newRank = getRank(p.total);
   updateRankUI();
-  if(newRank > prevRank){ showRankUp(); }
+  if(newRank > prevRank){ showRankUp(newRank); }
   return true;
 }
-function showRankUp(){
+let pendingRankUp = 0;
+function showRankUp(idx){
+  pendingRankUp = (typeof idx === 'number') ? idx : 0;
   const el = $("#rankUp");
-  if(!el) return;
-  el.classList.add("show");
-  setTimeout(()=>el.classList.remove("show"), 1800);
+  if(el){
+    el.textContent = "🎉 晋升 " + (RANKS[pendingRankUp] ? RANKS[pendingRankUp].icon + ' ' + RANKS[pendingRankUp].name : '新段位');
+    el.classList.add("show");
+    setTimeout(()=>el.classList.remove("show"), 2200);
+  }
+  toast("🎉 段位晋升：" + (RANKS[pendingRankUp] ? RANKS[pendingRankUp].name : ''));
 }
 function updateRankUI(){
   const p = loadPoints();
@@ -1548,7 +1779,6 @@ function updateRankUI(){
   if(name) name.textContent = cur.name;
   if(pts) pts.textContent = p.total;
   if(badge) badge.textContent = p.total>0 ? p.total : '';
-  // 同步顶栏段位图标与积分
   if(tIcon) tIcon.textContent = cur.icon;
   if(tPts) tPts.textContent = p.total;
   if(next){
@@ -1570,37 +1800,81 @@ function floatPoints(x, y, n){
   document.body.appendChild(el);
   setTimeout(()=>el.remove(), 1000);
 }
-// 成就页渲染
+
+// 成就页
 function renderAchievement(){
   const p = loadPoints();
+  const st = loadStats();
   const r = getRank(p.total);
-  const cur = RANKS[r];
+  const cur = RANKS[r], next = RANKS[r+1] || null;
+  const vocabN = Object.keys(loadStudylog()).length;
+  const acc = accuracy(st);
+  const pkN = st.pk.win + st.pk.lose + st.pk.draw;
+  const pkRate = pkN ? Math.round(st.pk.win / pkN * 100) : 0;
+  const prog = next ? Math.min(100, Math.round((p.total - cur.min) / (next.min - cur.min) * 100)) : 100;
+  const catSum = (p.cat.vocab||0) + (p.cat.answer||0) + (p.cat.pk||0) || 1;
+  const share = k => Math.round((p.cat[k]||0) / catSum * 100);
+
   $("#achievementPage").classList.remove("hidden");
   $("#achievementPage").innerHTML = `
     <h2 class="page-title">🏆 段位成就</h2>
-    <p class="page-sub">积学累功，拾级而上</p>
+    <p class="page-sub">词汇量 · 正确率 · 对战战绩，三条线一起推着段位往上走</p>
     <div class="ach-rank">
       <div class="rank-icon">${cur.icon}</div>
-      <div>
+      <div style="flex:1;min-width:0">
         <div class="rank-name">${cur.name}</div>
-        <div class="ach-pts">当前积分：<b style="color:#ffd76a">${p.total}</b>　·　今日 +${p.today}</div>
-        <div style="font-size:12px;color:#b7b2d8;margin-top:4px">${RANKS[r+1] ? '下一段位：'+RANKS[r+1].icon+' '+RANKS[r+1].name+'（'+RANKS[r+1].min+'分）' : '已达最高段位'}</div>
+        <div class="ach-pts">当前积分：<b style="color:#ffd76a">${p.total}</b>　·　今日 +${p.today}　·　${cur.tier}段位</div>
+        <div class="ach-bar"><i style="width:${prog}%"></i></div>
+        <div class="ach-next">${next ? `距 <b>${next.icon} ${next.name}</b> 还差 <b>${next.min - p.total}</b> 分（本级进度 ${prog}%）` : '已登顶最高段位，继续保持 🏆'}</div>
       </div>
     </div>
-    <h3 style="font-size:15px;color:var(--primary);margin-bottom:6px">🎖️ 全部段位勋章</h3>
-    <div class="badge-grid">${RANKS.map((rk,i)=>`
-      <div class="badge ${i<=r?'unlocked':'locked'}">
-        <div class="bd-icon">${rk.icon}</div>
-        <div class="bd-name">${rk.name}</div>
-        <div class="bd-min">${rk.min} 分${i<=r?' · 已解锁':''}</div>
-      </div>`).join("")}</div>
+
+    <h3 style="font-size:15px;color:var(--primary);margin-bottom:8px">📊 三维成长</h3>
+    <div class="ach-dims">
+      <div class="ach-dim">
+        <div class="ad-icon">📚</div>
+        <div class="ad-label">词汇量</div>
+        <div class="ad-val">${vocabN} 词</div>
+        <div class="ad-sub">贡献 ${p.cat.vocab||0} 分 · 占 ${share('vocab')}%</div>
+        <div class="ad-bar"><i style="width:${share('vocab')}%"></i></div>
+      </div>
+      <div class="ach-dim">
+        <div class="ad-icon">🎯</div>
+        <div class="ad-label">正确率</div>
+        <div class="ad-val">${acc}%</div>
+        <div class="ad-sub">答 ${st.ans} 题 · 连对 ${st.streak}（最高 ${st.best||0}）</div>
+        <div class="ad-bar"><i style="width:${acc}%"></i></div>
+      </div>
+      <div class="ach-dim">
+        <div class="ad-icon">⚔️</div>
+        <div class="ad-label">PK 战绩</div>
+        <div class="ad-val">${st.pk.win}胜 ${st.pk.lose}负</div>
+        <div class="ad-sub">胜率 ${pkRate}% · 最高连胜 ${st.pk.best||0} · 贡献 ${p.cat.pk||0} 分</div>
+        <div class="ad-bar"><i style="width:${pkRate}%"></i></div>
+      </div>
+    </div>
+
+    <h3 style="font-size:15px;color:var(--primary);margin:0 0 6px">🪜 段位阶梯（共 ${RANKS.length} 级）</h3>
+    <div class="rank-ladder">
+      ${RANKS.map((rk,i)=>{
+        const nxt = RANKS[i+1];
+        const range = nxt ? `${rk.min} – ${nxt.min - 1} 分` : `${rk.min} 分以上`;
+        const cls = i === r ? 'now' : (i < r ? 'done' : 'lock');
+        const tag = i === r ? '<span class="rl-tag">当前</span>' : (i < r ? '<span class="rl-tag">已达成</span>' : '');
+        return `<div class="rl-row ${cls}"><span class="rl-icon">${rk.icon}</span><span class="rl-name">${rk.name}</span>${tag}<span class="rl-range">${range}</span></div>`;
+      }).join("")}
+    </div>
+    <div class="rank-note">段位积分只增不减：一次答错不会掉段，但会中断连对加成。越往上每级所需分数越多，靠日常积累 + 稳定正确率 + 对战连胜一起推进。</div>
+
     <h3 style="font-size:15px;color:var(--primary);margin:22px 0 6px">📋 积分获取规则</h3>
     <div class="rule-box">
-      <b>学习</b>：每学一个新单词 +5 分<br>
-      <b>练习</b>：语义词联（消消乐）每对 +2 分 · 词义甄别 +2 分 · 语境填空 +2 分 · 拼写重构 +3 分 · 句式组配 +3 分 · 双语转译 +2 分<br>
-      <b>复习</b>：艾宾浩斯复习「认识」+3 分 ·「模糊」+1 分<br>
-      <b>通关</b>：完成一整批 15 词研习，额外奖励 +20 分<br>
-      <span style="color:#999">正确率越高，得分越多；答错不扣分，只计学习与复习的正向积累。</span>
+      <b>词汇量</b>：每学一个新单词 +5 分；每累计 25 个新词，额外 +25 分<br>
+      <b>答题</b>：词义甄别 / 语境填空 / 双语转译 答对 +2；拼写重构 / 句式组配 答对 +3；语义词联每对 +2<br>
+      <b>连对加成</b>：连对 3 / 6 / 9 / 12 / 15 题，得分分别 ×1.1 / ×1.2 / ×1.3 / ×1.4 / ×1.5<br>
+      <b>每批通关</b>：完成整批研习 +20；本批正确率 ≥90% 再 +30，≥75% 再 +15<br>
+      <b>复习</b>：艾宾浩斯复习「认识」+3 ·「模糊」+1<br>
+      <b>对战</b>：胜 +15（连胜每场再 +5，单场最高 +30）· 平 +8 · 负 +5<br>
+      <span style="color:#999">答错不扣分，只清零连对。正确率越高、连对越长，同样做题量能拿到更多积分。</span>
     </div>
   `;
 }
@@ -1627,8 +1901,16 @@ function findCn(word){
 }
 
 /* ---- 模式切换与徽标 ---- */
-let appMode = 'learn'; // learn | review | wrongbook | decks | achievement
-function openMode(mode){ appMode = mode; currentStep = 0; stopAudio(); closeDrawer(); renderAll(); }
+let appMode = 'learn'; // learn | review | wrongbook | decks | achievement | battle
+let lastStudyStep = 0; // 最近一次停留的学习步骤，返回时回到这里
+function openMode(mode){
+  if(appMode === 'learn' && currentStep > 0) lastStudyStep = currentStep;
+  exitBattleIfNeeded(mode);
+  appMode = mode;
+  stopAudio(); closeDrawer();
+  renderAll();
+  pushRoute();
+}
 function updateBadges(){
   const due = getDueReviews().length;
   const wrong = Object.keys(loadWrongbook()).length;
@@ -2091,11 +2373,12 @@ function confirmImport(){
 /* ================= 备份与恢复（防清缓存/换设备丢数据） ================= */
 function exportBackup(){
   const data = {
-    app: "moci-lexi", v: 2, exportedAt: new Date().toISOString(),
+    app: "moci-lexi", v: 3, exportedAt: new Date().toISOString(),
     decks: loadDecks(),
     wrongbook: loadWrongbook(),
     studylog: loadStudylog(),
     points: loadPoints(),
+    stats: loadStats(),
     activeDeck: getActiveDeckId()
   };
   const blob = new Blob([JSON.stringify(data)], { type: "application/json" });
@@ -2124,6 +2407,7 @@ function importBackup(input){
       if(d.wrongbook) saveStore(LS.wrongbook, d.wrongbook);
       if(d.studylog) saveStore(LS.studylog, d.studylog);
       if(d.points) saveStore(LS_POINTS, d.points);
+      if(d.stats) saveStore(LS_STATS, d.stats);
       saveStore(LS.activeDeck, d.activeDeck==null ? null : d.activeDeck);
       activeCustomWords = null;
       currentBatch = [];
@@ -2138,8 +2422,14 @@ function importBackup(input){
 }
 
 /* ================= 学习页 ================= */
+let learnSig = '';   // 当前学习页的渲染签名（同一词重复进入时可直接复用 DOM）
+function learnSignature(){
+  const w = words()[learnIndex];
+  return [currentGroup, learnIndex, words().length, w ? w.word : '', currentBatch[0] ? currentBatch[0].word : ''].join('|');
+}
 function renderLearn(){
   const w = words()[learnIndex];
+  if(!w){ newBatch(); return renderLearn(); }
   $("#learnPage").classList.remove("hidden");
   // 构建带音节高亮的单词显示
   const wordSpans = w.syllables.map(s=>`<span class="syl${s.stress?' stress':''}">${s.text}</span>`).join("");
@@ -2195,13 +2485,18 @@ function renderLearn(){
       </div>
     </div>
     <div class="nav-btns">
-      <button class="btn btn-ghost" onclick="prevWord()">← 上一个</button>
+      <button class="btn btn-ghost" onclick="prevWord()" ${learnIndex===0?'disabled':''}>← 上一个</button>
       <span class="progress-info">第 ${learnIndex+1} / ${words().length} 个</span>
       <button class="btn ${learnIndex===words().length-1?'btn-primary':'btn-ghost'}" onclick="nextWord()">${learnIndex===words().length-1?'去测试 →':'下一个 →'}</button>
     </div>
   `;
-  // 自动播放读音
-  setTimeout(()=>playWordAudio(w.word), 300);
+  learnSig = learnSignature();
+  // 自动播放读音：延时器可取消，离开页面不会再“延迟出声”
+  if(learnAudioTimer) clearTimeout(learnAudioTimer);
+  learnAudioTimer = setTimeout(()=>{
+    learnAudioTimer = null;
+    if(appMode === 'learn' && currentStep === 0) playWordAudio(w.word);
+  }, 320);
   // 异步加载音标和图片
   loadPhonetic(w);
   loadImage(w);
@@ -2324,8 +2619,22 @@ async function onImgFail(el, word){
   }
   if(!w.imageUrl){ el.innerHTML = '<span class="emoji">🖼️</span>'; }
 }
-function nextWord(){ if(learnIndex<words().length-1){ learnIndex++; renderLearn(); updateProgress(); } else { goStep(1); } }
-function prevWord(){ if(learnIndex>0){ learnIndex--; renderLearn(); updateProgress(); } }
+function nextWord(){
+  if(learnIndex < words().length-1){
+    learnIndex++; renderLearn(); updateProgress();
+    window.scrollTo({top:0,behavior:"smooth"});
+    replaceRoute();
+  } else { goStep(1); }
+}
+function prevWord(){
+  if(learnIndex > 0){
+    learnIndex--; renderLearn(); updateProgress();
+    window.scrollTo({top:0,behavior:"smooth"});
+    replaceRoute();
+  } else {
+    toast("已经是第一个单词了");
+  }
+}
 
 /* ================= 题型1：语义词联（开心消消乐玩法） ================= */
 let matchState = { selected:null, cleared:0, total:0, cells:[] };
@@ -2373,7 +2682,7 @@ function bombClick(i){
     matchState.cleared++;
     $("#bombCleared").textContent = matchState.cleared;
     $("#bombScore").textContent = matchState.cleared * 2;
-    addPoints(2, '语义词联');
+    recordAnswer('match', true, 2, false);   // 对拼玩法不计入答题正确率
     matchState.selected = null;
     if(matchState.cleared === matchState.total){
       setTimeout(()=>{ toast("🎉 全部消除！"); setTimeout(()=>goStep(2),1200); }, 700);
@@ -2419,7 +2728,8 @@ function renderChoiceQ(){
 function answerChoice(i, el){
   const opts = el.parentElement.querySelectorAll(".option");
   const correct = el.textContent.trim() === choiceState.answer;
-  if(correct){ el.classList.add("right"); addPoints(2, '词义甄别'); toast("✅ 正确！ +2"); }
+  const r = recordAnswer('choice', correct, 2);
+  if(correct){ el.classList.add("right"); toast("✅ 正确！ +" + r.gain + (r.mult>1 ? "（连对×"+r.mult+"）" : "")); }
   else { el.classList.add("wrong"); addWrong(words()[choiceState.idx].word, words()[choiceState.idx].cn); opts.forEach(o=>{ if(o.textContent.trim()===choiceState.answer) o.classList.add("right"); }); toast("❌ 正确答案已标绿"); }
   opts.forEach(o=>o.style.pointerEvents="none");
   setTimeout(()=>{
@@ -2508,7 +2818,8 @@ function renderFillQ(){
 function answerFill(i, el){
   const opts = el.parentElement.querySelectorAll(".option");
   const correct = el.textContent.trim() === fillState.answer;
-  if(correct){ el.classList.add("right"); addPoints(2, '语境填空'); toast("✅ 正确！ +2"); }
+  const r = recordAnswer('fill', correct, 2);
+  if(correct){ el.classList.add("right"); toast("✅ 正确！ +" + r.gain + (r.mult>1 ? "（连对×"+r.mult+"）" : "")); }
   else { el.classList.add("wrong"); addWrong(words()[fillState.idx].word, words()[fillState.idx].cn); opts.forEach(o=>{ if(o.textContent.trim()===fillState.answer) o.classList.add("right"); }); toast("❌ 正确答案已标绿"); }
   opts.forEach(o=>o.style.pointerEvents="none");
   setTimeout(()=>{ if(fillState.idx<words().length-1){ fillState.idx++; renderFillQ(); } else { goStep(4); } }, 1200);
@@ -2589,10 +2900,11 @@ function checkSpell(){
   const slots = document.querySelectorAll("#spellPage .slot");
   if(ans === w.word){
     slots.forEach(s=>s.classList.add("right"));
-    addPoints(3, '拼写重构');
-    toast("✅ 拼写正确！ +3");
+    const r = recordAnswer('spell', true, 3);
+    toast("✅ 拼写正确！ +" + r.gain + (r.mult>1 ? "（连对×"+r.mult+"）" : ""));
     setTimeout(()=>{ if(spellState.idx<words().length-1){ spellState.idx++; renderSpellWord(); } else { goStep(5); } },900);
   } else {
+    recordAnswer('spell', false, 3);
     slots.forEach((s,i)=>s.classList.add(w.word[i]===ans[i]?"right":"wrong"));
     addWrong(w.word, w.cn);
     toast("❌ 拼错了，点击已填字母修改后重试");
@@ -2655,10 +2967,11 @@ function checkSentence(){
   const area = $("#buildArea");
   if(builtStr === targetStr){
     area.querySelectorAll(".frag").forEach(f=>f.classList.add("right"));
-    addPoints(3, '句式组配');
-    toast("✅ 拼句正确！ +3");
+    const r = recordAnswer('sentence', true, 3);
+    toast("✅ 拼句正确！ +" + r.gain + (r.mult>1 ? "（连对×"+r.mult+"）" : ""));
     setTimeout(()=>{ if(sentenceState.idx<words().length-1){ sentenceState.idx++; renderSentenceQ(); } else { goStep(6); } },1100);
   } else {
+    recordAnswer('sentence', false, 3);
     addWrong(words()[sentenceState.idx].word, words()[sentenceState.idx].cn);
     toast("❌ 顺序不对，点击已选碎片撤回重排");
   }
@@ -2695,8 +3008,8 @@ function checkTrans(){
   const target = words()[transState.idx].word.toLowerCase();
   const hasTarget = input.toLowerCase().includes(target);
   let msg = "";
-  if(hasTarget){ addPoints(2, '双语转译'); msg = "✅ 很好！你正确使用了目标单词 "+words()[transState.idx].word+" +2"; }
-  else { msg = "⚠️ 建议在句中用上目标单词 "+words()[transState.idx].word; addWrong(words()[transState.idx].word, words()[transState.idx].cn); }
+  if(hasTarget){ const r = recordAnswer('trans', true, 2); msg = "✅ 很好！你正确使用了目标单词 "+words()[transState.idx].word+" +"+r.gain; }
+  else { recordAnswer('trans', false, 2); msg = "⚠️ 建议在句中用上目标单词 "+words()[transState.idx].word; addWrong(words()[transState.idx].word, words()[transState.idx].cn); }
   // 显示参考答案
   toast(msg);
   const area = document.querySelector("#transPage .trans-area");
@@ -2921,7 +3234,21 @@ function speakPassage(){
 
 /* ================= 结果页 ================= */
 function renderResult(){
-  if(!resultRewarded){ addPoints(20, '通关奖励'); resultRewarded = true; }
+  const bs = batchStat || { ans:0, right:0 };
+  const acc = bs.ans ? Math.round(bs.right / bs.ans * 100) : 0;
+  if(!resultRewarded){
+    addPoints(20, '通关奖励');
+    let bonus = 0;
+    // 答题量太少时正确率不具代表性，暂不计奖励（至少 20 题）
+    if(bs.ans >= 20){
+      if(acc >= 90) bonus = 30;
+      else if(acc >= 75) bonus = 15;
+    }
+    if(bonus) addPoints(bonus, '正确率奖励');
+    lastResult = { acc, bonus, ans: bs.ans, right: bs.right };
+    resultRewarded = true;
+  }
+  const res = lastResult || { acc, bonus:0, ans: bs.ans, right: bs.right };
   $("#resultPage").classList.remove("hidden");
   const p = loadPoints();
   const r = getRank(p.total);
@@ -2929,7 +3256,9 @@ function renderResult(){
     <div class="result-box">
       <div class="result-emoji">🎉</div>
       <div class="result-score">完成！</div>
-      <div class="result-msg">你已完成「${GROUPS[currentGroup].name}」本批 ${words().length} 词研习：<br>词汇认知 → 语义词联 → 词义甄别 → 语境填空 → 拼写重构 → 句式组配 → 双语转译 → 篇章研读<br><span style="color:var(--amber);font-weight:700;font-size:15px">🏆 通关奖励 +20 分 · 当前 ${RANKS[r].icon} ${RANKS[r].name} · 累计 ${p.total} 分</span></div>
+      <div class="result-msg">你已完成「${GROUPS[currentGroup].name}」本批 ${words().length} 词研习：<br>词汇认知 → 语义词联 → 词义甄别 → 语境填空 → 拼写重构 → 句式组配 → 双语转译 → 篇章研读<br>
+        <span style="display:inline-block;margin-top:10px;font-size:14px;color:#4a5070">本批答对 <b>${res.right||0}</b> / ${res.ans||0} 题，正确率 <b style="color:${res.acc>=90?'var(--green)':(res.acc>=75?'var(--amber)':'#8a90a3')}">${res.acc||0}%</b>${res.bonus ? `　正确率奖励 <b style="color:var(--green)">+${res.bonus}</b>` : ((res.ans||0) < 20 ? '（答满 20 题后按正确率给额外奖励）' : '（正确率 ≥75% 可拿额外奖励）')}</span><br>
+        <span style="color:var(--amber);font-weight:700;font-size:15px">🏆 通关奖励 +20 分 · 当前 ${RANKS[r].icon} ${RANKS[r].name} · 累计 ${p.total} 分</span></div>
       <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap">
         <button class="btn btn-ghost" onclick="againBatch()">🔁 再学一遍</button>
         <button class="btn btn-primary" onclick="nextBatch()">换一批词 →</button>
@@ -2940,11 +3269,15 @@ function renderResult(){
 function againBatch(){
   currentStep = 0; learnIndex = 0;
   resultRewarded = false;
+  batchStat = { ans:0, right:0 };
+  lastResult = null;
   renderAll();
 }
 function nextBatch(){
   currentStep = 0; learnIndex = 0;
   resultRewarded = false;
+  batchStat = { ans:0, right:0 };
+  lastResult = null;
   newBatch();
   renderAll();
 }
@@ -3287,7 +3620,7 @@ function pkFinish(){
   else if(win === 1){ best[bestKey] = 0; saveStore('lx_pk_best', best); }
   const acc = p => p.total ? Math.round(p.right / p.total * 100) : 0;
   const avg = p => p.total ? (p.ms / p.total / 1000).toFixed(1) : '0.0';
-  addPoints(win === 0 ? 8 : 3, '单词对战');
+  const pkGain = recordPk(win);
 
   const title = st.mode === 'duel'
     ? (win === 0 ? `${a.name} 获胜！` : (win === 1 ? `${b.name} 获胜！` : '平局'))
@@ -3297,7 +3630,7 @@ function pkFinish(){
       <div class="pk-result-emoji">${win===0 ? '🏆' : (win===1 ? (st.mode==='duel'?'🎉':'💪') : '🤝')}</div>
       <div class="pk-result-title">${title}</div>
       <div class="pk-result-score"><b>${a.score}</b> : <b>${b.score}</b></div>
-      <div class="pk-result-names">${a.name}　vs　${b.name}</div>
+      <div class="pk-result-names">${a.name}　vs　${b.name}${typeof pkGain === 'number' ? `　·　积分 +${pkGain}` : ''}</div>
       <div class="pk-stats">
         <div class="pk-stat"><span>正确率</span><b>${acc(a)}%</b><em>${acc(b)}%</em></div>
         <div class="pk-stat"><span>平均用时</span><b>${avg(a)}s</b><em>${avg(b)}s</em></div>
@@ -3596,9 +3929,76 @@ function pkOnlineRenderResult(){
     </div>`;
 }
 
+/* ================= 路由：浏览器前进/后退 + 深链接 ================= */
+let routeReady = false;
+function routeSnapshot(){ return { mode: appMode, step: currentStep, idx: learnIndex, group: currentGroup }; }
+function routeHash(st){
+  const s = st || routeSnapshot();
+  return s.mode === 'learn'
+    ? `#/learn/${s.group || 0}/${s.step || 0}/${s.idx || 0}`
+    : `#/${s.mode}`;
+}
+function pushRoute(){
+  if(!routeReady) return;
+  try{ history.pushState(routeSnapshot(), '', routeHash()); }catch(e){}
+}
+function replaceRoute(){
+  if(!routeReady) return;
+  try{ history.replaceState(routeSnapshot(), '', routeHash()); }catch(e){}
+}
+function parseRoute(){
+  const h = location.hash || '';
+  let m = h.match(/^#\/learn\/(\d+)\/(\d+)\/(\d+)$/);
+  if(m) return { mode:'learn', group:+m[1], step:+m[2], idx:+m[3] };
+  m = h.match(/^#\/(review|wrongbook|decks|achievement|battle)$/);
+  if(m) return { mode:m[1] };
+  return null;
+}
+// 应用一条路由状态（来自浏览器前进/后退或首屏深链接），不再反向写历史
+function applyRoute(st){
+  if(!st) return;
+  stopAudio();
+  if(typeof st.group === 'number' && GROUPS[st.group] && st.group !== currentGroup){
+    currentGroup = st.group;
+    currentBatch = [];
+    newBatch();
+  }
+  appMode = (st.mode === 'review' || st.mode === 'wrongbook' || st.mode === 'decks' || st.mode === 'achievement' || st.mode === 'battle') ? st.mode : 'learn';
+  if(appMode === 'learn'){
+    currentStep = Math.max(0, Math.min(STEPS.length, Number(st.step) || 0));
+    lastStudyStep = currentStep;
+    learnIndex = Math.max(0, Math.min(Math.max(0, words().length - 1), Number(st.idx) || 0));
+  }
+  closeDrawer();
+  renderAll();
+}
+window.addEventListener('popstate', e => applyRoute(e.state || parseRoute()));
+
 /* ================= 初始化 ================= */
+const boot = parseRoute();
+if(boot && typeof boot.group === 'number' && GROUPS[boot.group]) currentGroup = boot.group;
 newBatch();
+if(boot){
+  appMode = boot.mode || 'learn';
+  if(appMode === 'learn'){
+    currentStep = Math.max(0, Math.min(STEPS.length, Number(boot.step) || 0));
+    learnIndex = Math.max(0, Math.min(words().length - 1, Number(boot.idx) || 0));
+    lastStudyStep = currentStep;
+  }
+}
 renderAll();
+try{ history.replaceState(routeSnapshot(), '', routeHash()); }catch(e){}
+routeReady = true;
+
+// 键盘左右方向键翻词（输入框内不拦截，避免打字时误触）
+document.addEventListener('keydown', e=>{
+  if(e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+  const t = e.target;
+  if(t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
+  if(appMode !== 'learn' || currentStep !== 0) return;
+  e.preventDefault();
+  if(e.key === 'ArrowLeft') prevWord(); else nextWord();
+});
 </script>
 </body>
 </html>

@@ -245,6 +245,24 @@
 
   /* 语篇 */
   .passage{font-size:16px;line-height:2.1;background:#fbfbfe;border-radius:14px;padding:20px;border:1px solid var(--border);margin-bottom:16px}
+  /* 篇章研读：AI 短文 */
+  .passage-skeleton{display:flex;flex-direction:column;gap:12px;min-height:180px}
+  .sk-line{height:12px;border-radius:6px;background:linear-gradient(90deg,#eef0f8 25%,#f7f8fd 37%,#eef0f8 63%);background-size:400% 100%;animation:skmove 1.4s ease infinite}
+  .sk-line.short{width:62%}
+  @keyframes skmove{0%{background-position:100% 50%}100%{background-position:0 50%}}
+  .ps-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:2px 0 12px}
+  .ps-title{font-size:20px;font-weight:800;color:var(--text);letter-spacing:.2px}
+  .ps-meta{font-size:13px;color:var(--muted)}
+  .ps-meta b{color:var(--primary)}
+  .ps-chips{display:flex;flex-wrap:wrap;gap:6px;margin:14px 0 4px}
+  .ps-chip{font-size:12px;border-radius:10px;padding:3px 9px;background:#eef1ff;color:#4a5ad0;border:1px solid #dfe5ff}
+  .ps-chip.miss{background:#f4f5f8;color:#9aa0b4;border-color:#e8eaf2;text-decoration:line-through}
+  .ps-tip{font-size:12px;color:var(--muted);margin-top:8px;line-height:1.7}
+  .passage-cn{background:#fbfbfe;border:1px dashed var(--border);border-radius:14px;padding:14px 18px;font-size:14px;line-height:2;color:#4a5070;margin-bottom:12px}
+  @media (max-width: 640px){
+    .ps-title{font-size:17px}
+    .passage{font-size:15px;line-height:1.95;padding:16px}
+  }
   .passage .hl{background:var(--yellow);border-radius:3px;padding:0 3px;font-weight:700}
   .passage-trans{margin-top:14px;padding-top:14px;border-top:1px dashed var(--border);color:var(--muted);font-size:14px}
   .blank{display:inline-block;min-width:80px;border-bottom:2px solid var(--primary);text-align:center;padding:0 6px;margin:0 3px;color:var(--primary);font-weight:700;cursor:pointer}
@@ -2591,40 +2609,215 @@ function nextTrans(){
 }
 
 /* ================= 题型7：语篇短文 ================= */
+/* ================= 篇章研读：按本批词汇生成完整短文 ================= */
+let passageState = null;
+function simpleHash(str){
+  let h = 5381;
+  for(let i=0;i<str.length;i++) h = ((h<<5) + h + str.charCodeAt(i)) | 0;
+  return Math.abs(h).toString(36);
+}
+function passageKey(){
+  const ws = words().map(x=>x.word.toLowerCase()).sort().join(',');
+  return 'lx_passage_' + simpleHash(ws + '#' + currentGroup);
+}
+// 屈折变化（与服务端 lib/passage-core.js 保持一致）
+function wordVariantsClient(word){
+  const w = String(word);
+  const set = new Set([w, w+'s', w+'es', w+'ed', w+'ing', w+'er', w+'est', w+'ly', w+'d']);
+  if(/e$/i.test(w)){ const b=w.slice(0,-1); ['ing','ed','es','er','est'].forEach(x=>set.add(b+x)); }
+  if(/y$/i.test(w)){ const b=w.slice(0,-1); ['ies','ied','ier','iest'].forEach(x=>set.add(b+x)); }
+  if(/[^aeiou][aeiou][bdgklmnprt]$/i.test(w)){ const b=w+w.slice(-1); ['ed','ing','er','est'].forEach(x=>set.add(b+x)); }
+  return [...set].sort((a,b)=>b.length-a.length);
+}
+function escapeRe(str){ return String(str).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+// 目标词高亮（含变形）
+function highlightPassage(text, list){
+  const set = new Set();
+  for(const w of list) for(const v of wordVariantsClient(w)) set.add(v);
+  const uniq = [...set].sort((a,b)=>b.length-a.length);
+  const safe = escapeHtml(text);
+  if(!uniq.length) return safe;
+  const re = new RegExp('\\b(' + uniq.map(escapeRe).join('|') + ')\\b', 'gi');
+  return safe.replace(re, m => `<span class="hl">${m}</span>`);
+}
 function renderPassage(){
-  const w = words();
-  // 动态词库：每个词取「篇章研读」专属例句（多为报刊句），串联成一篇复习短文（目标词标黄）
-  const seen = new Set();                                  // 同一句可能被多个词命中，组篇时去重
-  const key = s => s.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim().toLowerCase();
-  const sentences = w.map(x=>{
-    let ex = taskExample(x, 'passage');
-    if(seen.has(key(ex.en))){
-      const alt = (x.examples || []).concat(x.extras || []).find(e => !seen.has(key(e.en)));
-      if(alt) ex = alt;
-    }
-    seen.add(key(ex.en));
-    const plain = ex.en.replace(/<[^>]+>/g,"");
-    const hl = plain.replace(new RegExp(x.word,"i"), m=>`<span class="hl">${m}</span>`);
-    const tag = ex.src ? `<span class="ps-src">${ex.src}</span>` : '';
-    return `<p style="margin-bottom:12px">${hl}${tag}</p>`;
-  }).join("");
-  const cnList = w.map(x=>`<p style="margin-bottom:6px"><b>${x.word}</b> — ${x.cn}</p>`).join("");
   $("#passagePage").classList.remove("hidden");
-  $("#passagePage").innerHTML = `
-    <h2 class="page-title">📜 篇章研读</h2>
-    <p class="page-sub">本批词汇融于真实语料，目标词已标黄，通读复习</p>
-    <div class="passage">${sentences}</div>
-    <div class="passage-trans"><b>本批词汇释义：</b><br>${cnList}</div>
+  const key = passageKey();
+  const cached = loadStore(key, null);
+  if(cached && cached.text && !cached.loading){
+    passageState = Object.assign({}, cached, { loading:false, error:'' });
+    paintPassage();
+    return;
+  }
+  passageState = { loading:true, error:'' };
+  paintPassage();
+  requestPassage();
+}
+async function requestPassage(){
+  const list = words().map(x=>({ w: x.word, cn: x.cn }));
+  const ctrl = new AbortController();
+  const timer = setTimeout(()=>ctrl.abort(), 32000);
+  try{
+    const resp = await fetch('/api/passage', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ words: list, level: LEVELS[currentGroup] || '初中' }),
+      signal: ctrl.signal
+    });
+    const data = await resp.json().catch(()=>({}));
+    if(!resp.ok || !data.text) throw new Error(data.error || ('HTTP ' + resp.status));
+    passageState = Object.assign({ loading:false, error:'' }, data);
+    const key = passageKey();
+    saveStore(key, Object.assign({ at: Date.now() }, data));
+    prunePassageCache();
+    paintPassage();
+  }catch(e){
+    const msg = (e && e.name === 'AbortError') ? '生成超时，请重试' : ((e && e.message) ? e.message : '生成失败');
+    passageState = { loading:false, error: msg };
+    paintPassage();
+  }finally{
+    clearTimeout(timer);
+  }
+}
+// 缓存最多保留 12 篇，避免占用存储
+function prunePassageCache(){
+  const keys = [];
+  for(let i=0;i<localStorage.length;i++){
+    const k = localStorage.key(i);
+    if(k && k.indexOf('lx_passage_')===0) keys.push(k);
+  }
+  if(keys.length <= 12) return;
+  keys.map(k=>{
+    const v = loadStore(k, {});
+    return { k, at: (v && v.at) || 0 };
+  }).sort((a,b)=>a.at-b.at).slice(0, keys.length-12).forEach(x=>{
+    try{ localStorage.removeItem(x.k); }catch(e){}
+  });
+}
+function paintPassage(){
+  const page = $("#passagePage");
+  if(!page) return;
+  const st = passageState || {};
+  const head = `<h2 class="page-title">📜 篇章研读</h2>`;
+
+  if(st.loading){
+    page.innerHTML = `${head}
+      <p class="page-sub">正在围绕本批 ${words().length} 个词汇撰写短文…</p>
+      <div class="passage passage-skeleton">
+        ${'<div class="sk-line"></div>'.repeat(3)}
+        ${'<div class="sk-line short"></div>'.repeat(2)}
+        ${'<div class="sk-line"></div>'.repeat(3)}
+        ${'<div class="sk-line short"></div>'.repeat(2)}
+      </div>
+      <div class="ps-tip">生成一篇 200–350 词的完整短文通常需要 10–20 秒，请稍候</div>`;
+    return;
+  }
+
+  if(st.error || !st.text){
+    // 生成失败：退回例句通读，保证流程不断
+    const seen = new Set();
+    const kf = s => s.replace(/<[^>]+>/g,'').replace(/\s+/g,' ').trim().toLowerCase();
+    const stitched = words().map(x=>{
+      let ex = taskExample(x, 'passage');
+      if(seen.has(kf(ex.en))){
+        const alt = (x.examples||[]).concat(x.extras||[]).find(e=>!seen.has(kf(e.en)));
+        if(alt) ex = alt;
+      }
+      seen.add(kf(ex.en));
+      const plain = ex.en.replace(/<[^>]+>/g,'');
+      const hl = plain.replace(new RegExp(escapeRe(x.word),'i'), m=>`<span class="hl">${m}</span>`);
+      return `<p style="margin-bottom:12px">${hl}</p>`;
+    }).join("");
+    page.innerHTML = `${head}
+      <p class="page-sub">短文生成失败${st.error ? '（' + escapeHtml(st.error) + '）' : ''}，暂以例句通读复习</p>
+      <div class="passage">${stitched}</div>
+      <div class="ps-tip">可以稍后点击「重新生成」再试一次</div>
+      <div class="passage-actions">
+        <button class="btn btn-ghost" onclick="regeneratePassage()">🔁 重新生成</button>
+        <button class="btn btn-ghost" onclick="speakPassage()">🔊 朗读短文</button>
+        ${speedSwitchHtml('lg')}
+        <button class="btn btn-primary" onclick="goStep(8)">完成，查看结果 →</button>
+      </div>`;
+    return;
+  }
+
+  const used = st.used || [], missed = st.missed || [];
+  const all = words().map(x=>x.word);
+  const pct = Math.round((st.coverage || 0) * 100);
+  const paras = String(st.text).split(/\n+/).filter(s=>s.trim()).map(p=>`<p style="margin-bottom:14px">${highlightPassage(p, all)}</p>`).join("");
+  const chips = all.map(w=>{
+    const ok = used.some(u=>u.toLowerCase()===w.toLowerCase());
+    return `<span class="ps-chip ${ok?'ok':'miss'}" title="${ok?'已嵌入本篇':'本篇未用到'}">${w}</span>`;
+  }).join("");
+
+  page.innerHTML = `${head}
+    <p class="page-sub">AI 围绕本批 ${all.length} 个词汇撰写 · 目标词已标黄</p>
+    <div class="ps-head">
+      <div class="ps-title">${escapeHtml(st.title || 'Untitled')}</div>
+      <div class="ps-meta">${st.wordCount || 0} 词 · 词汇覆盖 <b>${pct}%</b>（${used.length}/${all.length}）</div>
+    </div>
+    <div class="passage" id="psBody">${paras}</div>
+    <div class="passage-cn hidden" id="psCn">${st.translation ? escapeHtml(st.translation).replace(/\n+/g,'<br>') : ''}</div>
+    <div class="ps-chips">${chips}</div>
+    <div class="ps-tip">黄色为目标词汇；点击「中英对照」可查看全文翻译</div>
     <div class="passage-actions">
+      <button class="btn btn-ghost" onclick="togglePassageCn(this)">中英对照</button>
       <button class="btn btn-ghost" onclick="speakPassage()">🔊 朗读短文</button>
       ${speedSwitchHtml('lg')}
+      <button class="btn btn-ghost" onclick="regeneratePassage()">🔁 换一篇</button>
       <button class="btn btn-primary" onclick="goStep(8)">完成，查看结果 →</button>
-    </div>
-  `;
+    </div>`;
+}
+async function togglePassageCn(btn){
+  const el = $("#psCn");
+  if(!el) return;
+  // 已显示 → 收起
+  if(!el.classList.contains("hidden")){
+    el.classList.add("hidden");
+    btn.textContent = "中英对照";
+    return;
+  }
+  const st = passageState || {};
+  if(st.translation){
+    el.innerHTML = escapeHtml(st.translation).replace(/\n+/g, '<br>');
+    el.classList.remove("hidden");
+    btn.textContent = "隐藏译文";
+    return;
+  }
+  // 首次查看：单独请求翻译（避免和生成挤在一次调用里超时）
+  const old = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = "译文生成中…";
+  try{
+    const resp = await fetch('/api/passage', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text: st.text })
+    });
+    const data = await resp.json().catch(()=>({}));
+    if(!resp.ok || !data.translation) throw new Error(data.error || '翻译失败');
+    passageState.translation = data.translation;
+    el.innerHTML = escapeHtml(data.translation).replace(/\n+/g, '<br>');
+    el.classList.remove("hidden");
+    btn.textContent = "隐藏译文";
+    saveStore(passageKey(), Object.assign({ at: Date.now() }, passageState));
+  }catch(e){
+    toast("译文生成失败：" + ((e && e.message) ? e.message : '请稍后重试'));
+    btn.textContent = old;
+  }finally{
+    btn.disabled = false;
+  }
+}
+function regeneratePassage(){
+  try{ localStorage.removeItem(passageKey()); }catch(e){}
+  passageState = { loading:true, error:'' };
+  paintPassage();
+  requestPassage();
 }
 function speakPassage(){
-  const w = words();
-  const plain = w.map(x=>taskExample(x, 'passage').en.replace(/<[^>]+>/g,"")).join(". ");
+  const st = passageState;
+  if(st && st.text){ speakSentence(st.text); return; }
+  const plain = words().map(x=>taskExample(x, 'passage').en.replace(/<[^>]+>/g,"")).join(". ");
   speakSentence(plain);
 }
 

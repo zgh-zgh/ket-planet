@@ -5,3 +5,5 @@ server.js
 .DS_Store
 .extras_progress.json
 .fetch_progress.json
+.ecdict.csv
+.wiktionary_progress.json

@@ -91,6 +91,12 @@
   .word-text .syl.active{background:var(--red);color:#fff}
   .word-phonetic{color:var(--muted);font-size:15px;margin:6px 0 2px}
   .word-cn{font-size:20px;font-weight:600;color:var(--primary);margin-top:8px}
+  .src-tag{font-size:10px;color:var(--muted);border:1px solid var(--border);border-radius:4px;padding:1px 5px;margin-left:6px;font-weight:400;vertical-align:middle;background:#f5f6fa;white-space:nowrap}
+  .word-def{font-size:14px;color:#3f3f46;line-height:1.75;margin:2px 0 4px}
+  .word-syn{font-size:13px;color:#6366f1;margin:6px 0 2px}
+  .word-stats{font-size:13px;color:#52525b;margin:2px 0 4px}
+  .word-stats .stars{color:#f59e0b;letter-spacing:2px}
+  .word-stats .ox-badge{color:#0f6e56;font-weight:500}
   .speak-row{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;justify-content:center}
   .btn-speak{padding:9px 20px;border-radius:22px;border:1px solid var(--primary);background:#fff;color:var(--primary);cursor:pointer;font-size:14px;transition:.15s}
   .btn-speak:hover{background:var(--primary);color:#fff}
@@ -249,6 +255,31 @@
   #deckName,#deckWords{width:100%;box-sizing:border-box;padding:10px 12px;border:1px solid var(--border);border-radius:10px;font-size:14px;margin-bottom:10px;font-family:inherit}
   #deckWords{resize:vertical}
   .btn-danger{background:var(--red);color:#fff}
+  /* ===== 词库导入 / 备份 ===== */
+  .import-panel{margin-top:20px;background:linear-gradient(135deg,#f6f7ff,#fdf7ff);border:1px solid #e6e8f8;border-radius:16px;padding:16px 18px;text-align:center}
+  .import-title{font-size:14px;font-weight:700;color:var(--primary);margin-bottom:12px}
+  .import-btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+  .import-btns .btn{padding:10px 22px;font-size:14px}
+  .import-hint{font-size:12px;color:var(--muted);margin-top:10px;line-height:1.7}
+  .backup-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:22px;padding-top:16px;border-top:1px dashed var(--border)}
+  .backup-note{font-size:12px;color:var(--muted);line-height:1.6;flex:1;min-width:200px}
+  .mi-count{background:var(--primary);color:#fff;font-size:11px;border-radius:9px;padding:0 6px;margin-left:auto;line-height:18px}
+  /* 导入预览弹窗 */
+  .modal-mask{position:fixed;inset:0;background:rgba(20,24,40,.45);display:flex;align-items:center;justify-content:center;z-index:300;padding:18px}
+  .modal-box{background:#fff;border-radius:18px;width:100%;max-width:540px;max-height:82vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 20px 50px rgba(30,40,80,.25)}
+  .modal-head{padding:16px 20px;border-bottom:1px solid var(--border);font-weight:700;font-size:15px;color:var(--text)}
+  .modal-body{padding:16px 20px;overflow:auto;font-size:14px}
+  .modal-foot{padding:14px 20px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
+  .preview-sum{margin-bottom:12px;color:var(--text)}
+  .preview-sum b{color:var(--primary)}
+  .preview-list{background:#f8f9fd;border-radius:12px;padding:8px 12px;max-height:220px;overflow:auto}
+  .preview-row{display:flex;gap:12px;padding:6px 0;border-bottom:1px dashed #eceef6;font-size:13px}
+  .preview-row:last-child{border-bottom:none}
+  .preview-row b{min-width:110px;color:var(--primary)}
+  .preview-row span{color:#666;flex:1}
+  .preview-more{font-size:12px;color:var(--muted);padding:8px 0 2px}
+  .preview-label{display:block;font-size:13px;color:var(--muted);margin:14px 0 6px}
+  #importDeckName{width:100%;box-sizing:border-box;padding:10px 12px;border:1px solid var(--border);border-radius:10px;font-size:14px;font-family:inherit}
 
   /* ===== 游戏化激励：段位卡 / 积分 / 消消乐 / 成就 ===== */
   .rank-card{background:linear-gradient(135deg,#2b2f4a,#3d3566);border-radius:16px;padding:16px 14px;margin:6px 4px 2px;color:#fff;position:relative;overflow:hidden}
@@ -392,11 +423,19 @@
 <script src="pics_data.js"></script>
 <script src="syllables_data.js"></script>
 <script src="atlas_pics.js"></script>
+<script src="ecdict_data.js"></script>
+<script src="wordnet_data.js"></script>
+<script src="wiktionary_data.js"></script>
 <script>
 /* ================= 单词数据 ================= */
 /* 词库从 words-data.js 的 WORD_DB 加载（7549 词，按级别分组）
    字段：w 单词, cn 释义, lv 级别
-   运行时动态补齐：音标(有道)、图片(后端AI)、例句(内置模板) */
+   权威数据来源（均已标注出处）：
+   - 音标：ECDICT 英式音标 + Wiktionary IPA（本地，免运行时查询）；有道兜底
+   - 英文释义/同义词：WordNet（普林斯顿大学，开源）
+   - 词频/星级/考试标签：ECDICT（MIT 开源）
+   - 图片：有道配图 + AI 写实照片 + Word Atlas 插画
+   - 例句：有道词典双语例句 */
 const LEVELS = ["初中", "高中", "四级", "六级"];
 const LEVEL_EMOJI = { "初中":"🌱", "高中":"📚", "四级":"🎓", "六级":"🏛️" };
 
@@ -606,21 +645,35 @@ function taskExample(w, task){
 }
 
 // 构建一个单词对象（动态补齐字段）
-function buildWord(w, cn, lv){
+function buildWord(w, cn, lv, deckId){
   let cachedImg = "";
   try{ cachedImg = localStorage.getItem('wordimg_' + w) || ""; }catch(e){}
   const affix = matchAffixes(w);
+  const lw = w.toLowerCase();
+  // 权威数据：ECDICT（音标/词频/星级）、WordNet（英文释义/同义词）、Wiktionary（IPA 国际音标）
+  const ec = (typeof ECDICT_DATA !== 'undefined' && ECDICT_DATA[lw]) || null;
+  const wn = (typeof WORDNET_DATA !== 'undefined' && WORDNET_DATA[lw]) || null;
+  const ipa = (typeof WIKTIONARY_DATA !== 'undefined' && WIKTIONARY_DATA[lw]) || '';
   return {
     word: w,
     cn: cn,
     level: lv,
-    ukPhonetic: "", usPhonetic: "",   // 音标运行时通过有道查询
+    ukPhonetic: ec && ec.ph ? '/' + ec.ph + '/' : "",   // 英式音标（ECDICT，本地，免运行时查询）
+    usPhonetic: ipa,                                      // IPA 国际音标（Wiktionary，本地）
     syllables: autoSyllables(w),       // 音节自动拆分
     related: [],                        // 同源词（AFFIX_INDEX 构建后填充）
     root: affix ? { text: affix.text, meaning: affix.meaning, type: affix.type, key: affix.key } : null,
     examples: buildExamples(w),         // 双语例句（学习页展示 + 题型池）
     extras: buildExtras(w),             // 报刊/通讯社例句（题型池，制造不同语境）
     imageUrl: cachedImg,                // 优先从本地缓存读取（已生成的单词直接复用，节省额度）
+    // 权威数据字段（来源已标注）
+    def: wn ? wn.d : '',                        // 英文释义（WordNet）
+    synonyms: wn && wn.s ? wn.s : [],           // 同义词（WordNet）
+    collins: ec && ec.collins ? parseInt(ec.collins, 10) : 0,  // 柯林斯星级（ECDICT）
+    oxford: !!(ec && ec.oxford),                // 牛津3000核心词（ECDICT）
+    frq: ec && ec.frq ? parseInt(ec.frq, 10) : 0, // 词频（ECDICT）
+    tag: ec && ec.tag ? ec.tag : '',            // 考试标签（ECDICT）
+    deckId: deckId || null,                     // 所属自定义词库（内置词为空）
     _cn: cn,
     _affixKey: affix ? affix.key : null // 用于同源词索引
   };
@@ -1066,7 +1119,40 @@ const EBB_INTERVALS = [1, 2, 4, 7, 15, 30]; // 艾宾浩斯遗忘曲线间隔（
 const DAY = 86400000;
 
 function loadStore(key, def){ try{ const v = localStorage.getItem(key); return v ? JSON.parse(v) : def; }catch(e){ return def; } }
-function saveStore(key, val){ try{ localStorage.setItem(key, JSON.stringify(val)); }catch(e){} }
+// 保存：先按正常写；空间不足时自动清理图片缓存重试一次；仍失败则明确提示（不再静默丢数据）
+function saveStore(key, val){
+  let str;
+  try{ str = JSON.stringify(val); }catch(e){ toast("⚠️ 数据格式异常，保存失败"); return false; }
+  try{
+    localStorage.setItem(key, str);
+    return true;
+  }catch(e){
+    if(pruneImageCache()){
+      try{ localStorage.setItem(key, str); return true; }catch(e2){}
+    }
+    toast("⚠️ 保存失败：浏览器本地空间已满，请先导出备份后清理");
+    return false;
+  }
+}
+// 清理单词配图缓存（占用最大、可重新生成），为词库/错题本腾出空间
+function pruneImageCache(){
+  const del = [];
+  for(let i=0;i<localStorage.length;i++){
+    const k = localStorage.key(i);
+    if(k && k.indexOf("wordimg_")===0) del.push(k);
+  }
+  del.forEach(k=>{ try{ localStorage.removeItem(k); }catch(e){} });
+  return del.length > 0;
+}
+// 本地存储占用（KB），用于界面提示
+function storageUsageKB(){
+  let n = 0;
+  for(let i=0;i<localStorage.length;i++){
+    const k = localStorage.key(i) || "";
+    n += (k.length + (localStorage.getItem(k)||"").length);
+  }
+  return Math.round(n / 1024);
+}
 
 /* ---- 错题本 ---- */
 function loadWrongbook(){ return loadStore(LS.wrongbook, {}); }
@@ -1075,6 +1161,7 @@ function addWrong(word, cn){
   if(wb[word]){ wb[word].count = (wb[word].count||1)+1; wb[word].ts = Date.now(); }
   else wb[word] = { cn: cn||'', count:1, ts: Date.now() };
   saveStore(LS.wrongbook, wb);
+  enrollStudy(word, '错题');   // 错题词同样纳入艾宾浩斯复习队列
   updateBadges();
 }
 function markWrong(word, cn){
@@ -1087,13 +1174,25 @@ function getWrongWords(){ return Object.entries(loadWrongbook()).sort((a,b)=>b[1
 
 /* ---- 艾宾浩斯学习记录 ---- */
 function loadStudylog(){ return loadStore(LS.studylog, {}); }
-function markLearned(word, level){
+// 把一个词纳入复习队列（已存在则不重复加入），deckId 用于按词库统计待复习
+function enrollStudy(word, level, deckId){
+  const log = loadStudylog();
+  if(log[word]) return false;
+  const rec = { level: level||'', stage:0, nextDue: Date.now()+EBB_INTERVALS[0]*DAY, addedAt: Date.now() };
+  if(deckId) rec.deck = deckId;
+  log[word] = rec;
+  saveStore(LS.studylog, log);
+  updateBadges();
+  return true;
+}
+function markLearned(word, level, deckId){
   const log = loadStudylog();
   if(!log[word]){
-    log[word] = { level, stage:0, nextDue: Date.now()+EBB_INTERVALS[0]*DAY };
+    log[word] = { level, stage:0, nextDue: Date.now()+EBB_INTERVALS[0]*DAY, addedAt: Date.now() };
+    if(deckId) log[word].deck = deckId;
     addPoints(5, '学习新词'); // 每个新单词第一次学习 +5 分
+    saveStore(LS.studylog, log);
   }
-  saveStore(LS.studylog, log);
   updateBadges();
 }
 function getDueReviews(){
@@ -1224,8 +1323,17 @@ function renderAchievement(){
 }
 
 
-/* ---- 自定义词库 ---- */
-function loadDecks(){ return loadStore(LS.decks, []); }
+/* ---- 自定义词库：存储 ---- */
+function loadDecks(){
+  const list = loadStore(LS.decks, []);
+  return Array.isArray(list) ? list : [];
+}
+// 关键修复：此前 saveDecks 未定义，新建/删除词库会直接抛错，导致“看着保存了、其实没存”
+function saveDecks(decks){
+  const ok = saveStore(LS.decks, decks);
+  if(ok) updateDeckBadges();
+  return ok;
+}
 function getActiveDeckId(){ return loadStore(LS.activeDeck, null); }
 function setActiveDeckId(id){ saveStore(LS.activeDeck, id); }
 function findCn(word){
@@ -1296,7 +1404,21 @@ function renderWrongbook(){
   }
   $("#wrongbookPage").innerHTML = `<h2 class="page-title">📕 错题本</h2><p class="page-sub">共 ${wrongs.length} 个易错词</p>
     <div class="wrong-list">${wrongs.map(([w,info])=>`<div class="wrong-item"><div class="wi-word">${w}<span class="wi-cn">${info.cn||''}</span></div><div class="wi-count">错 ${info.count||1} 次</div><div class="wi-actions"><button class="btn btn-mini btn-ghost" onclick="playWordAudio('${w}')">🔊</button><button class="btn btn-mini btn-danger" onclick="removeWrong('${w}')">移除</button></div></div>`).join("")}</div>
-    <div style="text-align:center;margin-top:20px"><button class="btn btn-primary" onclick="startWrongReview()">🔁 开始专项复习 →</button></div>`;
+    <div style="text-align:center;margin-top:20px">
+      <button class="btn btn-primary" onclick="startWrongReview()">🔁 开始专项复习 →</button>
+      <button class="btn btn-ghost" onclick="wrongbookToDeck()">📚 一键存为词库</button>
+    </div>`;
+}
+// 错题本 → 词库：省去手工整理
+function wrongbookToDeck(){
+  const wrongs = getWrongWords();
+  if(!wrongs.length){ toast("错题本是空的"); return; }
+  const name = "错题本 " + new Date().toLocaleDateString("zh-CN").replace(/\//g, "-");
+  const words = wrongs.map(([w,info])=>[w, (info.cn||findCn(w)||"").trim()]);
+  const deck = addDeck(name, words);
+  if(!deck) return;
+  toast(`已把 ${words.length} 个错词存为词库「${name}」`);
+  openMode("decks");
 }
 function startWrongReview(){
   const wrongs = getWrongWords();
@@ -1314,49 +1436,99 @@ function renderDecks(){
   const decks = loadDecks();
   const activeId = getActiveDeckId();
   const builtinCount = Object.keys(WORD_DB).reduce((a,k)=>a+WORD_DB[k].length,0);
+  const dueMap = dueCountByDeck();
   $("#decksPage").classList.remove("hidden");
   $("#decksPage").innerHTML = `<h2 class="page-title">📚 我的词库</h2><p class="page-sub">内置词库 + 自主导入，多套独立管理</p>
     <div class="deck-list">
-      <div class="deck-item ${activeId===null?'active':''}" onclick="activateDeck(null)"><div class="di-name">🌱 内置词库（初中/高中）</div><div class="di-count">${builtinCount} 词</div></div>
-      ${decks.map(d=>`<div class="deck-item ${activeId===d.id?'active':''}" onclick="activateDeck('${d.id}')"><div class="di-name">📖 ${d.name}</div><div class="di-count">${(d.words||[]).length} 词</div><div class="wi-actions"><button class="btn btn-mini btn-danger" onclick="event.stopPropagation();deleteDeck('${d.id}')">删除</button></div></div>`).join("")}
+      <div class="deck-item ${activeId===null?'active':''}" onclick="activateDeck(null)">
+        <div class="di-name">🌱 内置词库（初中/高中/四级/六级）</div>
+        <div class="di-count">${builtinCount} 词</div>
+      </div>
+      ${decks.map(d=>{
+        const n = (d.words||[]).length, due = dueMap[d.id]||0;
+        return `<div class="deck-item ${activeId===d.id?'active':''}" onclick="activateDeck('${d.id}')">
+          <div class="di-name">📖 ${escapeHtml(d.name)}</div>
+          <div class="di-count">${n} 词${due?`　<b style="color:var(--red)">待复习 ${due}</b>`:''}</div>
+          <div class="wi-actions"><button class="btn btn-mini btn-danger" onclick="event.stopPropagation();deleteDeck('${d.id}')">删除</button></div>
+        </div>`;
+      }).join("")}
     </div>
-    <div class="deck-create"><button class="btn btn-primary" onclick="showDeckCreate()">＋ 新建词库</button></div>
+
+    <div class="import-panel">
+      <div class="import-title">批量导入单词</div>
+      <div class="import-btns">
+        <button class="btn btn-primary" onclick="pickDeckFile()">📄 选择文件导入</button>
+        <button class="btn btn-ghost" onclick="showDeckCreate()">⌨️ 手动粘贴</button>
+      </div>
+      <div class="import-hint">支持 Excel(.xlsx)、Word(.docx)、CSV、TXT ｜ 建议：第一列英文单词，第二列中文释义</div>
+      <input type="file" id="deckFile" accept=".xlsx,.csv,.txt,.docx" style="display:none" onchange="onDeckFile(this)">
+    </div>
+
     <div id="deckCreateBox" class="hidden" style="margin-top:16px">
-      <input type="text" id="deckName" placeholder="词库名称，如：A 学生词库">
+      <input type="text" id="deckName" placeholder="词库名称，如：八年级上册 Unit 3">
       <textarea id="deckWords" rows="6" placeholder="批量粘贴单词，每行一个，格式：单词 释义&#10;例如：&#10;abandon 放弃&#10;achieve 实现&#10;brilliant 杰出的"></textarea>
       <div style="text-align:center"><button class="btn btn-primary" onclick="createDeck()">保存词库</button> <button class="btn btn-ghost" onclick="hideDeckCreate()">取消</button></div>
+    </div>
+
+    <div class="backup-row">
+      <button class="btn btn-ghost btn-mini" onclick="exportBackup()">⬇️ 导出备份</button>
+      <button class="btn btn-ghost btn-mini" onclick="document.getElementById('backupFile').click()">⬆️ 恢复备份</button>
+      <input type="file" id="backupFile" accept=".json" style="display:none" onchange="importBackup(this)">
+      <span class="backup-note">词库、错题本、复习进度都存在本机浏览器；换设备或清缓存前请先导出备份（当前占用 ${storageUsageKB()} KB）</span>
     </div>`;
+}
+function escapeHtml(s){ return String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+// 每个词库的待复习数量（依据艾宾浩斯记录里的 deck 标记）
+function dueCountByDeck(){
+  const log = loadStudylog(), now = Date.now(), map = {};
+  for(const w in log){
+    const r = log[w];
+    if(r && r.deck && r.nextDue && r.nextDue<=now) map[r.deck] = (map[r.deck]||0)+1;
+  }
+  return map;
+}
+function updateDeckBadges(){
+  const el = $("#miDecks");
+  if(!el) return;
+  const n = loadDecks().length;
+  let tag = el.querySelector(".mi-count");
+  if(n>0){
+    if(!tag){ tag = document.createElement("span"); tag.className = "mi-count"; el.appendChild(tag); }
+    tag.textContent = n;
+  } else if(tag){ tag.remove(); }
 }
 function showDeckCreate(){ $("#deckCreateBox").classList.remove("hidden"); }
 function hideDeckCreate(){ $("#deckCreateBox").classList.add("hidden"); }
+
+// 统一建档入口：手动粘贴与文件导入共用
+function addDeck(name, words){
+  if(!name){ toast("请填写词库名称"); return null; }
+  if(!words || !words.length){ toast("没有可保存的单词"); return null; }
+  const decks = loadDecks();
+  const deck = { id: Date.now().toString(36), name, words, createdAt: Date.now() };
+  decks.push(deck);
+  if(!saveDecks(decks)) return null;      // 保存失败已在 saveStore 内提示
+  return deck;
+}
 function createDeck(){
   const name = $("#deckName").value.trim();
   const raw = $("#deckWords").value.trim();
   if(!name){ toast("请填写词库名称"); return; }
   if(!raw){ toast("请粘贴单词"); return; }
-  const words = raw.split(/\n+/).map(line=>{
-    const t = line.trim();
-    if(!t) return null;
-    // 以第一个中文字符为界，前为英文（可含短语），后为释义
-    const m = t.match(/[\u4e00-\u9fff]/);
-    if(m){
-      const en = t.slice(0, m.index).replace(/[\s,，;；:：]+$/, '').trim();
-      const cn = t.slice(m.index).trim();
-      return en ? [en, cn] : [t, ''];
-    }
-    return [t, ''];
-  }).filter(x=>x!==null);
-  if(words.length===0){ toast("未能解析出单词，请检查格式"); return; }
-  const decks = loadDecks();
-  decks.push({ id: Date.now().toString(36), name, words });
-  saveDecks(decks);
+  const { words } = parseWordLines(raw.split(/\n+/));
+  if(!words.length){ toast("未能解析出单词，请检查格式"); return; }
+  const deck = addDeck(name, words);
+  if(!deck) return;
   $("#deckName").value = ""; $("#deckWords").value = "";
   hideDeckCreate();
   renderDecks();
   toast(`已创建词库「${name}」，共 ${words.length} 词`);
 }
 function deleteDeck(id){
-  saveDecks(loadDecks().filter(d=>d.id!==id));
+  const d = loadDecks().find(x=>x.id===id);
+  if(!d) return;
+  if(!confirm(`确定删除词库「${d.name}」（${(d.words||[]).length} 词）吗？\n删除后无法恢复，建议先导出备份。`)) return;
+  if(!saveDecks(loadDecks().filter(x=>x.id!==id))) return;
   if(getActiveDeckId()===id){ setActiveDeckId(null); activeCustomWords = null; currentBatch = []; }
   renderDecks();
   toast("已删除词库");
@@ -1365,7 +1537,7 @@ function activateDeck(id){
   setActiveDeckId(id);
   if(id!==null){
     const deck = loadDecks().find(d=>d.id===id);
-    activeCustomWords = deck ? (deck.words||[]).map(([w,cn])=>buildWord(w,cn,'自定义')) : null;
+    activeCustomWords = deck ? (deck.words||[]).map(([w,cn])=>buildWord(w,cn,'自定义',id)) : null;
   } else {
     activeCustomWords = null;
   }
@@ -1376,6 +1548,310 @@ function activateDeck(id){
   renderDecks();
   toast(id!==null ? "已切换到自定义词库" : "已切换回内置词库");
   renderAll();
+}
+
+/* ================= 词库批量导入：Excel / Word / CSV / TXT ================= */
+let _jszipPromise = null;
+function loadJSZip(){
+  if(window.JSZip) return Promise.resolve(window.JSZip);
+  if(_jszipPromise) return _jszipPromise;
+  _jszipPromise = new Promise((resolve, reject)=>{
+    const s = document.createElement("script");
+    s.src = "vendor/jszip.min.js";
+    s.onload = ()=> window.JSZip ? resolve(window.JSZip) : reject(new Error("解析组件加载失败"));
+    s.onerror = ()=> reject(new Error("解析组件加载失败，请检查网络后重试"));
+    document.head.appendChild(s);
+  });
+  return _jszipPromise;
+}
+function pickDeckFile(){ const el = $("#deckFile"); if(el) el.click(); }
+
+// 把「行文本」解析成 [单词, 释义]：兼容"word 中文"、"word,中文"、制表符分列
+function parseWordLines(lines){
+  const out = [], skipped = [];
+  // 表头：只判断第一个单元格（单词/释义/word/meaning…）
+  const headerRe = /^(单词|词汇|英文|english|word|words|释义|中文|意思|meaning|序号|编号|no\.?|phonetic|音标)$/i;
+  // 合法词形：纯字母（可含空格、连字符、撇号、点），2~4 个词，不含数字
+  const isValidWord = s => {
+    if(!s) return false;
+    if(!/^[A-Za-z][A-Za-z'’.\-\s]*$/.test(s)) return false;   // 含数字/符号 → 不是单词
+    if(s.replace(/[^A-Za-z]/g,'').length < 2) return false;
+    const parts = s.split(/\s+/).filter(Boolean);
+    return parts.length >= 1 && parts.length <= 4;
+  };
+  for(const raw of lines){
+    let line = String(raw==null?'':raw).replace(/\u00a0/g,' ').replace(/[\r\t]+$/,'').trim();
+    if(!line) continue;
+    // 去掉行首序号：1. / 1、 / (1) / 1)
+    line = line.replace(/^[(（]?\d{1,3}[)）.、:：]\s*/,'').trim();
+    if(!line) continue;
+    // 先用分隔符切列，便于识别表头与「多列」结构
+    const cols = line.split(/\t|,|;|\||\s{2,}/).map(x=>x.trim()).filter(Boolean);
+    const firstCell = cols[0] || line;
+    if(headerRe.test(firstCell.split(/\s+/)[0] || '')) continue;   // 表头整行跳过
+    let en = '', cn = '';
+    const cnIdx = line.search(/[\u4e00-\u9fff]/);
+    if(cnIdx >= 0){
+      en = line.slice(0, cnIdx).replace(/[\s,，;；:：、=\-–—|]+$/,'').trim();
+      cn = line.slice(cnIdx).replace(/^[\s,，;；:：、=\-–—|]+/,'').trim();
+    } else {
+      en = cols[0] || '';
+      cn = cols.slice(1).join(' ').trim();
+    }
+    if(!en){ continue; }                                      // 纯中文行（标题/说明）静默跳过
+    if(!isValidWord(en)){ skipped.push(line); continue; }     // 形似词条但不像单词，计入“已忽略”
+    out.push([en, cn]);
+  }
+  // 按小写词形去重，保留先出现的
+  const seen = new Set(), uniq = [];
+  for(const [w,c] of out){
+    const k = w.toLowerCase();
+    if(seen.has(k)) continue;
+    seen.add(k); uniq.push([w,c]);
+  }
+  return { words: uniq, skipped: skipped.length };
+}
+
+// 读取文件 → 行文本数组
+async function readDeckFile(file){
+  const name = (file.name||'').toLowerCase();
+  const buf = await file.arrayBuffer();
+  const sig = new Uint8Array(buf.slice(0,8));
+  const isOle = sig[0]===0xD0 && sig[1]===0xCF && sig[2]===0x11 && sig[3]===0xE0;
+  if(name.endsWith('.xlsx')) return { lines: await readXlsxRows(buf), type:'excel' };
+  if(name.endsWith('.docx')) return { lines: await readDocxLines(buf), type:'word' };
+  if(name.endsWith('.csv') || name.endsWith('.txt')) return { lines: splitText(new TextDecoder('utf-8').decode(buf)), type:'text' };
+  if(isOle || name.endsWith('.xls') || name.endsWith('.doc')){
+    throw new Error('这是旧版 Office 格式，请在 Excel/Word 里「另存为」.xlsx 或 .docx 后再导入');
+  }
+  return { lines: splitText(new TextDecoder('utf-8').decode(buf)), type:'text' };
+}
+function splitText(txt){
+  return txt.replace(/^\ufeff/,'').split(/\r?\n/);
+}
+
+// 列号：A→0, B→1, AA→26
+function colIndex(ref){
+  const m = /^([A-Z]+)/.exec(ref||'');
+  if(!m) return 0;
+  let n = 0;
+  for(const ch of m[1]) n = n*26 + (ch.charCodeAt(0)-64);
+  return n-1;
+}
+async function readXlsxRows(buf){
+  const JSZip = await loadJSZip();
+  const zip = await JSZip.loadAsync(buf);
+  // 共享字符串表
+  const shared = [];
+  const ssFile = zip.file('xl/sharedStrings.xml');
+  if(ssFile){
+    const doc = new DOMParser().parseFromString(await ssFile.async('text'), 'application/xml');
+    Array.from(doc.getElementsByTagName('*')).filter(n=>n.localName==='si').forEach(si=>{
+      const texts = Array.from(si.getElementsByTagName('*')).filter(n=>n.localName==='t');
+      shared.push(texts.map(t=>t.textContent).join(''));
+    });
+  }
+  const sheetFiles = Object.keys(zip.files).filter(p=>/^xl\/worksheets\/sheet\d*\.xml$/.test(p)).sort();
+  if(!sheetFiles.length) throw new Error('Excel 里没有找到工作表');
+  const doc = new DOMParser().parseFromString(await zip.file(sheetFiles[0]).async('text'), 'application/xml');
+  const rows = [];
+  Array.from(doc.getElementsByTagName('*')).filter(n=>n.localName==='row').forEach(rowEl=>{
+    const cells = [];
+    Array.from(rowEl.children).forEach(c=>{
+      if(c.localName!=='c') return;
+      const idx = colIndex(c.getAttribute('r'));
+      const t = c.getAttribute('t');
+      let val = '';
+      if(t==='s'){
+        const v = Array.from(c.getElementsByTagName('*')).find(n=>n.localName==='v');
+        val = v ? (shared[parseInt(v.textContent,10)] || '') : '';
+      } else if(t==='inlineStr'){
+        val = Array.from(c.getElementsByTagName('*')).filter(n=>n.localName==='t').map(n=>n.textContent).join('');
+      } else {
+        const v = Array.from(c.getElementsByTagName('*')).find(n=>n.localName==='v');
+        val = v ? v.textContent : '';
+      }
+      cells[idx] = String(val).trim();
+    });
+    rows.push(cells);
+  });
+  return rowsToLines(rows);
+}
+// 表格行 → "英文\t中文" 行：自动识别英文列与中文列（表头可有可无）
+function rowsToLines(rows){
+  const table = rows.map(r=>r.map(x=>(x==null?'':String(x)).trim()));
+  let start = 0;
+  const first = table[0] || [];
+  if(first.some(c=>/^(单词|词汇|英文|english|word|words)$/i.test(c))) start = 1;
+  const sample = table.slice(start, start+30).filter(r=>r.some(Boolean));
+  const width = Math.max(0, ...sample.map(r=>r.length));
+  let enCol = -1, cnCol = -1, bestEn = 0, bestCn = 0;
+  for(let c=0;c<width;c++){
+    let enN=0, cnN=0;
+    sample.forEach(r=>{
+      const v = r[c]||'';
+      if(!v) return;
+      if(/[a-zA-Z]{2,}/.test(v) && !/[\u4e00-\u9fff]/.test(v)) enN++;
+      if(/[\u4e00-\u9fff]/.test(v)) cnN++;
+    });
+    if(enN>bestEn){ bestEn=enN; enCol=c; }
+    if(cnN>bestCn){ bestCn=cnN; cnCol=c; }
+  }
+  if(enCol<0) enCol = 0;
+  const lines = [];
+  for(let i=start;i<table.length;i++){
+    const r = table[i];
+    const en = (r[enCol]||'').trim();
+    if(!en) continue;
+    let cn = (cnCol>=0 && cnCol!==enCol) ? (r[cnCol]||'').trim() : '';
+    if(!cn){
+      // 没识别到中文列：取英文列右侧第一个非空单元格兜底
+      for(let c=enCol+1;c<r.length;c++){
+        const v = (r[c]||'').trim();
+        if(v && c!==enCol){ cn = v; break; }
+      }
+    }
+    lines.push(cn ? en + '\t' + cn : en);
+  }
+  return lines;
+}
+// Word 正文：段落逐行；表格按行拼接
+async function readDocxLines(buf){
+  const JSZip = await loadJSZip();
+  const zip = await JSZip.loadAsync(buf);
+  const f = zip.file('word/document.xml');
+  if(!f) throw new Error('不是有效的 Word 文档');
+  const doc = new DOMParser().parseFromString(await f.async('text'), 'application/xml');
+  const bodies = Array.from(doc.getElementsByTagName('*')).filter(n=>n.localName==='body');
+  const root = bodies[0] || doc.documentElement;
+  const getText = el => Array.from(el.getElementsByTagName('*')).filter(n=>n.localName==='t').map(n=>n.textContent).join('');
+  const lines = [];
+  const walk = node => {
+    Array.from(node.childNodes).forEach(child=>{
+      if(child.nodeType!==1) return;
+      const tag = child.localName;
+      if(tag==='p'){
+        const t = getText(child).replace(/\s+/g,' ').trim();
+        if(t) lines.push(t);
+      } else if(tag==='tbl'){
+        Array.from(child.children).forEach(tr=>{
+          if(tr.localName!=='tr') return;
+          const cells = Array.from(tr.children).filter(td=>td.localName==='tc')
+            .map(td=>getText(td).replace(/\s+/g,' ').trim());
+          const t = cells.filter(Boolean).join('\t');
+          if(t) lines.push(t);
+        });
+      } else if(tag!=='sectPr'){
+        walk(child);
+      }
+    });
+  };
+  walk(root);
+  return lines;
+}
+
+// 选文件 → 解析 → 预览 → 确认建档
+async function onDeckFile(input){
+  const file = input.files && input.files[0];
+  input.value = "";
+  if(!file) return;
+  if(file.size > 8*1024*1024){ toast("文件过大（超过 8MB），请拆分后再导入"); return; }
+  toast("正在解析文件…");
+  try{
+    const { lines } = await readDeckFile(file);
+    const { words, skipped } = parseWordLines(lines);
+    if(!words.length) throw new Error("没有解析出单词，请确认文件里是「单词 + 释义」两列");
+    showImportPreview(file.name.replace(/\.[^.]+$/,''), words, skipped);
+  }catch(e){
+    toast("❌ " + (e && e.message ? e.message : "导入失败，请检查文件格式"));
+  }
+}
+function showImportPreview(defaultName, words, skipped){
+  const mask = document.createElement("div");
+  mask.className = "modal-mask";
+  mask.id = "importModal";
+  const preview = words.slice(0,6).map(([w,c])=>`<div class="preview-row"><b>${escapeHtml(w)}</b><span>${escapeHtml(c||'（无释义）')}</span></div>`).join("");
+  mask.innerHTML = `
+    <div class="modal-box">
+      <div class="modal-head">导入预览</div>
+      <div class="modal-body">
+        <div class="preview-sum">解析到 <b>${words.length}</b> 个单词${skipped?`　·　已忽略 ${skipped} 行（无法识别）`:''}</div>
+        <div class="preview-list">${preview}${words.length>6?`<div class="preview-more">… 其余 ${words.length-6} 个词</div>`:''}</div>
+        <label class="preview-label">词库名称</label>
+        <input type="text" id="importDeckName" value="${escapeHtml(defaultName||'导入词库')}">
+      </div>
+      <div class="modal-foot">
+        <button class="btn btn-ghost" onclick="closeImportPreview()">取消</button>
+        <button class="btn btn-primary" onclick="confirmImport()">确认导入 ${words.length} 词</button>
+      </div>
+    </div>`;
+  document.body.appendChild(mask);
+  window._pendingImport = { words };
+}
+function closeImportPreview(){
+  const el = $("#importModal");
+  if(el) el.remove();
+  window._pendingImport = null;
+}
+function confirmImport(){
+  const p = window._pendingImport;
+  const nameEl = $("#importDeckName");
+  if(!p || !nameEl) return;
+  const name = nameEl.value.trim() || "导入词库";
+  const deck = addDeck(name, p.words);
+  if(!deck) return;
+  closeImportPreview();
+  renderDecks();
+  toast(`已导入 ${p.words.length} 个单词到「${name}」`);
+}
+
+/* ================= 备份与恢复（防清缓存/换设备丢数据） ================= */
+function exportBackup(){
+  const data = {
+    app: "moci-lexi", v: 2, exportedAt: new Date().toISOString(),
+    decks: loadDecks(),
+    wrongbook: loadWrongbook(),
+    studylog: loadStudylog(),
+    points: loadPoints(),
+    activeDeck: getActiveDeckId()
+  };
+  const blob = new Blob([JSON.stringify(data)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "墨词备份-" + new Date().toISOString().slice(0,10) + ".json";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url), 5000);
+  toast("已导出备份文件，请妥善保存");
+}
+function importBackup(input){
+  const file = input.files && input.files[0];
+  input.value = "";
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ()=>{
+    try{
+      const d = JSON.parse(reader.result);
+      if(!d || d.app !== "moci-lexi") throw new Error("不是墨词的备份文件");
+      const deckN = (d.decks||[]).length, wrongN = Object.keys(d.wrongbook||{}).length, logN = Object.keys(d.studylog||{}).length;
+      if(!confirm(`备份内容：${deckN} 个词库、${wrongN} 个错题、${logN} 条复习记录。\n导入会覆盖当前数据，确定继续吗？`)) return;
+      if(d.decks) saveStore(LS.decks, d.decks);
+      if(d.wrongbook) saveStore(LS.wrongbook, d.wrongbook);
+      if(d.studylog) saveStore(LS.studylog, d.studylog);
+      if(d.points) saveStore(LS_POINTS, d.points);
+      saveStore(LS.activeDeck, d.activeDeck==null ? null : d.activeDeck);
+      activeCustomWords = null;
+      currentBatch = [];
+      updateBadges(); updateRankUI(); updateDeckBadges();
+      renderDecks();
+      toast("✅ 备份已恢复");
+    }catch(e){
+      toast("❌ " + (e && e.message ? e.message : "备份文件无法识别"));
+    }
+  };
+  reader.readAsText(file);
 }
 
 /* ================= 学习页 ================= */
@@ -1390,6 +1866,23 @@ function renderLearn(){
     const plainEn = e.en.replace(/<[^>]+>/g,"");
     return `<div class="example"><div class="en"><button class="ex-speak" onclick="speakSentence(\`${plainEn.replace(/'/g,"\\'")}\`)" title="听例句">🔊</button>${enHtml}</div><div class="cn">${e.cn}</div></div>`;
   }).join("");
+  // 权威数据区块：WordNet 英文释义 + 同义词（来源标注）
+  const defHtml = (w.def || w.synonyms.length) ? `
+    <div class="sec-head"><h3>📖 英文释义 <span class="src-tag">WordNet</span></h3></div>
+    <div class="word-def">${w.def || ''}</div>
+    ${w.synonyms.length ? `<div class="word-syn">近义 · ${w.synonyms.slice(0,6).join('、')}</div>` : ''}` : '';
+  // 权威数据区块：ECDICT 柯林斯星级 / 牛津3000 / 词频（来源标注）
+  const statsHtml = (w.collins || w.frq || w.oxford) ? `
+    <div class="sec-head"><h3>📊 词频 · 星级 <span class="src-tag">ECDICT</span></h3></div>
+    <div class="word-stats">
+      ${w.collins ? `柯林斯星级 <b class="stars">${'★'.repeat(Math.min(5, w.collins))}</b>` : ''}
+      ${w.oxford ? ' · <b class="ox-badge">牛津3000核心词</b>' : ''}
+      ${w.frq ? ` · 常用度排名 <b>#${w.frq}</b>` : ''}
+    </div>` : '';
+  // 音标：本地 ECDICT 英式 + Wiktionary IPA，标注来源
+  const phHtml = (w.ukPhonetic || w.usPhonetic)
+    ? `${w.ukPhonetic ? '<span class="src-tag">英·ECDICT</span> ' + w.ukPhonetic : ''}${w.usPhonetic ? ' &nbsp; <span class="src-tag">IPA·Wiktionary</span> ' + w.usPhonetic : ''}`
+    : '<span class="phonetic-loading">音标加载中…</span>';
   // 词根词缀 + 同源词 整合为思维导图发散展示
   const MM_COLORS = ["#6366f1","#8b5cf6","#ec4899","#f59e0b","#10b981","#06b6d4","#f43f5e","#84cc16"];
   const affixLabel = w.root ? (w.root.type==='prefix'?'前缀':w.root.type==='suffix'?'后缀':'词根') : '';
@@ -1414,7 +1907,7 @@ function renderLearn(){
       <div class="word-main">
         <div class="word-img" id="wordImg">${imgHtml}</div>
         <div class="word-text">${wordSpans}</div>
-        <div class="word-phonetic" id="phoneticBox">${w.ukPhonetic ? `英 ${w.ukPhonetic} &nbsp; 美 ${w.usPhonetic}` : '<span class="phonetic-loading">音标加载中…</span>'}</div>
+        <div class="word-phonetic" id="phoneticBox">${phHtml}</div>
         <div class="word-cn">${w.cn}</div>
         <div class="speak-row">
           <button class="btn-speak" onclick="playWordAudio('${w.word}')">🔊 整词发音</button>
@@ -1425,6 +1918,8 @@ function renderLearn(){
       </div>
       <div class="word-info">
         ${mindmapHtml}
+        ${defHtml}
+        ${statsHtml}
         <div class="sec-head"><h3>💬 常用例句</h3>${speedSwitchHtml()}</div>
         ${exHtml}
       </div>
@@ -1441,13 +1936,15 @@ function renderLearn(){
   loadPhonetic(w);
   loadImage(w);
   // 记录学习（艾宾浩斯遗忘曲线，只记第一次学习）
-  markLearned(w.word, w.level);
+  markLearned(w.word, w.level, w.deckId);
 }
 
-/* 音标按需查询（走后端中转，解决有道接口 CORS 限制） */
+/* 音标按需查询（走后端中转，解决有道接口 CORS 限制）
+   优先使用本地权威音标（ECDICT 英式 + Wiktionary IPA），本地缺失时才查有道兜底 */
 async function loadPhonetic(w){
   const box = $("#phoneticBox");
   if(!box) return;
+  if(w.ukPhonetic || w.usPhonetic) return; // 本地权威音标已就绪，跳过网络查询
   try{
     const resp = await fetch(`/api/phonetic?q=${encodeURIComponent(w.word)}`);
     if(!resp.ok) throw new Error('http '+resp.status);

@@ -623,6 +623,7 @@
 <script src="extras_data.js"></script>
 <script src="families_data.js"></script>
 <script src="synonyms_data.js"></script>
+<script src="morph_data.js"></script>
 <script src="pics_data.js"></script>
 <script src="syllables_data.js"></script>
 <script src="atlas_pics.js"></script>
@@ -1274,6 +1275,13 @@ function famIndex(){
   FAM_IDX.w2f = d.w2f || {};
   FAM_IDX.pfx = (d.meta && d.meta.pfx) || {};
   FAM_IDX.free = (d.meta && d.meta.free) || {};
+  // 透明构词补充（re+fuel 这类词典派生数据缺失的词）
+  FAM_IDX.morph = (typeof MORPH_DATA !== 'undefined' && MORPH_DATA) ? MORPH_DATA : {};
+  for(const k in FAM_IDX.morph){
+    const mm = FAM_IDX.morph[k];
+    if(!mm || !mm.root) continue;
+    if(!FAM_IDX.byWord.has(k)) FAM_IDX.byWord.set(k, { root: mm.root, m: mm.m || '', pre: mm.pre || '', suf: '' });
+  }
   FAM_IDX.sfx = (d.meta && d.meta.sfx) || {};
   for(const root in FAM_IDX.roots){
     for(const it of FAM_IDX.roots[root].w){
@@ -1300,6 +1308,18 @@ function famMember(item){
 function pickFamily(w){
   const idx = famIndex();
   const key = w.word.toLowerCase();
+  // 优先：人工核订的透明构词（refuel = re + fuel），数据来自词典逐词校验
+  const cur = idx.morph && idx.morph[key];
+  if(cur){
+    const list = [];
+    for(const it of (cur.fam || [])){
+      const mm = famMember(it);
+      if(mm.w.toLowerCase() === key) continue;
+      list.push(mm);
+    }
+    const bare = String(cur.m || '').replace(/^(n|v|vt|vi|adj|adv|prep|conj|pron|num|art|int|aux)\.\s*/i, '');
+    return { rinfo: { root: cur.root, m: bare, pre: cur.pre || '', suf: '' }, list, useRoot: true, rootMeaning: bare };
+  }
   const rinfo = idx.byWord.get(key);
   const famKey = idx.w2f[key];
   const stem = famKey ? (idx.fams[famKey] || []) : [];

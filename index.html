@@ -101,6 +101,17 @@
   .speed-switch .ss-btn{border:0;background:transparent;color:var(--muted);font-size:13px;font-weight:600;padding:5px 12px;border-radius:16px;cursor:pointer;transition:.15s;line-height:1.4}
   .speed-switch .ss-btn:hover{color:var(--primary)}
   .speed-switch .ss-btn.on{background:linear-gradient(135deg,var(--primary),var(--primary2));color:#fff;box-shadow:0 2px 6px rgba(99,102,241,.28)}
+  .speed-switch{vertical-align:middle}
+  /* 例句区：标题与语速开关同一行 */
+  .sec-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+  .sec-head h3{margin:0}
+  .sec-head .speed-switch{height:32px;padding:2px 3px}
+  .sec-head .ss-label{font-size:11px;padding:0 2px 0 6px}
+  .sec-head .ss-btn{font-size:12px;padding:4px 10px;border-radius:14px}
+  /* 短文区：与主按钮同高 */
+  .speed-switch.lg{height:46px;border-radius:26px;padding:4px 6px}
+  .speed-switch.lg .ss-btn{padding:7px 16px;border-radius:20px;font-size:14px}
+  .passage-actions{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:20px;flex-wrap:wrap}
 
   .word-info h3{font-size:15px;color:var(--primary);margin:0 0 10px;display:flex;align-items:center;gap:6px}
   .chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
@@ -687,9 +698,10 @@ function stopAudio(){
 }
 
 /* ---- 朗读语速档位（标准 / 快速）：师生可自主切换，选择记忆在本机 ---- */
+// rate/gap 用于音节拆分朗读；sentRate 用于例句 / 短文整句朗读（整句默认自然语速，更利于听力训练）
 const SPEED_LEVELS = {
-  standard: { label:"标准", rate:"+10%", gap:170 },   // 比原来默认语速略快，解决拖沓
-  fast:     { label:"快速", rate:"+30%", gap:100 },   // 更利落，适合复习/连读训练
+  standard: { label:"标准", rate:"+10%", gap:170, sentRate:"+0%" },   // 音节比原来默认语速略快，解决拖沓
+  fast:     { label:"快速", rate:"+30%", gap:100, sentRate:"+20%" },   // 更利落，适合复习/连读训练
 };
 const LS_SPEED = "lx_speak_speed";
 function getSpeedKey(){
@@ -700,9 +712,19 @@ function speedCfg(){ return SPEED_LEVELS[getSpeedKey()] || SPEED_LEVELS.standard
 function setSpeakSpeed(key){
   if(!SPEED_LEVELS[key]) return;
   try{ localStorage.setItem(LS_SPEED, key); }catch(e){}
+  // 同一页面可能有多处语速开关（单词区 / 例句区 / 短文区），统一同步
   document.querySelectorAll(".speed-switch .ss-btn").forEach(b=>{
     b.classList.toggle("on", b.dataset.speed === key);
   });
+}
+// 语速开关控件（复用于单词区、例句区、短文区）
+function speedSwitchHtml(cls){
+  const cur = getSpeedKey();
+  return `<div class="speed-switch ${cls||''}" title="朗读语速档位">
+      <span class="ss-label">语速</span>
+      <button class="ss-btn ${cur==='standard'?'on':''}" data-speed="standard" onclick="setSpeakSpeed('standard')">标准</button>
+      <button class="ss-btn ${cur==='fast'?'on':''}" data-speed="fast" onclick="setSpeakSpeed('fast')">快速</button>
+    </div>`;
 }
 
 /* ---- TTS 音频预取缓存：先并行下载再按序播放，消除逐段等接口的空档 ---- */
@@ -798,11 +820,11 @@ function playTTS(text, onEnd, rateVal){
   a.onerror = ()=>{ if(onEnd) onEnd(); };
   a.play().catch(()=>{ if(onEnd) onEnd(); });
 }
-// 例句整句朗读（edge-tts 自然整句，不再是逐词读）
+// 例句整句朗读（edge-tts 自然整句，不再是逐词读）；语速跟随「标准 / 快速」档位
 function speakSentence(sentence){
   stopAudio();
   const plain = sentence.replace(/<[^>]+>/g,"");
-  playTTS(plain);
+  playTTS(plain, null, speedCfg().sentRate);
 }
 function speakWords(sentence){
   const wordsArr = sentence.replace(/[^\w\s']/g," ").split(/\s+/).filter(w=>w.length>0);
@@ -1310,16 +1332,12 @@ function renderLearn(){
           <button class="btn-speak" onclick="playWordAudio('${w.word}')">🔊 整词发音</button>
           <button class="btn-speak" onclick="playSyllables(words()[${learnIndex}])">🔊 音节拆分朗读</button>
           <button class="btn-speak" onclick="markWrong('${w.word}','${w.cn}')">📌 标记易错</button>
-          <div class="speed-switch" title="音节拆分朗读的语速档位">
-            <span class="ss-label">语速</span>
-            <button class="ss-btn ${getSpeedKey()==='standard'?'on':''}" data-speed="standard" onclick="setSpeakSpeed('standard')">标准</button>
-            <button class="ss-btn ${getSpeedKey()==='fast'?'on':''}" data-speed="fast" onclick="setSpeakSpeed('fast')">快速</button>
-          </div>
+          ${speedSwitchHtml()}
         </div>
       </div>
       <div class="word-info">
         ${mindmapHtml}
-        <h3>💬 常用例句</h3>
+        <div class="sec-head"><h3>💬 常用例句</h3>${speedSwitchHtml()}</div>
         ${exHtml}
       </div>
     </div>
@@ -1839,8 +1857,9 @@ function renderPassage(){
     <p class="page-sub">本批词汇融于例句，目标词已标黄，通读复习</p>
     <div class="passage">${sentences}</div>
     <div class="passage-trans"><b>本批词汇释义：</b><br>${cnList}</div>
-    <div style="text-align:center;margin-top:20px">
+    <div class="passage-actions">
       <button class="btn btn-ghost" onclick="speakPassage()">🔊 朗读短文</button>
+      ${speedSwitchHtml('lg')}
       <button class="btn btn-primary" onclick="goStep(8)">完成，查看结果 →</button>
     </div>
   `;

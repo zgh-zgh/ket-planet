@@ -155,6 +155,9 @@
   .question{background:#fbfbfe;border:1px solid var(--border);border-radius:14px;padding:18px;margin-bottom:18px}
   .q-index{font-size:13px;color:var(--muted);margin-bottom:6px}
   .q-sentence{font-size:17px;font-weight:500;line-height:1.8}
+  /* 报刊例句的来源标注 */
+  .q-src{font-size:12px;color:var(--muted);margin-top:8px;letter-spacing:.3px}
+  .ps-src{display:inline-block;margin-left:8px;font-size:11px;color:#8a90a3;background:#f0f2f8;border-radius:8px;padding:1px 7px;vertical-align:2px}
   .q-sentence b{color:var(--primary);font-weight:700}
   .q-sentence .hl{background:var(--yellow);border-radius:3px;padding:0 3px;font-weight:700}
   .options{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
@@ -385,6 +388,7 @@
 
 <script src="words-data.js"></script>
 <script src="examples_data.js"></script>
+<script src="extras_data.js"></script>
 <script src="pics_data.js"></script>
 <script src="syllables_data.js"></script>
 <script src="atlas_pics.js"></script>
@@ -506,16 +510,99 @@ GROUPS.forEach(g => g.words.forEach(w => {
   }
 }));
 
-// 构建例句：优先用 EXAMPLES_DATA（Tatoeba 真实例句），否则用模板兜底
+// 构建例句：优先用 EXAMPLES_DATA（双语例句库），否则用模板兜底
+// 词典式"元例句"（如 The word "x" is very common in English.）排序靠后，避免占坑
 function buildExamples(w){
+  const META_SENT = /^the word\s*["'“]/i;      // 放在函数内，避免 const 声明晚于首次调用（TDZ）
   const data = (typeof EXAMPLES_DATA !== 'undefined' && EXAMPLES_DATA[w.toLowerCase()]) || [];
   if(data.length){
-    return data.slice(0, 5).map(e => ({ en: e.en, cn: e.cn }));
+    const arr = data.slice(0, 5).map(e => ({ en: e.en, cn: e.cn }));
+    const normal = arr.filter(e => !META_SENT.test(e.en.replace(/<[^>]+>/g, '').trim()));
+    const meta = arr.filter(e => META_SENT.test(e.en.replace(/<[^>]+>/g, '').trim()));
+    return normal.concat(meta);
   }
   return EXAMPLE_TEMPLATES.map(t=>({
     en: t.en.replace(/__W__/g, `<B>${w}</B>`),
     cn: t.cn.replace(/__W__/g, w)
   }));
+}
+// 权威例句（报刊/通讯社来源，仅英文）：BBC / CNN / FORBES / NPR 等，供题型做「不同语境」考察
+function buildExtras(w){
+  const d = (typeof EXTRAS_DATA !== 'undefined' && EXTRAS_DATA[w.toLowerCase()]) || [];
+  return d.map(e => ({ en: e.en, src: e.src || '报刊' }));
+}
+
+/* ---- 题型专属例句分配：同一单词在不同题型用不同句子，从多个语境反复强化 ---- */
+// 规则：每个题型有长度/语种偏好，贪心挑选未被占用的句子，保证 5 个题型尽量各不相同
+const TASK_META = {
+  order:   { label:'句式组配', min:6,  max:13, needCn:true  },  // 碎片太多拼不动，取中短句
+  trans:   { label:'双语转译', min:9,  max:18, needCn:true  },  // 汉译英，取完整中等句
+  cloze:   { label:'语境填空', min:10, max:22, needCn:false },  // 线索要够猜词，优先长句/报刊句
+  meaning: { label:'词义甄别', min:8,  max:20, needCn:false },  // 要有基本语境，但不与填空抢最长句
+  passage: { label:'篇章研读', min:8,  max:22, needCn:false }   // 组篇通读
+};
+function taskExamplePool(w){
+  const pool = [];
+  (w.examples || []).forEach((e, i) => {
+    const plain = (e.en || '').replace(/<[^>]+>/g, '');
+    pool.push({ en: e.en, cn: e.cn || '', src: '', kind: 'dict', head: /^<B>/i.test((e.en || '').trim()), tail: /<\/B>\s*[.!?"']?\s*$/.test((e.en || '').trim()), len: plain.split(/\s+/).filter(Boolean).length, idx: i });
+  });
+  (w.extras || []).forEach((e, i) => {
+    const plain = (e.en || '').replace(/<[^>]+>/g, '');
+    pool.push({ en: e.en, cn: '', src: e.src || '', kind: 'news', head: /^<B>/i.test((e.en || '').trim()), tail: /<\/B>\s*[.!?"']?\s*$/.test((e.en || '').trim()), len: plain.split(/\s+/).filter(Boolean).length, idx: i });
+  });
+  return pool;
+}
+function assignTaskExamples(w){
+  if (w._taskEx) return w._taskEx;
+  const pool = taskExamplePool(w);
+  const assigned = {};
+  const used = new Set();
+  const pickFor = (task) => {
+    const m = TASK_META[task];
+    const cands = pool.filter(p => !used.has(p) && (!m.needCn || p.cn));
+    if (!cands.length) {
+      // 池子不够：退而求其次，允许复用（取长度最接近的）
+      const alt = pool.slice().sort((a, b) => Math.abs(a.len - m.min) - Math.abs(b.len - m.min));
+      return alt[0] || null;
+    }
+    let best = null, bestScore = 1e9;
+    for (const p of cands) {
+      let s = 0;
+      if (p.len < m.min) s += (m.min - p.len) * 2.5;      // 太短，语境不足
+      if (p.len > m.max) s += (p.len - m.max) * 1.8;      // 太长，认知负担大
+      if (m.needCn && !p.cn) s += 99;                     // 硬性要求中文
+      if (p.head && task === 'cloze') s += 2.5;            // 目标词在句首/句尾 => 两侧没有语境可猜，扣分
+      if (p.tail && task === 'cloze') s += 2.5;
+      if (p.kind === 'news') {                             // 报刊句语境完整：填空（要能猜词）和通读最需要
+        if (task === 'cloze' || task === 'passage') s -= 3;
+      } else if (task === 'order' || task === 'trans') {
+        s -= 1.2;                                          // 双语句用于组配/翻译更稳
+      }
+      s += p.idx * 0.01;                                   // 同分时保持稳定顺序
+      if (s < bestScore) { bestScore = s; best = p; }
+    }
+    used.add(best);
+    return best;
+  };
+  // 分配顺序很关键：先满足「必须有中文」的组配/翻译（只能吃双语句），
+  // 再让「猜义/通读」优先拿报刊句，最后才轮到填空，避免报刊句被提前消耗
+  // 篇章研读先预占一条报刊句（有两条以上时），避免它的长句被填空抢走
+  const news = pool.filter(p => p.kind === 'news');
+  let reserved = null;
+  if (news.length >= 2) {
+    reserved = news.slice().sort((a, b) => Math.abs(a.len - 16) - Math.abs(b.len - 16))[0];
+    used.add(reserved);
+  }
+  ['order', 'trans', 'cloze', 'meaning'].forEach(t => { assigned[t] = pickFor(t); });
+  assigned.passage = reserved || pickFor('passage');
+  w._taskEx = assigned;
+  return assigned;
+}
+// 取某题型该用的例句；缺失时回落到第一条
+function taskExample(w, task){
+  const a = assignTaskExamples(w) || {};
+  return a[task] || (w.examples && w.examples[0]) || { en: w.word, cn: '' };
 }
 
 // 构建一个单词对象（动态补齐字段）
@@ -531,7 +618,8 @@ function buildWord(w, cn, lv){
     syllables: autoSyllables(w),       // 音节自动拆分
     related: [],                        // 同源词（AFFIX_INDEX 构建后填充）
     root: affix ? { text: affix.text, meaning: affix.meaning, type: affix.type, key: affix.key } : null,
-    examples: buildExamples(w),         // 真实例句优先，模板兜底
+    examples: buildExamples(w),         // 双语例句（学习页展示 + 题型池）
+    extras: buildExtras(w),             // 报刊/通讯社例句（题型池，制造不同语境）
     imageUrl: cachedImg,                // 优先从本地缓存读取（已生成的单词直接复用，节省额度）
     _cn: cn,
     _affixKey: affix ? affix.key : null // 用于同源词索引
@@ -1545,8 +1633,8 @@ function renderChoiceQ(){
   const others = words().filter(x=>x.word!==w.word).map(x=>x.cn);
   const opts = shuffle([w.cn, ...shuffle(others).slice(0,3)]);
   choiceState.answer = w.cn;
-  // 例句：用第一个例句，目标词加粗
-  const example = w.examples[0];
+  // 例句：取本题型专属句（不同题型不同语境），目标词加粗
+  const example = taskExample(w, 'meaning');
   const enHtml = example.en.replace(/<B>(.*?)<\/B>/g, (m,p1)=>`<b>${p1}</b>`);
   $("#choicePage").classList.remove("hidden");
   $("#choicePage").innerHTML = `
@@ -1555,6 +1643,7 @@ function renderChoiceQ(){
     <div class="question">
       <div class="q-index">第 ${choiceState.idx+1} / ${words().length} 题</div>
       <div class="q-sentence">${enHtml}</div>
+      ${example.src ? `<div class="q-src">例句来源：${example.src}</div>` : ''}
     </div>
     <div class="options">${opts.map((o,i)=>`<div class="option" onclick="answerChoice(${i},this)">${o}</div>`).join("")}</div>
     <div style="text-align:center;margin-top:20px"><button class="btn btn-skip" onclick="goStep(3)">跳过本题型 →</button></div>
@@ -1618,14 +1707,22 @@ function renderFill(){
   fillState = { idx:0 };
   renderFillQ();
 }
+// 把句中的目标词整词挖空：优先用 <B></B> 标记定位，可连带挖掉变形（abandoned → ______）
+function blankTarget(en, word){
+  const re = /<B>(.*?)<\/B>/gi;
+  let m;
+  while ((m = re.exec(en))) {
+    if (m[1].toLowerCase().startsWith(word.toLowerCase())) {
+      return en.slice(0, m.index) + '<b>______</b>' + en.slice(m.index + m[0].length);
+    }
+  }
+  return en.replace(new RegExp(word, 'i'), '<b>______</b>');
+}
 function renderFillQ(){
   const w = words()[fillState.idx];
-  // 挖空：用例句，把目标词挖掉
-  const example = w.examples[0];
-  const plain = example.en;
-  const target = w.word;
-  const sentence = plain.replace(new RegExp(target,"i"), "______");
-  const sentenceHtml = plain.replace(new RegExp(target,"i"), "<b>______</b>");
+  // 挖空：取「语境填空」专属例句，把目标词（含变形）整词挖掉
+  const example = taskExample(w, 'cloze');
+  const sentenceHtml = blankTarget(example.en, w.word);
   // 选项：正确词 + 易混词 + 同源词 + 已学旧词（buildFillOptions 统一生成）
   const opts = buildFillOptions(w);
   fillState.answer = w.word;
@@ -1744,7 +1841,8 @@ function renderSentence(){
 }
 function renderSentenceQ(){
   const w = words()[sentenceState.idx];
-  const example = w.examples[0];
+  // 句式组配专属例句（优先有中文参考、长度适中的句子）
+  const example = taskExample(w, 'order');
   const plain = example.en.replace(/<[^>]+>/g,"");
   // 拆分为碎片（按单词+标点）
   const tokens = plain.match(/[A-Za-z']+|[.,?!]/g) || [];
@@ -1807,7 +1905,8 @@ function renderTrans(){
 }
 function renderTransQ(){
   const w = words()[transState.idx];
-  const example = w.examples[0];
+  // 双语转译专属例句（需带中文，且与填空/组配所用句子不同）
+  const example = taskExample(w, 'trans');
   transState.answer = example.en.replace(/<[^>]+>/g,"");
   $("#transPage").classList.remove("hidden");
   $("#transPage").innerHTML = `
@@ -1843,18 +1942,26 @@ function nextTrans(){
 /* ================= 题型7：语篇短文 ================= */
 function renderPassage(){
   const w = words();
-  // 动态词库：把本批词的例句串联成一篇复习短文（目标词标黄）
+  // 动态词库：每个词取「篇章研读」专属例句（多为报刊句），串联成一篇复习短文（目标词标黄）
+  const seen = new Set();                                  // 同一句可能被多个词命中，组篇时去重
+  const key = s => s.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim().toLowerCase();
   const sentences = w.map(x=>{
-    const ex = x.examples[0];
+    let ex = taskExample(x, 'passage');
+    if(seen.has(key(ex.en))){
+      const alt = (x.examples || []).concat(x.extras || []).find(e => !seen.has(key(e.en)));
+      if(alt) ex = alt;
+    }
+    seen.add(key(ex.en));
     const plain = ex.en.replace(/<[^>]+>/g,"");
     const hl = plain.replace(new RegExp(x.word,"i"), m=>`<span class="hl">${m}</span>`);
-    return `<p style="margin-bottom:12px">${hl}</p>`;
+    const tag = ex.src ? `<span class="ps-src">${ex.src}</span>` : '';
+    return `<p style="margin-bottom:12px">${hl}${tag}</p>`;
   }).join("");
   const cnList = w.map(x=>`<p style="margin-bottom:6px"><b>${x.word}</b> — ${x.cn}</p>`).join("");
   $("#passagePage").classList.remove("hidden");
   $("#passagePage").innerHTML = `
     <h2 class="page-title">📜 篇章研读</h2>
-    <p class="page-sub">本批词汇融于例句，目标词已标黄，通读复习</p>
+    <p class="page-sub">本批词汇融于真实语料，目标词已标黄，通读复习</p>
     <div class="passage">${sentences}</div>
     <div class="passage-trans"><b>本批词汇释义：</b><br>${cnList}</div>
     <div class="passage-actions">
@@ -1866,7 +1973,7 @@ function renderPassage(){
 }
 function speakPassage(){
   const w = words();
-  const plain = w.map(x=>x.examples[0].en.replace(/<[^>]+>/g,"")).join(". ");
+  const plain = w.map(x=>taskExample(x, 'passage').en.replace(/<[^>]+>/g,"")).join(". ");
   speakSentence(plain);
 }
 

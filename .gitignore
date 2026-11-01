@@ -3,3 +3,5 @@ test_tts.mp3
 server.js
 *.log
 .DS_Store
+.extras_progress.json
+.fetch_progress.json

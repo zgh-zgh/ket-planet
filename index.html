@@ -95,6 +95,12 @@
   .btn-speak{padding:9px 20px;border-radius:22px;border:1px solid var(--primary);background:#fff;color:var(--primary);cursor:pointer;font-size:14px;transition:.15s}
   .btn-speak:hover{background:var(--primary);color:#fff}
   .btn-speak.playing{background:var(--primary);color:#fff}
+  /* 朗读语速档位切换（标准 / 快速） */
+  .speed-switch{display:inline-flex;align-items:center;gap:2px;background:#f2f4fb;border:1px solid #e2e6f5;border-radius:22px;padding:3px 4px;height:38px;box-sizing:border-box}
+  .speed-switch .ss-label{font-size:12px;color:var(--muted);padding:0 4px 0 8px;user-select:none}
+  .speed-switch .ss-btn{border:0;background:transparent;color:var(--muted);font-size:13px;font-weight:600;padding:5px 12px;border-radius:16px;cursor:pointer;transition:.15s;line-height:1.4}
+  .speed-switch .ss-btn:hover{color:var(--primary)}
+  .speed-switch .ss-btn.on{background:linear-gradient(135deg,var(--primary),var(--primary2));color:#fff;box-shadow:0 2px 6px rgba(99,102,241,.28)}
 
   .word-info h3{font-size:15px;color:var(--primary);margin:0 0 10px;display:flex;align-items:center;gap:6px}
   .chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
@@ -671,10 +677,95 @@ function jumpToWord(i){
 /* ================= 音频 ================= */
 let currentAudio = null;
 let playing = false;
+// 播放代次：每次停止/切换自增，旧的异步播放链检测到代次变化即退出，避免“旧朗读串到新单词”
+let playToken = 0;
 function stopAudio(){
+  playToken++;
   if(currentAudio){ try{currentAudio.pause();}catch(e){} currentAudio=null; }
   if(window.speechSynthesis){ try{speechSynthesis.cancel();}catch(e){} }
   playing = false;
+}
+
+/* ---- 朗读语速档位（标准 / 快速）：师生可自主切换，选择记忆在本机 ---- */
+const SPEED_LEVELS = {
+  standard: { label:"标准", rate:"+10%", gap:170 },   // 比原来默认语速略快，解决拖沓
+  fast:     { label:"快速", rate:"+30%", gap:100 },   // 更利落，适合复习/连读训练
+};
+const LS_SPEED = "lx_speak_speed";
+function getSpeedKey(){
+  try{ const v = localStorage.getItem(LS_SPEED); if(v && SPEED_LEVELS[v]) return v; }catch(e){}
+  return "standard";
+}
+function speedCfg(){ return SPEED_LEVELS[getSpeedKey()] || SPEED_LEVELS.standard; }
+function setSpeakSpeed(key){
+  if(!SPEED_LEVELS[key]) return;
+  try{ localStorage.setItem(LS_SPEED, key); }catch(e){}
+  document.querySelectorAll(".speed-switch .ss-btn").forEach(b=>{
+    b.classList.toggle("on", b.dataset.speed === key);
+  });
+}
+
+/* ---- TTS 音频预取缓存：先并行下载再按序播放，消除逐段等接口的空档 ---- */
+const TTS_MAX_CACHE = 200;             // 单次会话最多缓存 200 段音频，避免内存膨胀
+const ttsCache = new Map();            // key -> Promise<objectURL>
+function ttsUrl(text, rate){
+  return "/api/tts?text=" + encodeURIComponent(text) + "&lang=en-US&rate=" + encodeURIComponent(rate || "+0%");
+}
+function prefetchTTS(text, rate){
+  const key = (rate || "+0%") + "|" + text;
+  const hit = ttsCache.get(key);
+  if(hit) return hit;
+  const p = (async ()=>{
+    const resp = await fetch(ttsUrl(text, rate));
+    if(!resp.ok) throw new Error("tts " + resp.status);
+    const blob = await resp.blob();
+    if(!blob.size) throw new Error("tts empty");
+    return URL.createObjectURL(blob);
+  })();
+  ttsCache.set(key, p);
+  p.catch(()=>{ ttsCache.delete(key); });
+  if(ttsCache.size > TTS_MAX_CACHE){
+    const oldestKey = ttsCache.keys().next().value;
+    const oldest = ttsCache.get(oldestKey);
+    ttsCache.delete(oldestKey);
+    if(oldest) oldest.then(u=>URL.revokeObjectURL(u)).catch(()=>{});
+  }
+  return p;
+}
+// 播放一个音频地址：正常放完 resolve(true)；被 pause/出错 resolve(false)
+function playMediaUrl(url){
+  return new Promise(resolve=>{
+    const a = new Audio(url);
+    currentAudio = a;
+    let done = false;
+    const finish = ok=>{ if(done) return; done = true; resolve(ok); };
+    a.onended = ()=>finish(true);
+    a.onerror = ()=>finish(false);
+    a.onpause = ()=>{ if(!a.ended) finish(false); };
+    a.play().catch(()=>finish(false));
+  });
+}
+const sleep = ms => new Promise(r=>setTimeout(r, ms));
+// 最后一道兜底：TTS 接口整体不可用时，用浏览器内置语音朗读，至少不静音
+const rateToRatio = r => { const n = parseInt(String(r).replace("%",""),10); return isNaN(n) ? 1 : Math.min(2, Math.max(0.5, 1 + n/100)); };
+function speakFallback(text, rateStr){
+  return new Promise(resolve=>{
+    if(!window.speechSynthesis) return resolve(false);
+    try{
+      speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = "en-US"; u.rate = rateToRatio(rateStr);
+      const vs = speechSynthesis.getVoices();
+      const en = vs.find(v=>/^en(-|_)/i.test(v.lang)) || vs.find(v=>/en/i.test(v.lang));
+      if(en) u.voice = en;
+      let done = false;
+      const fin = ok=>{ if(done) return; done = true; resolve(ok); };
+      u.onend = ()=>fin(true);
+      u.onerror = ()=>fin(false);
+      speechSynthesis.speak(u);
+      setTimeout(()=>fin(false), 4000);
+    }catch(e){ resolve(false); }
+  });
 }
 function playWordAudio(word, onEnd){
   stopAudio();
@@ -699,8 +790,9 @@ function speakTTS(text, onEnd){
   }catch(e){ toast("发音失败"); }
 }
 // 通用：用 edge-tts 播放文本（整句/音节/单词兜底统一走 /api/tts，微软神经网络音色）
-function playTTS(text, onEnd){
-  const a = new Audio("/api/tts?text=" + encodeURIComponent(text) + "&lang=en-US");
+// rateVal 省略时用默认自然语速，不跟随“音节拆分朗读”的加速档位
+function playTTS(text, onEnd, rateVal){
+  const a = new Audio(ttsUrl(text, rateVal || "+0%"));
   currentAudio = a;
   if(onEnd) a.onended = onEnd;
   a.onerror = ()=>{ if(onEnd) onEnd(); };
@@ -728,43 +820,67 @@ function speakWords(sentence){
 if(window.speechSynthesis){ speechSynthesis.getVoices(); speechSynthesis.onvoiceschanged=()=>speechSynthesis.getVoices(); }
 
 /* ================= 音节拆分朗读 ================= */
-// 播放音节分段：逐段读，高亮对应部分，最后完整读2遍
-function playSyllables(wordData){
+// 播放音节分段：逐段读（当前段标红），全部读完后再整词朗读 2 遍
+// 优化：① 先并行预取全部片段音频，播放时零等待，节奏不再一卡一顿
+//      ② 段间停顿按档位收紧（标准 170ms / 快速 100ms）
+//      ③ 换词或重播时旧播放链自动中断，不会串音
+async function playSyllables(wordData){
   stopAudio();
-  const syls = wordData.syllables;
+  if(!wordData) return;
+  const token = playToken;                       // 本次播放的“代次”
+  const sp = speedCfg();
+  const syls = (wordData.syllables || []).filter(s=>s && s.text);
   const word = wordData.word;
-  // 高亮所有音节段
-  const sylEls = document.querySelectorAll(".word-text .syl");
-  let idx = 0;
-  function playSeg(){
-    if(idx >= syls.length){
-      // 全部读完，完整单词读2遍
-      readWhole(0);
-      return;
+  const sylEls = Array.from(document.querySelectorAll(".word-text .syl"));
+  playing = true;
+
+  // 并行预取：第一段开始播时，后面的片段已在下载，抵消接口延迟
+  syls.forEach(s=>prefetchTTS(s.text, sp.rate).catch(()=>{}));
+
+  for(let i=0;i<syls.length;i++){
+    if(token !== playToken) return;               // 已被打断
+    sylEls.forEach((el,k)=>el.classList.toggle("active", k===i));
+    let ok = false;
+    try{
+      const url = await prefetchTTS(syls[i].text, sp.rate);
+      if(token !== playToken) return;
+      ok = await playMediaUrl(url);
+    }catch(e){
+      // 预取失败（接口异常/离线）→ 退回直连音频流，保证仍有声
+      if(token !== playToken) return;
+      ok = await playMediaUrl(ttsUrl(syls[i].text, sp.rate));
     }
-    // 高亮当前段
-    sylEls.forEach((el,i)=>{ el.classList.toggle("active", i===idx); });
-    const seg = syls[idx].text;
-    // 音节片段用 edge-tts 朗读（不再用 speechSynthesis，避免无英文语音包导致没声音）
-    playTTS(seg, ()=>{
-      idx++;
-      setTimeout(playSeg, 300);
-    });
-  }
-  function readWhole(count){
-    if(count >= 2){
-      sylEls.forEach(el=>el.classList.remove("active"));
-      playing = false;
-      return;
+    if(token !== playToken) return;
+    if(!ok){                                        // 两条音频链路都失败 → 浏览器语音兜底
+      ok = await speakFallback(syls[i].text, sp.rate);
+      if(token !== playToken) return;
     }
-    // 完整单词真人发音
-    const a = new Audio("https://dict.youdao.com/dictvoice?audio="+encodeURIComponent(word)+"&type=2");
-    currentAudio = a;
-    a.onended = ()=>readWhole(count+1);
-    a.onerror = ()=>{ playTTS(word, ()=>readWhole(count+1)); };
-    a.play().catch(()=>{ playTTS(word, ()=>readWhole(count+1)); });
+    if(i < syls.length-1) await sleep(sp.gap);    // 段间气口，按档位收紧
   }
-  playSeg();
+
+  if(token !== playToken) return;
+  // 音节读完后，完整单词朗读 2 遍
+  const youdaoUrl = "https://dict.youdao.com/dictvoice?audio="+encodeURIComponent(word)+"&type=2";
+  for(let n=0;n<2;n++){
+    if(token !== playToken) return;
+    const ok = await playMediaUrl(youdaoUrl);
+    if(token !== playToken) return;
+    if(!ok){                                       // 有道音源缺失 → edge-tts 兜底
+      let ok2 = false;
+      try{
+        const url = await prefetchTTS(word, sp.rate);
+        if(token !== playToken) return;
+        ok2 = await playMediaUrl(url);
+      }catch(e){}
+      if(token !== playToken) return;
+      if(!ok2) await speakFallback(word, sp.rate); // 仍失败 → 浏览器语音兜底
+      if(token !== playToken) return;
+    }
+    if(n === 0) await sleep(240);                  // 两遍之间留一点气口，听得清是两遍
+  }
+  if(token !== playToken) return;
+  sylEls.forEach(el=>el.classList.remove("active"));
+  playing = false;
 }
 
 /* ================= 渲染 ================= */
@@ -1194,6 +1310,11 @@ function renderLearn(){
           <button class="btn-speak" onclick="playWordAudio('${w.word}')">🔊 整词发音</button>
           <button class="btn-speak" onclick="playSyllables(words()[${learnIndex}])">🔊 音节拆分朗读</button>
           <button class="btn-speak" onclick="markWrong('${w.word}','${w.cn}')">📌 标记易错</button>
+          <div class="speed-switch" title="音节拆分朗读的语速档位">
+            <span class="ss-label">语速</span>
+            <button class="ss-btn ${getSpeedKey()==='standard'?'on':''}" data-speed="standard" onclick="setSpeakSpeed('standard')">标准</button>
+            <button class="ss-btn ${getSpeedKey()==='fast'?'on':''}" data-speed="fast" onclick="setSpeakSpeed('fast')">快速</button>
+          </div>
         </div>
       </div>
       <div class="word-info">

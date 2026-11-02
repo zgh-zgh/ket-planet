@@ -156,6 +156,9 @@
   .pk-room-label{font-size:13px;color:var(--muted)}
   .pk-room-code{font-size:52px;font-weight:900;letter-spacing:12px;color:var(--primary);margin:4px 0 8px}
   .pk-room-tip{font-size:13px;color:#5a6072;margin-bottom:16px;line-height:1.7}
+  .pk-link{font-size:12px;letter-spacing:.5px;margin:-8px 0 14px}
+  .pk-link.on{color:#2e9e6b}
+  .pk-link.off{color:#9aa2b6}
   @media (max-width:640px){
     .pk-online-box{grid-template-columns:1fr}
     .pk-room-code{font-size:42px;letter-spacing:9px}
@@ -1508,7 +1511,7 @@ function stopOnlineTick(){
 function exitBattleIfNeeded(nextMode){
   if(appMode !== 'battle' || nextMode === 'battle') return;
   try{ stopPkTimer(); }catch(e){}
-  try{ if(typeof pkPollStop === 'function') pkPollStop(); }catch(e){}
+  try{ if(typeof pkAbortOnline === 'function') pkAbortOnline(); }catch(e){}
   stopOnlineTick();
   try{ pk = null; }catch(e){}
   try{ online = null; }catch(e){}
@@ -3529,9 +3532,9 @@ function pkScore(msLeft, correct){
 
 /* ---------- 首页：模式选择 ---------- */
 function renderBattleHome(){
-  // 回到大厅 = 结束上一局：停表、停轮询、清空对局对象
+  // 回到大厅 = 结束上一局：停表、断开房间、清空对局对象
   stopPkTimer();
-  try{ if(typeof pkPollStop === 'function') pkPollStop(); }catch(e){}
+  try{ if(typeof pkAbortOnline === 'function') pkAbortOnline(); }catch(e){}
   stopOnlineTick();
   pk = null;
   online = null;
@@ -3557,7 +3560,7 @@ function renderBattleHome(){
         <div class="pk-mode-icon">🌐</div>
         <div class="pk-mode-name">在线对战</div>
         <div class="pk-mode-desc">房间码匹配，两台设备同场竞速</div>
-        <div class="pk-mode-tag">需开启云端房间</div>
+        <div class="pk-mode-tag">6 位房间码实时匹配</div>
       </div>
     </div>
     <div class="pk-rules">
@@ -3565,17 +3568,7 @@ function renderBattleHome(){
     </div>`;
 }
 function pkOnlineTip(){
-  toast("在线对战需要云端房间支持，见下方说明");
-  const el = $("#battlePage");
-  if(el && !$("#pkOnlineNote")){
-    const d = document.createElement("div");
-    d.id = "pkOnlineNote";
-    d.className = "pk-note";
-    d.innerHTML = `<b>关于「在线匹配」</b><br>本站是纯静态部署，没有常驻服务器，跨设备实时对战需要一个公共房间服务。<br>
-      我可以随时接入：在 Vercel 控制台 → Storage → 创建一个免费 KV，把环境变量接上即可启用（约 2 分钟）。<br>
-      在那之前，建议先用「人机竞速」和「双人对战」，玩法与计分完全一致。`;
-    el.appendChild(d);
-  }
+  toast("房间码实时匹配，双方各用一台设备即可开战");
 }
 
 /* ---------- 人机 / 双人 设置页 ---------- */
@@ -3843,17 +3836,97 @@ function pkAgain(){
   startPk(mode, level, n1, n2);
 }
 
-/* ================= 🌐 在线房间对战（轮询信箱） ================= */
+/* ================= 🌐 在线对战（免配置实时通道） ================= */
+// 本站是纯静态部署，没有常驻服务器。在线对战改为浏览器直连公共发布订阅通道：
+// 房间码 → 话题，双方各开一条 SSE 长连接收消息，用 HTTP POST 发消息。
+// 这样不需要注册账号、不需要配置 KV，也不会因为轮询把免费额度用光。
 let online = null;
 
-async function pkApi(op, payload){
-  const r = await fetch('/api/pk', {
-    method:'POST', headers:{'Content-Type':'application/json'},
-    body: JSON.stringify(Object.assign({ op }, payload || {}))
-  });
-  const d = await r.json().catch(()=>({}));
-  if(!r.ok) throw new Error(d.error || ('HTTP ' + r.status));
-  return d;
+const PK_RELAY = 'https://ntfy.sh';
+const PK_TOPIC = 'ketplanet-pk-v2-';
+const PK_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';   // 去掉 0/O/1/I/L 等易混字符
+const PK_MSG_MAX = 2000;                                // 单条消息字符上限，超出自动分片
+
+function pkCode(){
+  let s = '';
+  for(let i = 0; i < 6; i++) s += PK_CHARS[Math.floor(Math.random() * PK_CHARS.length)];
+  return s;
+}
+function pkTopicOf(code){ return PK_TOPIC + String(code || '').toLowerCase(); }
+function pkNonce(){ return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+
+async function pkPost(body){
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 7000);
+  try{
+    const r = await fetch(PK_RELAY + '/' + pkTopicOf(online.code), {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },       // 简单请求，不触发 CORS 预检
+      body,
+      signal: ctrl.signal
+    });
+    return r.ok;
+  }catch(e){ return false; }
+  finally{ clearTimeout(timer); }
+}
+
+// 发一条消息：同一份 body 最多重试一次，接收端按 n 去重
+async function pkSend(msg){
+  if(!online) return false;
+  const body = JSON.stringify(Object.assign({ v: 1, from: online.role, mid: online.mid || '', n: pkNonce() }, msg));
+  let ok = await pkPost(body);
+  if(!ok){ await new Promise(r => setTimeout(r, 600)); ok = await pkPost(body); }
+  return ok;
+}
+
+// 大消息分片（开局消息带 10 道题，可能超过单条上限）
+async function pkSendBig(t, data){
+  const s = JSON.stringify(data);
+  if(s.length <= PK_MSG_MAX) return pkSend({ t, data });
+  const parts = Math.ceil(s.length / PK_MSG_MAX);
+  for(let i = 0; i < parts; i++){
+    const ok = await pkSend({ t, part: i, parts, s: s.slice(i * PK_MSG_MAX, (i + 1) * PK_MSG_MAX) });
+    if(!ok) return false;
+  }
+  return true;
+}
+
+function pkOpenChannel(){
+  pkCloseChannel();
+  let es;
+  try{ es = new EventSource(PK_RELAY + '/' + pkTopicOf(online.code) + '/sse?since=' + Math.floor(Date.now() / 1000)); }
+  catch(e){ return; }
+  online.es = es;
+  es.onopen = () => { online.open = true; clearTimeout(online.openTimer); pkPaintLink(); };
+  es.onerror = () => { online.open = false; pkPaintLink(); };   // EventSource 自动重连
+  // 8 秒还没连上：给出可操作的提示（自动重连仍在后台继续）
+  online.openTimer = setTimeout(() => {
+    if(!online || online.open) return;
+    const el = $("#pkLinkState");
+    if(el){ el.className = 'pk-link off'; el.textContent = '○ 连接失败，正在重试…请检查网络'; }
+  }, 8000);
+  es.onmessage = ev => {
+    let env; try{ env = JSON.parse(ev.data); }catch(e){ return; }
+    if(!env || env.event !== 'message' || !env.message) return;
+    let m; try{ m = JSON.parse(env.message); }catch(e){ return; }
+    pkOnPeerMsg(m);
+  };
+}
+function pkCloseChannel(){
+  if(!online) return;
+  if(online.es){ try{ online.es.close(); }catch(e){} online.es = null; }
+  clearTimeout(online.openTimer);
+  online.open = false;
+}
+function pkPaintLink(){
+  const el = $("#pkLinkState");
+  if(!el || !online) return;
+  el.className = 'pk-link ' + (online.open ? 'on' : 'off');
+  el.textContent = online.open ? '● 实时通道已连接' : '○ 正在连接实时通道…';
+}
+function pkPaintPeer(text){
+  const el = $("#pkRoomTip");
+  if(el) el.textContent = text;
 }
 
 function renderPkOnlineSetup(){
@@ -3863,40 +3936,41 @@ function renderPkOnlineSetup(){
     <div class="pk-online-box">
       <div class="pk-online-col">
         <div class="pk-online-title">我是房主</div>
-        <p class="pk-online-desc">生成房间码，发给同学</p>
+        <p class="pk-online-desc">生成 6 位房间码，发给同学</p>
         <button class="btn btn-primary" onclick="pkCreateRoom()">创建房间</button>
       </div>
       <div class="pk-online-col">
         <div class="pk-online-title">加入房间</div>
-        <input id="pkJoinCode" maxlength="4" inputmode="numeric" placeholder="4 位房间码">
+        <input id="pkJoinCode" maxlength="6" inputmode="text" autocapitalize="characters" autocomplete="off" spellcheck="false" placeholder="6 位房间码" style="text-transform:uppercase">
         <button class="btn btn-ghost" onclick="pkJoinRoom()">加入</button>
       </div>
     </div>
-    <div class="pk-rules">对战为 10 题、每题 10 秒；双方题目相同，各自独立计时，答完自动进入下一题。</div>
+    <div class="pk-rules">对战为 ${PK_CONF.QN} 题、每题 ${PK_CONF.TIME} 秒；双方题目相同，各自独立计时，答完自动进入下一题。<br>房间码实时匹配，免注册、免登录。</div>
     <div style="text-align:center;margin-top:18px"><button class="btn btn-ghost" onclick="renderBattleHome()">← 返回</button></div>`;
 }
 
-async function pkCreateRoom(){
-  try{
-    const d = await pkApi('create');
-    online = { code: d.code, role: 'host', since: 0, oppSeen: 0, oppName: '对手', state: { phase: 'lobby' } };
-    pkOnlineLobby();
-    pkPollStart();
-  }catch(e){
-    toast((e.message || '').indexOf('未启用') >= 0 ? '在线对战尚未启用（需配置云端房间）' : ('创建失败：' + e.message));
-  }
+function pkCreateRoom(){
+  online = { code: pkCode(), role: 'host', mid: '', open: false, peerHere: false, seen: new Set(), state: { phase: 'lobby' } };
+  pkOpenChannel();
+  pkOnlineLobby();
 }
-async function pkJoinRoom(){
-  const code = ($("#pkJoinCode") && $("#pkJoinCode").value.trim()) || '';
-  if(!/^\d{4}$/.test(code)) return toast("请输入 4 位房间码");
-  try{
-    await pkApi('join', { code, role: 'guest' });
-    online = { code, role: 'guest', since: 0, oppSeen: 0, oppName: '房主', state: { phase: 'lobby' } };
-    pkOnlineLobby("已加入房间，等待房主开始…");
-    pkPollStart();
-  }catch(e){
-    toast((e.message || '').indexOf('不存在') >= 0 ? '房间不存在或已过期' : ('加入失败：' + e.message));
-  }
+
+function pkJoinRoom(){
+  const el = $("#pkJoinCode");
+  const code = String((el && el.value) || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+  if(code.length !== 6) return toast('请输入 6 位房间码');
+  online = { code, role: 'guest', mid: '', open: false, peerHere: false, seen: new Set(), state: { phase: 'lobby' } };
+  pkOpenChannel();
+  pkOnlineLobby('正在进入房间…');
+  // 敲门：房主在线会回 hi；3 次没回应说明房间码输错了
+  let tries = 0;
+  online.knockTimer = setInterval(() => {
+    if(!online || online.role !== 'guest') return;
+    if(online.peerHere){ clearInterval(online.knockTimer); return; }
+    if(tries++ < 2) pkSend({ t: 'hello' });
+    else { clearInterval(online.knockTimer); pkPaintPeer('没有收到房主回应，请确认房间码是否输对'); }
+  }, 3200);
+  pkSend({ t: 'hello' });
 }
 function pkOnlineLobby(tip){
   const isHost = online.role === 'host';
@@ -3906,66 +3980,109 @@ function pkOnlineLobby(tip){
       <div class="pk-room-label">房间码</div>
       <div class="pk-room-code">${online.code}</div>
       <div class="pk-room-tip" id="pkRoomTip">${tip || (isHost ? '把房间码发给同学，等他加入…' : '等待房主开始…')}</div>
+      <div id="pkLinkState" class="pk-link off">○ 正在连接实时通道…</div>
       <div id="pkRoomActions" class="pk-actions">
         ${isHost ? `<button class="btn btn-primary" id="pkStartBtn" disabled onclick="pkStartOnline()">等对手加入…</button>` : ''}
         <button class="btn btn-ghost" onclick="pkLeaveOnline()">离开</button>
       </div>
     </div>`;
+  pkPaintLink();
 }
 
-function pkPollStart(){
-  pkPollStop();
-  online.timer = setInterval(pkPollOnce, 1200);
-  pkPollOnce();
-}
-function pkPollStop(){ if(online && online.timer){ clearInterval(online.timer); online.timer = null; } }
-function pkLeaveOnline(){
-  pkPollStop();
+// 结束当前在线房间（不重绘页面，供路由切换等场景调用）
+function pkAbortOnline(){
+  if(!online) return;
+  try{ pkSend({ t: 'bye' }); }catch(e){}
+  clearInterval(online.knockTimer);
+  clearTimeout(online.watch);
+  pkCloseChannel();
   stopOnlineTick();
   online = null;
+}
+
+function pkLeaveOnline(){
+  pkAbortOnline();
   renderBattleHome();
 }
 
-async function pkPollOnce(){
-  if(!online) return;
-  let d;
+// 关页面/切后台时告诉对手一声，别让对方白等
+window.addEventListener('pagehide', () => {
+  if(!online || !online.es) return;
   try{
-    d = await pkApi('poll', { code: online.code, role: online.role, since: online.since });
-  }catch(e){ return; }
-  online.since = d.seq || online.since;
-  const now = d.now || Date.now();
-  const oppSeen = online.role === 'host' ? d.guest : d.host;
-  online.oppSeen = oppSeen;
+    const body = JSON.stringify({ v:1, from: online.role, mid: online.mid || '', n: pkNonce(), t: 'bye' });
+    if(navigator.sendBeacon) navigator.sendBeacon(PK_RELAY + '/' + pkTopicOf(online.code), body);
+  }catch(e){}
+});
 
-  // 房主：对手已加入则启用开始按钮
-  if(online.role === 'host' && online.state.phase === 'lobby'){
-    const btn = $("#pkStartBtn");
-    if(btn){
-      if(oppSeen && now - oppSeen < 15000){
-        btn.disabled = false; btn.textContent = '开始对战';
-        const tip = $("#pkRoomTip"); if(tip) tip.textContent = '对手已加入，可以开始了！';
-      }
-    }
-  }
-  for(const m of (d.msgs || [])) pkHandleMsg(m, now);
-}
-
-function pkHandleMsg(m, now){
+// 收到对手消息（实时通道会把双方消息广播给所有人，自己发的回声在这里过滤掉）
+function pkOnPeerMsg(m){
+  if(!online || !m || m.v !== 1) return;
+  if(m.from === online.role) return;                          // 自己的回声
+  if(m.mid && online.mid && m.mid !== online.mid) return;     // 上一局残留消息
+  if(m.n){ if(online.seen.has(m.n)) return; online.seen.add(m.n); }   // 断线重连会重放，按 n 去重
   const st = online.state;
-  // 自己发出的消息（信箱是广播的）不要当成对手的动作
-  if(m.from === online.role && m.t !== 'start') return;
+
+  if(m.t === 'hello'){                     // 访客敲门
+    if(online.role !== 'host') return;
+    online.peerHere = true;
+    pkSend({ t: 'hi' });
+    pkPaintPeer('对手已加入，可以开始了！');
+    const btn = $("#pkStartBtn");
+    if(btn){ btn.disabled = false; btn.textContent = '开始对战'; }
+    return;
+  }
+  if(m.t === 'hi'){                        // 房主应答
+    if(online.role !== 'guest') return;
+    online.peerHere = true;
+    clearInterval(online.knockTimer);
+    pkPaintPeer('已进入房间，等待房主开始…');
+    return;
+  }
+  if(m.t === 'bye'){
+    online.peerHere = false;
+    if(st.phase === 'playing') pkPeerGone('对手已离开对局');
+    else pkPaintPeer('对手已离开房间');
+    return;
+  }
   if(m.t === 'start'){
-    pkOnlineBegin(m.data);
-  } else if(m.t === 'ans'){
+    if(online.role !== 'guest') return;
+    let data = m.data;
+    if(typeof m.parts === 'number'){       // 分片组装
+      const buf = online.parts || (online.parts = {});
+      buf[m.part] = m.s;
+      if(Object.keys(buf).length < m.parts) return;
+      try{ data = JSON.parse(Array.from({ length: m.parts }, (_, i) => buf[i]).join('')); }catch(e){ return; }
+      online.parts = null;
+    }
+    if(!data || !data.qs || !data.qs.length) return;
+    online.mid = m.mid || online.mid;
+    pkOnlineBegin(data);
+    return;
+  }
+  if(m.t === 'ans'){
+    if(st.phase !== 'playing' || !m.data) return;
+    if(!st.oppSeen) st.oppSeen = {};
+    if(st.oppSeen[m.data.i]) return;       // 同一题重复到达，忽略
+    st.oppSeen[m.data.i] = 1;
     st.oppAns = m.data;
-    st.opp.score = (st.opp.score || 0) + (m.data.score || 0);   // 逐题累加，不能覆盖
+    st.opp.score = (st.opp.score || 0) + (m.data.score || 0);
     st.opp.total = (st.opp.total || 0) + 1;
     if(m.data.ok) st.opp.right = (st.opp.right || 0) + 1;
     st.opp.ms = (st.opp.ms || 0) + (m.data.ms || 0);
+    const el = $("#pkOS1"); if(el) el.textContent = st.opp.score;
     pkOnlineAfterAnswer();
-  } else if(m.t === 'end'){
-    st.oppFinal = m.data && m.data.score;
-    pkOnlineMaybeFinish();
+    return;
+  }
+  if(m.t === 'end'){
+    if(st.phase !== 'done') return;
+    if(m.data){
+      st.opp.score = m.data.score || 0;
+      st.opp.right = m.data.right || 0;
+      st.opp.total = m.data.total || PK_CONF.QN;
+      st.opp.ms = m.data.ms || 0;
+    }
+    st.oppFinal = true;
+    pkOnlineRenderResult();
   }
 }
 
@@ -3976,22 +4093,29 @@ function pkOnlineBegin(data){
     qs: data.qs, idx: 0,
     my: { score:0, right:0, total:0, ms:0 },
     opp: { score:0, right:0, total:0, ms:0 },
-    myAns: null, oppAns: null,
+    myAns: null, oppAns: null, oppSeen: {},
     names: data.names || {}
   };
-  online.oppName = online.role === 'host' ? (st.names.guest || '对手') : (st.names.host || '房主');
-  pkPollStop();
-  online.timer = setInterval(pkPollOnce, 800);   // 对战中加快轮询
+  online.oppName = data.names ? (online.role === 'host' ? (data.names.guest || '对手') : (data.names.host || '房主')) : '对手';
+  clearTimeout(online.watch);
+  online.watch = null;
   pkOnlineRender();
 }
 
 async function pkStartOnline(){
   if(!online || online.role !== 'host') return;
-  const qs = pkQuestions(PK_CONF.QN);
+  if(!online.peerHere) return toast('还没有对手加入');
+  // 只发渲染需要的字段，减小消息体
+  const qs = pkQuestions(PK_CONF.QN).map(q => ({ en2cn: q.en2cn, prompt: q.prompt, promptSub: q.promptSub, options: q.options, answer: q.answer }));
   const names = { host: '房主', guest: '对手' };
-  try{
-    await pkApi('push', { code: online.code, role: 'host', msg: { t:'start', data: { qs, names } } });
-  }catch(e){ return toast('开始失败：' + e.message); }
+  const btn = $("#pkStartBtn");
+  if(btn){ btn.disabled = true; btn.textContent = '正在开局…'; }
+  online.mid = pkNonce();
+  const ok = await pkSendBig('start', { qs, names });
+  if(!ok){
+    if(btn){ btn.disabled = false; btn.textContent = '开始对战'; }
+    return toast('开局消息发送失败，请检查网络后重试');
+  }
   pkOnlineBegin({ qs, names });
 }
 
@@ -4067,9 +4191,7 @@ async function pkOnlineAnswer(idx, el){
     ? `<span class="ok">✅ 正确 +${sc}　等待对手…</span>`
     : `<span class="no">❌ ${idx<0?'超时':'答错'}，答案：${escapeHtml(String(q.answer).slice(0,26))}　等待对手…</span>`;
 
-  try{
-    await pkApi('push', { code: online.code, role: online.role, msg: { t:'ans', data: st.myAns } });
-  }catch(e){}
+  pkSend({ t:'ans', data: st.myAns });   // 不阻塞本地翻页，发送失败会由对手侧超时兜底
   pkOnlineAfterAnswer();
 }
 
@@ -4077,6 +4199,7 @@ function pkOnlineAfterAnswer(){
   const st = online.state;
   if(st.phase !== 'playing') return;
   if(st.myAns && st.oppAns && st.oppAns.i === st.idx && !st.moving){
+    clearTimeout(online.watch); online.watch = null;
     st.moving = true;
     setTimeout(()=>{
       st.moving = false;
@@ -4085,29 +4208,44 @@ function pkOnlineAfterAnswer(){
       if(st.idx >= st.qs.length){ pkOnlineFinish(); }
       else pkOnlineRender();
     }, 700);
+  } else if(st.myAns && !st.oppAns && !online.watch){
+    // 我已作答、对手迟迟没回音：多半掉线，避免一直干等
+    online.watch = setTimeout(()=>{
+      online.watch = null;
+      if(online && online.state.phase === 'playing' && online.state.myAns && !online.state.oppAns)
+        pkPeerGone('对手没有响应，按当前比分结算');
+    }, 16000);
+  }
+}
+
+function pkPeerGone(msg){
+  if(!online) return;
+  const st = online.state;
+  pkPaintPeer(msg || '对手已离开对局');
+  if(st.phase === 'playing'){
+    st.forfeit = true;
+    toast(msg || '对手已离开对局');
+    pkOnlineFinish();
   }
 }
 
 function pkOnlineFinish(){
   const st = online.state;
+  if(st.phase === 'done') return;
   st.phase = 'done';
-  if(online.tick) clearInterval(online.tick);
-  pkApi('push', { code: online.code, role: online.role, msg: { t:'end', data: { score: st.my.score } } }).catch(()=>{});
-  setTimeout(pkOnlineRenderResult, 1200);
-}
-function pkOnlineMaybeFinish(){
-  const st = online.state;
-  if(st.phase === 'done') pkOnlineRenderResult();
+  stopOnlineTick();
+  clearTimeout(online.watch); online.watch = null;
+  pkSend({ t:'end', data: { score: st.my.score, right: st.my.right, total: st.my.total, ms: st.my.ms } });
+  setTimeout(pkOnlineRenderResult, 1500);
 }
 function pkOnlineRenderResult(){
   const st = online.state;
   if(!st || st.shown) return;
   st.shown = true;
-  pkPollStop();
-  if(online.tick) clearInterval(online.tick);
+  stopOnlineTick();
   const a = st.my, b = st.opp;
   const win = a.score > b.score ? 0 : (a.score < b.score ? 1 : -1);
-  const acc = p => p.total ? Math.round((p.right||0) / p.total * 100) : 0;
+  const acc = p => p.total ? Math.round((p.right || 0) / p.total * 100) : 0;
   $("#battlePage").innerHTML = `
     <div class="pk-result">
       <div class="pk-result-emoji">${win===0?'🏆':(win===1?'💪':'🤝')}</div>
@@ -4118,6 +4256,7 @@ function pkOnlineRenderResult(){
         <div class="pk-stat"><span>正确率</span><b>${acc(a)}%</b><em>${acc(b)}%</em></div>
         <div class="pk-stat"><span>总得分</span><b>${a.score}</b><em>${b.score}</em></div>
       </div>
+      ${st.forfeit ? '<div class="pk-room-tip" style="text-align:center">对手已离线，本局按当前比分结算</div>' : ''}
       <div class="pk-actions">
         <button class="btn btn-primary" onclick="pkLeaveOnline()">返回对战大厅</button>
       </div>

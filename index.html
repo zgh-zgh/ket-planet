@@ -318,6 +318,7 @@
   .answer-slots{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:20px;min-height:48px}
   .slot{width:48px;height:48px;border-radius:12px;border:2px dashed #c4c9d8;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;cursor:pointer;background:#fff}
   .slot.filled{border-style:solid;border-color:var(--primary);background:#f7f9ff}
+  .slot.fixed{border-style:solid;border-color:#e3e6f0;background:#f5f6fa;color:#7c8398;cursor:default;font-size:18px;font-weight:600}
   .slot.right{border-color:var(--green);background:#e9fbf4;color:var(--green)}
   .slot.wrong{border-color:var(--red);background:#ffeef0;color:var(--red)}
 
@@ -849,7 +850,18 @@ function taskExample(w, task){
 }
 
 // 构建一个单词对象（动态补齐字段）
+// 自定义词没写释义时，按词形从内置词库补齐（7549 词），避免整页释义空白
+function cnFallback(word){
+  if(!buildWord._cnIndex){
+    const m = Object.create(null);
+    for(const lv of Object.keys(WORD_DB)) for(const [w,c] of WORD_DB[lv]) if(!m[w.toLowerCase()]) m[w.toLowerCase()] = c;
+    buildWord._cnIndex = m;
+  }
+  return buildWord._cnIndex[String(word||'').toLowerCase()] || '';
+}
 function buildWord(w, cn, lv, deckId){
+  if(!cn || !String(cn).trim()) cn = cnFallback(w);
+  cn = String(cn == null ? '' : cn).trim() || '（暂无释义）';
   let cachedImg = "";
   try{ cachedImg = localStorage.getItem('wordimg_' + w) || ""; }catch(e){}
   const affix = matchAffixes(w);
@@ -886,6 +898,22 @@ function buildWord(w, cn, lv, deckId){
 // 音节拆分：VCV/VCCV 规则粗拆 + cmudict 权威音标校准音节数 + 标注重音
 function autoSyllables(w){
   if(!w) return [{text:''}];
+  // 短语 / 连字符词（look after、ice-cream）：按分隔符分段，段内不再强拆，
+  // 否则会出现 " af"、"ce-" 这种怪音节，朗读和点击都不自然
+  if(/[\s\-]/.test(w)){
+    const segs = [];
+    let buf = '';
+    for(const ch of w){
+      if(ch === ' ' || ch === '-'){
+        if(buf){ segs.push(buf); buf = ''; }
+        buf = ch;                       // 分隔符并入后一段，保证拼写与显示一致
+      } else {
+        buf += ch;
+      }
+    }
+    if(buf) segs.push(buf);
+    if(segs.length > 1) return segs.map(text => ({ text, stress:false }));
+  }
   // 1. VCV/VCCV 粗拆（元音组 + 辅音归属规则）
   const vowels = "aeiouyAEIOUY";
   const n = w.length;
@@ -963,18 +991,24 @@ let lastResult = null;               // 本批结算数据（正确率 / 额外�
 // 获取当前批次的学习词（不是全部词库）
 const words = () => {
   if(currentBatch.length > 0) return currentBatch;
-  if(activeCustomWords) return activeCustomWords.slice(0, BATCH_SIZE);
+  // 注意：空数组也是真值，必须判长度，否则会返回空批次导致后续崩溃
+  if(activeCustomWords && activeCustomWords.length) return activeCustomWords.slice(0, BATCH_SIZE);
   return GROUPS[currentGroup].words.slice(0, BATCH_SIZE);
 };
 // 重新抽一批词
-function newBatch(){
-  const pool = activeCustomWords || GROUPS[currentGroup].words;
-  const n = Math.min(BATCH_SIZE, pool.length);
-  currentBatch = shuffle(pool).slice(0, n);
-  learnIndex = 0;
+// 批次级状态：换批次/跳到某个词/错题专项复习时都要一起重置，
+// 否则会出现"上一批已领通关奖励，新一批不再发"或正确率串批的问题
+function resetBatchState(){
   resultRewarded = false;
   batchStat = { ans:0, right:0 };
   lastResult = null;
+}
+function newBatch(){
+  const pool = (activeCustomWords && activeCustomWords.length) ? activeCustomWords : GROUPS[currentGroup].words;
+  const n = Math.min(BATCH_SIZE, pool.length);
+  currentBatch = shuffle(pool).slice(0, n);
+  learnIndex = 0;
+  resetBatchState();
 }
 // 典雅书院风命名（标题 / 菜单名 / 图标 / 副标题）
 const STEPS = [
@@ -1019,6 +1053,11 @@ function jumpToWord(i){
   // 切换到对应级别，并定位到该词
   const lvIdx = LEVELS.indexOf(hit.lv);
   if(lvIdx < 0) return;
+  // 搜索的是内置词库：退出自定义词库，避免"显示搜索词、批次却是词库"
+  if(getActiveDeckId() !== null || activeCustomWords){
+    setActiveDeckId(null);
+    activeCustomWords = null;
+  }
   currentGroup = lvIdx;
   // 从该级别完整词库中定位目标词（不是当前15词批次），并重建批次：目标词放首位
   const pool = GROUPS[lvIdx].words;
@@ -1028,9 +1067,13 @@ function jumpToWord(i){
   currentBatch = [target].concat(shuffle(rest).slice(0, BATCH_SIZE-1));
   learnIndex = 0;
   currentStep = 0;
+  appMode = 'learn';
+  lastStudyStep = 0;
+  resetBatchState();
   $("#searchInput").value = "";
   $("#searchResult").classList.remove("show");
   renderAll();
+  pushRoute();
   toast(`已定位到 ${hit.w}`);
 }
 
@@ -1176,6 +1219,30 @@ function speakSentence(sentence){
   stopAudio();
   const plain = sentence.replace(/<[^>]+>/g,"");
   playTTS(plain, null, speedCfg().sentRate);
+}
+// 长文本（篇章短文）朗读：按句子切成 ≤450 字符的片段顺序播放，
+// 否则整篇 200–350 词会超过 TTS 接口 600 字上限，直接没有声音
+function speakLongText(text){
+  stopAudio();
+  const plain = String(text||'').replace(/<[^>]+>/g,'').replace(/\s+/g,' ').trim();
+  if(!plain) return;
+  const parts = [];
+  let buf = '';
+  const sentences = plain.match(/[^.!?]+[.!?]*\s*/g) || [plain];
+  for(const seg of sentences){
+    if(buf && (buf + seg).length > 450){ parts.push(buf.trim()); buf = ''; }
+    buf += seg;
+    while(buf.length > 450){ parts.push(buf.slice(0, 450).trim()); buf = buf.slice(450); }
+  }
+  if(buf.trim()) parts.push(buf.trim());
+  const token = playToken;          // 切页/重新播放时代次变化，链路自动中断
+  const rate = speedCfg().sentRate;
+  let i = 0;
+  const next = () => {
+    if(token !== playToken || i >= parts.length) return;
+    playTTS(parts[i++], next, rate);
+  };
+  next();
 }
 function speakWords(sentence){
   const wordsArr = sentence.replace(/[^\w\s']/g," ").split(/\s+/).filter(w=>w.length>0);
@@ -1435,10 +1502,14 @@ function closeDrawer(){
   if(sb) sb.classList.remove("open");
   if(ov) ov.classList.remove("show");
 }
+function stopOnlineTick(){
+  try{ if(online && online.tick){ clearInterval(online.tick); online.tick = null; } }catch(e){}
+}
 function exitBattleIfNeeded(nextMode){
   if(appMode !== 'battle' || nextMode === 'battle') return;
   try{ stopPkTimer(); }catch(e){}
   try{ if(typeof pkPollStop === 'function') pkPollStop(); }catch(e){}
+  stopOnlineTick();
   try{ pk = null; }catch(e){}
   try{ online = null; }catch(e){}
 }
@@ -1472,8 +1543,16 @@ function backToStudy(){
   pushRoute();
 }
 function switchGroup(i){
+  // 选了内置级别就意味着要离开自定义词库，否则"点了分组没反应"
+  if(getActiveDeckId() !== null || activeCustomWords){
+    setActiveDeckId(null);
+    activeCustomWords = null;
+    toast("已切回内置词库");
+  }
   currentGroup = i; currentStep=0; learnIndex=0; stopAudio();
-  currentBatch = [];  // 清空批次，触发重新抽取
+  appMode = 'learn';          // 选了级别就回学习页，否则在词库/成就页点级别毫无反应
+  lastStudyStep = 0;
+  currentBatch = [];          // 清空批次，触发重新抽取
   newBatch();
   closeDrawer();
   renderAll();
@@ -1594,6 +1673,14 @@ function addWrong(word, cn){
   enrollStudy(word, '错题');   // 错题词同样纳入艾宾浩斯复习队列
   updateBadges();
 }
+// 以下入口从 data-* 读取参数，避免单词/释义里的引号把 onclick 打断
+function playDataSay(el){ if(el && el.dataset && el.dataset.say) playWordAudio(el.dataset.say); }
+function playCurrentWord(){ const w = words()[learnIndex]; if(w) playWordAudio(w.word); }
+function speakExampleAt(i){ const w = words()[learnIndex]; const ex = w && w.examples && w.examples[i]; if(ex) speakSentence(String(ex.en).replace(/<[^>]+>/g,'')); }
+function markWrongFromBtn(el){ if(el && el.dataset) markWrong(el.dataset.word||'', el.dataset.cn||''); }
+function removeWrongFromBtn(el){ if(el && el.dataset && el.dataset.word) removeWrong(el.dataset.word); }
+function playSpellWord(){ const w = words()[spellState.idx]; if(w) playWordAudio(w.word); }
+function playReviewWord(){ const it = reviewQueue[reviewIdx]; if(it) playWordAudio(it.word); }
 function markWrong(word, cn){
   if(loadWrongbook()[word]){ toast("该词已在错题本中"); return; }
   addWrong(word, cn);
@@ -1956,11 +2043,11 @@ function renderReviewCard(){
   $("#reviewPage").classList.remove("hidden");
   $("#reviewPage").innerHTML = `<h2 class="page-title">📅 今日复习</h2><p class="page-sub">第 ${reviewIdx+1} / ${reviewQueue.length} 个 · 先回想，再核对</p>
     <div class="review-card">
-      <div class="rc-word">${it.word}</div>
+      <div class="rc-word">${escapeHtml(it.word)}</div>
       <div class="rc-hint">回想这个单词的意思，然后点「显示答案」</div>
       <div class="rc-answer hidden" id="rcAnswer">
-        <div class="rc-cn">${it.cn||'（暂无释义）'}</div>
-        <button class="btn btn-ghost" onclick="playWordAudio('${it.word}')">🔊 听发音</button>
+        <div class="rc-cn">${escapeHtml(it.cn||'（暂无释义）')}</div>
+        <button class="btn btn-ghost" onclick="playReviewWord()">🔊 听发音</button>
       </div>
     </div>
     <div class="review-actions">
@@ -1988,7 +2075,7 @@ function renderWrongbook(){
     return;
   }
   $("#wrongbookPage").innerHTML = `<h2 class="page-title">📕 错题本</h2><p class="page-sub">共 ${wrongs.length} 个易错词</p>
-    <div class="wrong-list">${wrongs.map(([w,info])=>`<div class="wrong-item"><div class="wi-word">${w}<span class="wi-cn">${info.cn||''}</span></div><div class="wi-count">错 ${info.count||1} 次</div><div class="wi-actions"><button class="btn btn-mini btn-ghost" onclick="playWordAudio('${w}')">🔊</button><button class="btn btn-mini btn-danger" onclick="removeWrong('${w}')">移除</button></div></div>`).join("")}</div>
+    <div class="wrong-list">${wrongs.map(([w,info])=>`<div class="wrong-item"><div class="wi-word">${escapeHtml(w)}<span class="wi-cn">${escapeHtml(info.cn||'')}</span></div><div class="wi-count">错 ${info.count||1} 次</div><div class="wi-actions"><button class="btn btn-mini btn-ghost" data-say="${escapeHtml(w)}" onclick="playDataSay(this)">🔊</button><button class="btn btn-mini btn-danger" data-word="${escapeHtml(w)}" onclick="removeWrongFromBtn(this)">移除</button></div></div>`).join("")}</div>
     <div style="text-align:center;margin-top:20px">
       <button class="btn btn-primary" onclick="startWrongReview()">🔁 开始专项复习 →</button>
       <button class="btn btn-ghost" onclick="wrongbookToDeck()">📚 一键存为词库</button>
@@ -2008,11 +2095,17 @@ function wrongbookToDeck(){
 function startWrongReview(){
   const wrongs = getWrongWords();
   if(wrongs.length===0){ toast("错题本是空的"); return; }
+  // 错词复习是独立批次：退出自定义词库，避免批次与词库状态打架
+  setActiveDeckId(null);
+  activeCustomWords = null;
   currentBatch = wrongs.map(([w,info])=>buildWord(w, info.cn||'', '错题本'));
   learnIndex = 0;
   appMode = 'learn';
   currentStep = 0;
+  lastStudyStep = 0;
+  resetBatchState();
   renderAll();
+  pushRoute();
   toast(`已载入 ${currentBatch.length} 个错词，开始专项复习`);
 }
 
@@ -2119,20 +2212,34 @@ function deleteDeck(id){
   toast("已删除词库");
 }
 function activateDeck(id){
-  setActiveDeckId(id);
+  let activated = false;
   if(id!==null){
     const deck = loadDecks().find(d=>d.id===id);
-    activeCustomWords = deck ? (deck.words||[]).map(([w,cn])=>buildWord(w,cn,'自定义',id)) : null;
+    const list = deck ? (deck.words||[]) : [];
+    if(list.length){
+      activeCustomWords = list.map(([w,cn])=>buildWord(w,cn,'自定义',id));
+      setActiveDeckId(id);
+      activated = true;
+    } else {
+      // 空词库/词库已被删除：不要停在空批次上，明确回退
+      activeCustomWords = null;
+      setActiveDeckId(null);
+      toast("这个词库是空的，已切回内置词库");
+    }
   } else {
     activeCustomWords = null;
+    setActiveDeckId(null);
   }
   currentBatch = [];
   currentStep = 0; learnIndex = 0;
   appMode = 'learn';
   newBatch();
   renderDecks();
-  toast(id!==null ? "已切换到自定义词库" : "已切换回内置词库");
+  if(activated) toast("已切换到自定义词库");
+  else if(id === null) toast("已切换回内置词库");
+  // 空词库的情况上面已经给出专门提示，这里不再覆盖
   renderAll();
+  pushRoute();
 }
 
 /* ================= 词库批量导入：Excel / Word / CSV / TXT ================= */
@@ -2429,8 +2536,15 @@ function importBackup(input){
       if(d.points) saveStore(LS_POINTS, d.points);
       if(d.stats) saveStore(LS_STATS, d.stats);
       saveStore(LS.activeDeck, d.activeDeck==null ? null : d.activeDeck);
-      activeCustomWords = null;
+      // 恢复后要按 activeDeck 重新装配单词，否则会出现"显示已激活、实际用内置词"
+      const aid = getActiveDeckId();
+      const dk = aid ? loadDecks().find(x=>x.id===aid) : null;
+      activeCustomWords = (dk && (dk.words||[]).length)
+        ? dk.words.map(([w,cn])=>buildWord(w,cn,'自定义',dk.id))
+        : null;
+      if(!activeCustomWords && aid) setActiveDeckId(null);
       currentBatch = [];
+      newBatch();
       updateBadges(); updateRankUI(); updateDeckBadges();
       renderDecks();
       toast("✅ 备份已恢复");
@@ -2449,15 +2563,20 @@ function learnSignature(){
 }
 function renderLearn(){
   const w = words()[learnIndex];
-  if(!w){ newBatch(); return renderLearn(); }
+  if(!w){
+    // 极端情况（空词库/数据损坏）不能让页面空白，更不能递归调用自己
+    learnSig = '';
+    $("#learnPage").classList.remove("hidden");
+    $("#learnPage").innerHTML = `<div class="empty-state"><div class="empty-emoji">📭</div><div class="empty-title">当前没有可学习的单词</div><div class="empty-desc">请选择一个有内容的词库，或先导入单词</div><div style="margin-top:16px"><button class="btn btn-primary" onclick="openMode('decks')">去我的词库</button></div></div>`;
+    return;
+  }
   $("#learnPage").classList.remove("hidden");
   // 构建带音节高亮的单词显示
   const wordSpans = w.syllables.map(s=>`<span class="syl${s.stress?' stress':''}">${s.text}</span>`).join("");
   // 例句渲染（高亮目标词）
-  const exHtml = w.examples.map(e=>{
+  const exHtml = w.examples.map((e,i)=>{
     const enHtml = e.en.replace(/<B>(.*?)<\/B>/g, (m,p1)=>`<b>${p1}</b>`);
-    const plainEn = e.en.replace(/<[^>]+>/g,"");
-    return `<div class="example"><div class="en"><button class="ex-speak" onclick="speakSentence(\`${plainEn.replace(/'/g,"\\'")}\`)" title="听例句">🔊</button>${enHtml}</div><div class="cn">${e.cn}</div></div>`;
+    return `<div class="example"><div class="en"><button class="ex-speak" onclick="speakExampleAt(${i})" title="听例句">🔊</button>${enHtml}</div><div class="cn">${escapeHtml(e.cn)}</div></div>`;
   }).join("");
   // 权威数据区块：WordNet 英文释义 + 同义词（来源标注）
   const defHtml = (w.def || w.synonyms.length) ? `
@@ -2490,9 +2609,9 @@ function renderLearn(){
         <div class="word-phonetic" id="phoneticBox">${phHtml}</div>
         <div class="word-cn">${w.cn}</div>
         <div class="speak-row">
-          <button class="btn-speak" onclick="playWordAudio('${w.word}')">🔊 整词发音</button>
+          <button class="btn-speak" onclick="playCurrentWord()">🔊 整词发音</button>
           <button class="btn-speak" onclick="playSyllables(words()[${learnIndex}])">🔊 音节拆分朗读</button>
-          <button class="btn-speak" onclick="markWrong('${w.word}','${w.cn}')">📌 标记易错</button>
+          <button class="btn-speak" data-word="${escapeHtml(w.word)}" data-cn="${escapeHtml(w.cn)}" onclick="markWrongFromBtn(this)">📌 标记易错</button>
           ${speedSwitchHtml()}
         </div>
       </div>
@@ -2593,6 +2712,9 @@ async function loadImage(w){
   }
 }
 async function genImage(w, imgEl){
+  // 快速翻词时旧的生图请求没有意义，先确认这个词还在当前页
+  const cur = words()[learnIndex];
+  if(!cur || cur.word !== w.word) return;
   try{
     // 取该词最长的一条例句作为生图语境（让 AI 按例句场景画，更贴词义）
     let sentence = '';
@@ -2672,7 +2794,7 @@ function renderMatch(){
       <span>本关得分 <b id="bombScore">0</b></span>
     </div>
     <div class="bomb-grid">
-      ${matchState.cells.map((c,i)=>`<div class="bomb-cell ${c.type}" id="bomb-${i}" onclick="bombClick(${i})">${c.text}</div>`).join("")}
+      ${matchState.cells.map((c,i)=>`<div class="bomb-cell ${c.type}" id="bomb-${i}" onclick="bombClick(${i})">${escapeHtml(c.text)}</div>`).join("")}
     </div>
     <div style="text-align:center;margin-top:20px"><button class="btn btn-skip" onclick="goStep(2)">跳过本题型 →</button></div>
   `;
@@ -2723,12 +2845,29 @@ function renderChoice(){
   choiceState = { idx:0 };
   renderChoiceQ();
 }
+// 生成 4 个释义选项：同批 → 本级 → 全词库逐级兜底，保证小词库也有完整选项
+function choiceOptions(w, n){
+  const ans = String(w.cn||'').trim() || '（暂无释义）';
+  const used = new Set([ans]);
+  const out = [ans];
+  const push = c => {
+    const t = String(c||'').trim();
+    if(!t || used.has(t) || out.length >= n) return;
+    used.add(t); out.push(t);
+  };
+  shuffle(words()).forEach(x => push(x.cn));
+  if(out.length < n) shuffle(GROUPS[currentGroup].words).forEach(x => push(x.cn));
+  if(out.length < n){
+    const pool = [];
+    for(const lv of Object.keys(WORD_DB)) for(const item of WORD_DB[lv]) pool.push(item[1]);
+    shuffle(pool).forEach(push);
+  }
+  return shuffle(out.slice(0, n));
+}
 function renderChoiceQ(){
   const w = words()[choiceState.idx];
-  // 生成选项：正确 + 3个干扰（从其他词的中文释义取）
-  const others = words().filter(x=>x.word!==w.word).map(x=>x.cn);
-  const opts = shuffle([w.cn, ...shuffle(others).slice(0,3)]);
-  choiceState.answer = w.cn;
+  const opts = choiceOptions(w, 4);
+  choiceState.answer = String(w.cn||'').trim() || '（暂无释义）';
   // 例句：取本题型专属句（不同题型不同语境），目标词加粗
   const example = taskExample(w, 'meaning');
   const enHtml = example.en.replace(/<B>(.*?)<\/B>/g, (m,p1)=>`<b>${p1}</b>`);
@@ -2741,7 +2880,7 @@ function renderChoiceQ(){
       <div class="q-sentence">${enHtml}</div>
       ${example.src ? `<div class="q-src">例句来源：${example.src}</div>` : ''}
     </div>
-    <div class="options">${opts.map((o,i)=>`<div class="option" onclick="answerChoice(${i},this)">${o}</div>`).join("")}</div>
+    <div class="options">${opts.map((o,i)=>`<div class="option" onclick="answerChoice(${i},this)">${escapeHtml(o)}</div>`).join("")}</div>
     <div style="text-align:center;margin-top:20px"><button class="btn btn-skip" onclick="goStep(3)">跳过本题型 →</button></div>
   `;
 }
@@ -2831,7 +2970,7 @@ function renderFillQ(){
       <div class="q-index">第 ${fillState.idx+1} / ${words().length} 题 · 中文：${w.cn}</div>
       <div class="q-sentence">${sentenceHtml}</div>
     </div>
-    <div class="options">${opts.map((o,i)=>`<div class="option" onclick="answerFill(${i},this)">${o}</div>`).join("")}</div>
+    <div class="options">${opts.map((o,i)=>`<div class="option" onclick="answerFill(${i},this)">${escapeHtml(o)}</div>`).join("")}</div>
     <div style="text-align:center;margin-top:20px"><button class="btn btn-skip" onclick="goStep(4)">跳过本题型 →</button></div>
   `;
 }
@@ -2853,17 +2992,26 @@ function renderSpell(){
 }
 function renderSpellWord(){
   const w = words()[spellState.idx];
-  spellState.slots = [];       // 已填字母序列
-  spellState.letterIndex = []; // 每个已填字母对应的原始letter索引
-  spellState.letters = shuffle(w.word.split(""));
+  if(!w){ goStep(5); return; }
+  const chars = w.word.split("");
+  const isLetter = ch => /[A-Za-z]/.test(ch);
+  // 空格 / 连字符 / 撇号固定给出，不再当作可拖动字母，短语也能正常拼
+  spellState.chars = chars;
+  spellState.fixed = chars.map(ch => isLetter(ch) ? null : ch);
+  spellState.slots = chars.map(ch => isLetter(ch) ? "" : ch);
+  spellState.letterIndex = chars.map(() => null);
+  spellState.letters = shuffle(chars.filter(isLetter));
+  const letterN = chars.filter(isLetter).length;
   $("#spellPage").classList.remove("hidden");
   $("#spellPage").innerHTML = `
     <h2 class="page-title">🔤 拼写重构</h2>
     <p class="page-sub">乱序字母归位，重现原词（点击已填字母可修改）</p>
     <div style="text-align:center">
-      <div class="spell-cn">释义：${w.cn} &nbsp; <span style="color:var(--muted)">(${w.word.length} 个字母)</span></div>
-      <button class="btn btn-ghost" style="padding:8px 20px;font-size:14px;margin-bottom:14px" onclick="playWordAudio('${w.word}')">🔊 听发音</button>
-      <div class="answer-slots">${w.word.split("").map((_,i)=>`<div class="slot" id="slot-${i}" onclick="removeLetter(${i})"></div>`).join("")}</div>
+      <div class="spell-cn">释义：${escapeHtml(w.cn||'（暂无释义）')} &nbsp; <span style="color:var(--muted)">(${letterN} 个字母${chars.length>letterN?'，空格/符号已给出':''})</span></div>
+      <button class="btn btn-ghost" style="padding:8px 20px;font-size:14px;margin-bottom:14px" onclick="playSpellWord()">🔊 听发音</button>
+      <div class="answer-slots">${chars.map((ch,i)=> spellState.fixed[i] !== null
+        ? `<div class="slot fixed" id="slot-${i}" title="空格/符号（已给出）">${spellState.fixed[i] === ' ' ? '␣' : escapeHtml(spellState.fixed[i])}</div>`
+        : `<div class="slot" id="slot-${i}" onclick="removeLetter(${i})"></div>`).join("")}</div>
       <div class="letters">${spellState.letters.map((ch,i)=>`<div class="letter-tile" id="lt-${i}" onclick="addLetter(${i})">${ch}</div>`).join("")}</div>
       <button class="btn btn-primary" onclick="checkSpell()">提交答案</button>
       <button class="btn btn-ghost" onclick="clearSpell()">清空重来</button>
@@ -2873,50 +3021,54 @@ function renderSpellWord(){
 }
 function addLetter(i){
   const w = words()[spellState.idx];
-  if(spellState.slots.length >= w.word.length) return;
-  // 防止同一字母被重复选用
-  if(spellState.letterIndex.includes(i)) return;
-  const ch = spellState.letters[i];
-  spellState.slots.push(ch);
-  spellState.letterIndex.push(i);
-  $("#lt-"+i).classList.add("used");
+  if(!w || !spellState.slots) return;
+  if(spellState.letterIndex.includes(i)) return;      // 同一字母块不能重复使用
+  const slot = spellState.slots.findIndex((ch, idx) => spellState.fixed[idx] === null && !ch);
+  if(slot < 0) return;
+  spellState.slots[slot] = spellState.letters[i];
+  spellState.letterIndex[slot] = i;
+  const tile = $("#lt-"+i); if(tile) tile.classList.add("used");
   renderSlots();
 }
 function clearSpell(){
-  // 一键清空：恢复所有已用字母，重新拼写
+  if(!spellState.slots || !spellState.fixed) return;
   spellState.letterIndex.forEach(li=>{
-    const tile = $("#lt-"+li);
-    if(tile) tile.classList.remove("used");
+    if(li === null || li === undefined) return;
+    const tile = $("#lt-"+li); if(tile) tile.classList.remove("used");
   });
-  spellState.slots = [];
-  spellState.letterIndex = [];
+  spellState.slots = spellState.slots.map((ch,i)=> spellState.fixed[i] !== null ? ch : "");
+  spellState.letterIndex = spellState.letterIndex.map(()=>null);
   renderSlots();
 }
 function removeLetter(slotIdx){
-  if(slotIdx >= spellState.slots.length) return;
-  // 找到该槽位对应的字母索引并恢复
+  if(!spellState.slots || !spellState.fixed) return;
+  if(spellState.fixed[slotIdx] !== null) return;      // 固定符号不可删除
   const li = spellState.letterIndex[slotIdx];
-  spellState.slots.splice(slotIdx,1);
-  spellState.letterIndex.splice(slotIdx,1);
-  const tile = $("#lt-"+li);
-  if(tile) tile.classList.remove("used");
+  if(li === null || li === undefined) return;
+  spellState.slots[slotIdx] = "";
+  spellState.letterIndex[slotIdx] = null;
+  const tile = $("#lt-"+li); if(tile) tile.classList.remove("used");
   renderSlots();
 }
 function renderSlots(){
   const w = words()[spellState.idx];
-  for(let i=0;i<w.word.length;i++){
+  if(!w || !spellState.slots || !spellState.fixed) return;
+  for(let i=0;i<spellState.slots.length;i++){
     const s = $("#slot-"+i);
     if(!s) continue;
+    const fixed = spellState.fixed[i] !== null;
     const ch = spellState.slots[i] || "";
-    s.textContent = ch;
+    if(!fixed) s.textContent = ch;
     s.classList.toggle("filled", !!ch);
     s.classList.remove("right","wrong");
   }
 }
 function checkSpell(){
   const w = words()[spellState.idx];
+  if(!w || !spellState.slots) return;
+  const missing = spellState.slots.some((ch,i)=> spellState.fixed[i] === null && !ch);
+  if(missing){ toast("还没拼完哦"); return; }
   const ans = spellState.slots.join("");
-  if(ans.length < w.word.length){ toast("还没拼完哦"); return; }
   const slots = document.querySelectorAll("#spellPage .slot");
   if(ans === w.word){
     slots.forEach(s=>s.classList.add("right"));
@@ -2957,7 +3109,7 @@ function renderSentenceQ(){
       <div class="q-sentence" style="color:var(--muted)">参考中文：${example.cn}</div>
     </div>
     <div class="sentence-build" id="buildArea"></div>
-    <div class="sentence-frag" id="fragArea">${sentenceState.frags.map((f,i)=>`<span class="frag" id="fr-${i}" onclick="pickFrag(${i})">${f}</span>`).join("")}</div>
+    <div class="sentence-frag" id="fragArea">${sentenceState.frags.map((f,i)=>`<span class="frag" id="fr-${i}" onclick="pickFrag(${i})">${escapeHtml(f)}</span>`).join("")}</div>
     <div style="text-align:center;margin-top:16px"><button class="btn btn-primary" onclick="checkSentence()">提交答案</button></div>
     <div style="text-align:center;margin-top:14px"><button class="btn btn-skip" onclick="goStep(6)">跳过本题型 →（基础薄弱可跳过）</button></div>
   `;
@@ -3033,7 +3185,7 @@ function checkTrans(){
   // 显示参考答案
   toast(msg);
   const area = document.querySelector("#transPage .trans-area");
-  area.innerHTML = `<div style="color:var(--green);font-weight:600;margin-bottom:6px">参考答案：</div><div>${transState.answer}</div><div style="margin-top:14px"><button class="btn btn-ghost" onclick="nextTrans()">下一题 →</button></div>`;
+  area.innerHTML = `<div style="color:var(--green);font-weight:600;margin-bottom:6px">参考答案：</div><div>${escapeHtml(transState.answer)}</div><div style="margin-top:14px"><button class="btn btn-ghost" onclick="nextTrans()">下一题 →</button></div>`;
 }
 function nextTrans(){
   if(transState.idx<words().length-1){ transState.idx++; renderTransQ(); } else { goStep(7); }
@@ -3086,6 +3238,7 @@ function renderPassage(){
 }
 async function requestPassage(){
   const list = words().map(x=>({ w: x.word, cn: x.cn }));
+  const reqKey = passageKey();          // 记录发起时的批次，避免把 A 批的短文存到 B 批
   const ctrl = new AbortController();
   const timer = setTimeout(()=>ctrl.abort(), 32000);
   try{
@@ -3097,10 +3250,10 @@ async function requestPassage(){
     });
     const data = await resp.json().catch(()=>({}));
     if(!resp.ok || !data.text) throw new Error(data.error || ('HTTP ' + resp.status));
-    passageState = Object.assign({ loading:false, error:'' }, data);
-    const key = passageKey();
-    saveStore(key, Object.assign({ at: Date.now() }, data));
+    saveStore(reqKey, Object.assign({ at: Date.now() }, data));
     prunePassageCache();
+    if(reqKey !== passageKey()) return;   // 已切换到别的批次，不要覆盖当前页面
+    passageState = Object.assign({ loading:false, error:'' }, data);
     paintPassage();
   }catch(e){
     const msg = (e && e.name === 'AbortError') ? '生成超时，请重试' : ((e && e.message) ? e.message : '生成失败');
@@ -3247,9 +3400,9 @@ function regeneratePassage(){
 }
 function speakPassage(){
   const st = passageState;
-  if(st && st.text){ speakSentence(st.text); return; }
+  if(st && st.text){ speakLongText(st.text); return; }
   const plain = words().map(x=>taskExample(x, 'passage').en.replace(/<[^>]+>/g,"")).join(". ");
-  speakSentence(plain);
+  speakLongText(plain);
 }
 
 /* ================= 结果页 ================= */
@@ -3272,11 +3425,14 @@ function renderResult(){
   $("#resultPage").classList.remove("hidden");
   const p = loadPoints();
   const r = getRank(p.total);
+  const curDeckId = getActiveDeckId();
+  const curDeck = curDeckId ? loadDecks().find(d=>d.id===curDeckId) : null;
+  const batchLabel = curDeck ? curDeck.name : GROUPS[currentGroup].name;
   $("#resultPage").innerHTML = `
     <div class="result-box">
       <div class="result-emoji">🎉</div>
       <div class="result-score">完成！</div>
-      <div class="result-msg">你已完成「${GROUPS[currentGroup].name}」本批 ${words().length} 词研习：<br>词汇认知 → 语义词联 → 词义甄别 → 语境填空 → 拼写重构 → 句式组配 → 双语转译 → 篇章研读<br>
+      <div class="result-msg">你已完成「${escapeHtml(batchLabel)}」本批 ${words().length} 词研习：<br>词汇认知 → 语义词联 → 词义甄别 → 语境填空 → 拼写重构 → 句式组配 → 双语转译 → 篇章研读<br>
         <span style="display:inline-block;margin-top:10px;font-size:14px;color:#4a5070">本批答对 <b>${res.right||0}</b> / ${res.ans||0} 题，正确率 <b style="color:${res.acc>=90?'var(--green)':(res.acc>=75?'var(--amber)':'#8a90a3')}">${res.acc||0}%</b>${res.bonus ? `　正确率奖励 <b style="color:var(--green)">+${res.bonus}</b>` : ((res.ans||0) < 20 ? '（答满 20 题后按正确率给额外奖励）' : '（正确率 ≥75% 可拿额外奖励）')}</span><br>
         <span style="color:var(--amber);font-weight:700;font-size:15px">🏆 通关奖励 +20 分 · 当前 ${RANKS[r].icon} ${RANKS[r].name} · 累计 ${p.total} 分</span></div>
       <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap">
@@ -3320,9 +3476,17 @@ function pkBank(){
 function pkCleanCn(cn){
   return String(cn || '').split(/[；;]/)[0].replace(/^(n|v|vt|vi|adj|adv|prep|conj|pron|num|art|int|aux|modal|abbr)\.\s*/i, '').trim();
 }
+// 对战干扰项候选：自定义词库很小时补入本级词库，避免出现"只有一个选项"
+function pkPool(){
+  const base = pkBank().filter(w => w && w.word && w.cn);
+  if(base.length >= 8) return base;
+  const extra = GROUPS[currentGroup].words.filter(w => w && w.word && w.cn);
+  const seen = new Set(base.map(w => w.word.toLowerCase()));
+  return base.concat(extra.filter(w => !seen.has(w.word.toLowerCase())));
+}
 function pkQuestions(n){
   const pool = pkBank().slice();
-  const bank = pkBank();
+  const bank = pkPool();
   const picked = shuffle(pool).slice(0, Math.min(n, pool.length));
   return picked.map(w => {
     const en2cn = Math.random() < 0.5;               // true=看英文选中文，false=看中文选英文
@@ -3365,6 +3529,12 @@ function pkScore(msLeft, correct){
 
 /* ---------- 首页：模式选择 ---------- */
 function renderBattleHome(){
+  // 回到大厅 = 结束上一局：停表、停轮询、清空对局对象
+  stopPkTimer();
+  try{ if(typeof pkPollStop === 'function') pkPollStop(); }catch(e){}
+  stopOnlineTick();
+  pk = null;
+  online = null;
   const best = loadStore('lx_pk_best', { ai:0, duel:0 });
   $("#battlePage").classList.remove("hidden");
   $("#battlePage").innerHTML = `
@@ -3437,10 +3607,10 @@ function renderPkDuelSetup(){
 }
 
 /* ---------- 开始对战 ---------- */
-function startPk(mode, level){
+function startPk(mode, level, name1, name2){
   stopPkTimer();
-  const n1 = ($("#pkName1") && $("#pkName1").value.trim()) || '选手一';
-  const n2 = ($("#pkName2") && $("#pkName2").value.trim()) || '选手二';
+  const n1 = name1 || ($("#pkName1") && $("#pkName1").value.trim()) || '选手一';
+  const n2 = name2 || ($("#pkName2") && $("#pkName2").value.trim()) || '选手二';
   pk = {
     mode, level: level || 'normal',
     qs: pkQuestions(PK_CONF.QN),
@@ -3568,10 +3738,13 @@ function pkNextTurn(){
 }
 function pkRunAi(){
   const st = pk;
+  if(!st) return;
+  const fbNow = $("#pkFeedback");
+  if(!fbNow) return;                 // 页面已离开对战，直接放弃本回合
   const cfg = PK_AI[st.level] || PK_AI.normal;
   const think = cfg.min + Math.random() * (cfg.max - cfg.min);
   const willRight = Math.random() < cfg.p;
-  $("#pkFeedback").innerHTML += `<span class="ai-thinking">${st.players[1].name} 思考中…</span>`;
+  fbNow.innerHTML += `<span class="ai-thinking">${st.players[1].name} 思考中…</span>`;
   setTimeout(()=>{
     if(!pk || pk.idx !== st.idx) return;
     const p = st.players[1];
@@ -3664,9 +3837,10 @@ function pkFinish(){
 }
 function pkAgain(){
   if(!pk) return renderBattleHome();
-  const { mode, level } = pk;
+  const { mode, level, players } = pk;
+  const [n1, n2] = [players[0].name, players[1].name];
   pk = null;
-  startPk(mode, level);
+  startPk(mode, level, n1, n2);
 }
 
 /* ================= 🌐 在线房间对战（轮询信箱） ================= */
@@ -3747,6 +3921,7 @@ function pkPollStart(){
 function pkPollStop(){ if(online && online.timer){ clearInterval(online.timer); online.timer = null; } }
 function pkLeaveOnline(){
   pkPollStop();
+  stopOnlineTick();
   online = null;
   renderBattleHome();
 }
@@ -3978,6 +4153,7 @@ function parseRoute(){
 function applyRoute(st){
   if(!st) return;
   stopAudio();
+  exitBattleIfNeeded(st.mode);
   if(typeof st.group === 'number' && GROUPS[st.group] && st.group !== currentGroup){
     currentGroup = st.group;
     currentBatch = [];

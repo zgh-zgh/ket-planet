@@ -8,3 +8,4 @@ server.js
 .ecdict.csv
 .wiktionary_progress.json
 .family_cache.json
+.tmp_*

@@ -9,3 +9,20 @@ server.js
 .wiktionary_progress.json
 .family_cache.json
 .tmp_*
+
+# 原始真题语料：版权受限，仅本机教学研究使用，禁止入库
+corpus/
+# 数据重建前的本地备份
+bank/.bak/
+# 抓取进度与中间产物
+.source_progress.json
+.phonetic_progress.json
+.exam_progress.json
+# 管理页保存时自动留的上一版备份
+bank/src/manual_examples.json.bak
+# 词库构建中间产物：可由 corpus + scripts 重新生成，体积大且整段含真题原文
+bank/src/exam_examples.json
+bank/src/exam_examples_cet.json
+bank/src/examples_src.json
+bank/src/phonetic_src.json
+bank/src/probe_report.json

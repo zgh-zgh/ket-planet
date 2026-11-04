@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>例句管理台 · 轻松背单词</title>
+<script src="words-data.js"></script>
+<script src="bank/pack.js"></script>
+<script src="bank/pack_cet.js"></script>
+<style>
+  :root{
+    --bg:#f6f7fb; --card:#fff; --primary:#4f6ef7; --primary2:#7c5cf0;
+    --text:#1f2430; --muted:#8a90a3; --border:#e7e9f2;
+    --green:#22c58b; --red:#ff6b6b; --amber:#ffb020;
+    --shadow:0 6px 24px rgba(70,80,130,.08);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+       background:var(--bg);color:var(--text);line-height:1.6;-webkit-font-smoothing:antialiased}
+  button{font-family:inherit}
+
+  .topbar{position:sticky;top:0;z-index:20;height:58px;background:#fff;border-bottom:1px solid var(--border);
+          display:flex;align-items:center;gap:12px;padding:0 18px}
+  .logo{width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,var(--primary),var(--primary2));
+        color:#fff;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800}
+  .title{font-size:16px;font-weight:800}
+  .title small{font-weight:600;color:var(--muted);font-size:12px;margin-left:8px}
+  .grow{flex:1}
+  .status{font-size:12.5px;color:var(--muted);display:flex;align-items:center;gap:6px}
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--green)}
+  .dot.bad{background:var(--red)}
+
+  .wrap{max-width:1280px;margin:0 auto;padding:16px}
+  .tip{background:#eef2ff;border:1px solid #d8e0ff;color:#3b4a7a;border-radius:12px;padding:10px 14px;
+       font-size:13px;line-height:1.8;margin-bottom:14px}
+  .tip b{color:#2c3a66}
+  .tip code{background:#fff;border:1px solid #d8e0ff;border-radius:5px;padding:0 5px;font-size:12px}
+
+  .grid{display:grid;grid-template-columns:330px minmax(0,1fr);gap:14px;align-items:start;padding-bottom:78px}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow)}
+  .card-h{padding:12px 14px;border-bottom:1px solid var(--border);font-size:13.5px;font-weight:800;
+          display:flex;align-items:center;gap:8px}
+  .card-h .n{color:var(--muted);font-weight:600;font-size:12px}
+
+  /* 左栏 */
+  .search{padding:12px}
+  .search input{width:100%;height:38px;border:1px solid var(--border);border-radius:10px;padding:0 12px;font-size:14px;outline:none}
+  .search input:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(79,110,247,.12)}
+  .wlist{max-height:calc(100vh - 290px);overflow:auto;padding:0 6px 8px}
+  .witem{padding:8px 10px;border-radius:9px;cursor:pointer;display:flex;align-items:center;gap:8px}
+  .witem:hover{background:#f4f6ff}
+  .witem.on{background:#eef2ff;box-shadow:inset 0 0 0 1px #d8e0ff}
+  .witem .w{font-weight:800;font-size:14px}
+  .witem .c{font-size:11.5px;color:var(--muted);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .witem .badge{font-size:10.5px;font-weight:800;color:#3b5bdb;background:#e7ecff;border-radius:6px;padding:1px 6px}
+  .empty{padding:22px 12px;text-align:center;color:var(--muted);font-size:13px}
+
+  /* 右栏 */
+  .detail{padding:16px 18px}
+  .word-h{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+  .word-h .w{font-size:26px;font-weight:800;letter-spacing:.3px}
+  .word-h .ph{font-size:13px;color:#5b6480;background:#f3f5fc;border-radius:7px;padding:1px 8px}
+  .word-h .lv{font-size:11.5px;font-weight:800;color:#0a7a55;background:#e3f8ef;border-radius:6px;padding:1px 7px}
+  .word-h .cn{margin-top:6px;font-size:14px;color:#3c4358;width:100%}
+
+  .sec{margin-top:20px}
+  .sec-t{font-size:13px;font-weight:800;color:#4a5169;display:flex;align-items:center;gap:8px;margin-bottom:8px}
+  .sec-t .hint{font-weight:600;font-size:11.5px;color:var(--muted)}
+
+  .ex{border:1px solid var(--border);border-radius:11px;padding:9px 12px;margin-bottom:8px;background:#fcfcff}
+  .ex .en{font-size:14px;line-height:1.55}
+  .ex .en b{color:var(--primary)}
+  .ex .cn{font-size:12.5px;color:#6b7285;margin-top:2px}
+  .ex .src{font-size:11px;color:#8a8fa3;background:#eef1fa;border-radius:5px;padding:1px 6px;
+           display:inline-block;margin-top:5px;margin-right:6px}
+  .ex .src.exam{color:#c0392b;background:#ffe9e7;font-weight:700}
+  .ex .src.mine{color:#3b5bdb;background:#e7ecff;font-weight:700}
+  .ex .acts{float:right;display:flex;gap:4px;opacity:.35;transition:.15s}
+  .ex:hover .acts{opacity:1}
+  .ex .acts button{border:none;background:transparent;cursor:pointer;font-size:12px;color:#6b7285;padding:2px 5px;border-radius:5px}
+  .ex .acts button:hover{background:#eef1fa}
+
+  /* 表单 */
+  .form{background:#f8f9fe;border:1px dashed #d5dcf7;border-radius:12px;padding:14px}
+  .row{display:flex;gap:10px;flex-wrap:wrap}
+  .row>*{flex:1;min-width:180px}
+  .fld{margin-bottom:10px}
+  .fld label{display:block;font-size:12px;font-weight:700;color:#5b6480;margin-bottom:4px}
+  .fld label .opt{font-weight:600;color:var(--muted)}
+  textarea,input[type=text]{width:100%;border:1px solid var(--border);border-radius:10px;padding:9px 11px;font-size:14px;
+        font-family:inherit;outline:none;background:#fff}
+  textarea{min-height:66px;resize:vertical;line-height:1.55}
+  textarea:focus,input[type=text]:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(79,110,247,.1)}
+  .quick{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+  .chip{font-size:11.5px;border:1px solid var(--border);background:#fff;border-radius:20px;padding:2px 10px;cursor:pointer;color:#5b6480}
+  .chip:hover{border-color:var(--primary);color:var(--primary)}
+
+  .preview{background:#fff;border:1px solid var(--border);border-radius:10px;padding:9px 11px;font-size:13.5px;color:#4a5169;min-height:38px}
+  .preview b{color:var(--primary)}
+  .preview .warn{color:var(--red);font-size:12.5px}
+
+  .btns{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .btn{border:none;border-radius:10px;padding:9px 16px;font-size:13.5px;font-weight:700;cursor:pointer;
+       background:#eef1fa;color:#4a5169;transition:.15s}
+  .btn:hover{background:#e3e8f7}
+  .btn.pri{background:linear-gradient(135deg,var(--primary),var(--primary2));color:#fff;box-shadow:0 4px 12px rgba(79,110,247,.28)}
+  .btn.pri:hover{filter:brightness(1.05)}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+  .btn.ghost{background:transparent;border:1px solid var(--border)}
+
+  .footbar{position:sticky;bottom:0;background:#fff;border-top:1px solid var(--border);padding:12px 18px;
+           display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:16px;border-radius:0 0 14px 14px}
+  .footbar .meta{font-size:12.5px;color:var(--muted);flex:1}
+
+  .toast{position:fixed;left:50%;bottom:80px;transform:translateX(-50%) translateY(14px);
+         background:#22283a;color:#fff;padding:10px 18px;border-radius:10px;font-size:13.5px;
+         opacity:0;pointer-events:none;transition:.22s;z-index:99;max-width:80vw}
+  .toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+  .toast.ok{background:#12855f}
+  .toast.err{background:#c0392b}
+
+  .log{display:none;background:#101423;color:#c9d4ff;border-radius:10px;padding:10px 12px;font-size:12px;
+       white-space:pre-wrap;max-height:220px;overflow:auto;margin-top:10px;font-family:ui-monospace,Menlo,Consolas,monospace}
+  .log.on{display:block}
+
+  .banner{display:none;background:#fff8e6;border:1px solid #ffe2a8;color:#8a6100;border-radius:10px;
+          padding:8px 12px;font-size:12.5px;margin-bottom:12px;align-items:center;gap:10px}
+  .banner.on{display:flex}
+  .banner button{margin-left:auto}
+
+  @media(max-width:860px){
+    .grid{grid-template-columns:1fr}
+    .wlist{max-height:220px}
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo">词</div>
+  <div class="title">例句管理台<small>给单词补例句 · 改完重新生成即可</small></div>
+  <div class="grow"></div>
+  <div class="status"><span class="dot" id="dot"></span><span id="connText">检查连接…</span></div>
+</div>
+
+<div class="wrap">
+  <div class="tip">
+    <b>三步走：</b>① 左边搜单词 → 右边填英文句子（目标词自动加粗）→ 点「添加例句」&nbsp;&nbsp;
+    ② 全部加完点右下「<b>保存到项目</b>」&nbsp;&nbsp;
+    ③ 点「<b>生成并应用</b>」（约 10 秒），回 App 刷新即可看到。
+    <br>覆盖中考、高考、四级、六级四个词库（共 7549 词）。
+  </div>
+
+  <div class="banner" id="banner">
+    <span id="bannerText">检测到未保存的修改，已自动恢复。</span>
+    <button class="btn ghost" onclick="discardDraft()">丢弃草稿</button>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <div class="card-h">词库 <span class="n" id="packCount"></span></div>
+      <div class="search"><input id="q" type="text" placeholder="搜索单词，如 abandon" autocomplete="off"></div>
+      <div class="wlist" id="wlist"></div>
+    </div>
+
+    <div class="card">
+      <div id="detail" class="detail">
+        <div class="empty" style="padding:60px 12px">
+          <div style="font-size:30px;margin-bottom:8px">👈</div>
+          先在左边搜一个单词
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footbar">
+    <div class="meta" id="meta">尚未载入</div>
+    <button class="btn ghost" onclick="exportJson()">导出 JSON</button>
+    <button class="btn ghost" onclick="document.getElementById('imp').click()">导入 JSON</button>
+    <input type="file" id="imp" accept=".json" style="display:none" onchange="importJson(this)">
+    <button class="btn" id="saveBtn" onclick="saveToServer()" disabled>保存到项目</button>
+    <button class="btn pri" id="buildBtn" onclick="buildPack()" disabled>生成并应用</button>
+  </div>
+  <div class="log" id="log"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ================= 基础工具 ================= */
+const $ = (s) => document.querySelector(s);
+const LS_DRAFT = 'lx_admin_draft_v1';
+let manual = {};          // { word: [ {en, cn, src} ] }
+let CN_MAP = {};          // 小写词 -> 中文释义（来自 words-data.js，用于列表展示与中文搜索）
+let currentWord = '';     // 当前编辑的词
+let editingIdx = -1;      // 正在编辑第几条（-1 表示新增）
+let dirty = false;        // 有未保存修改
+let serverOK = false;
+
+function toast(msg, type){
+  const el = $('#toast');
+  el.textContent = msg;
+  el.className = 'toast on' + (type ? ' ' + type : '');
+  clearTimeout(el._t);
+  el._t = setTimeout(() => { el.className = 'toast'; }, 2600);
+}
+function esc(s){
+  return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function stripTags(s){ return String(s || '').replace(/<[^>]+>/g, ''); }
+function normKey(s){ return stripTags(s).toLowerCase().replace(/[^a-z ]/g,' ').replace(/\s+/g,' ').trim(); }
+function countWords(s){ return stripTags(s).split(/\s+/).filter(Boolean).length; }
+
+/* ================= 词形变化（用于在句中找到目标词） ================= */
+function variants(word){
+  const w = String(word).toLowerCase();
+  const set = new Set([w, w+'s', w+'es', w+'ed', w+'ing', w+'er', w+'est', w+'ly', w+'d']);
+  if(/e$/.test(w)){ const b = w.slice(0,-1); set.add(b+'ing'); set.add(b+'ed'); set.add(b+'er'); }
+  if(/y$/.test(w)){ const b = w.slice(0,-1); set.add(b+'ies'); set.add(b+'ied'); set.add(b+'ier'); set.add(b+'iest'); }
+  if(/[^aeiou][aeiou][bdgklmnprt]$/.test(w)){ const c = w.slice(-1); set.add(w+c+'ed'); set.add(w+c+'ing'); set.add(w+c+'er'); }
+  if(/^[A-Z]/.test(word)) { set.add(w); }
+  return set;
+}
+// 在句子里找到目标词（含变形），返回 {start, end}
+function findTarget(sentence, word){
+  const vs = variants(word);
+  const re = /[A-Za-z][A-Za-z'-]*/g;
+  let m;
+  while((m = re.exec(sentence))){
+    if(vs.has(m[0].toLowerCase())) return { start: m.index, end: m.index + m[0].length, text: m[0] };
+  }
+  return null;
+}
+
+/* ================= 载入数据 ================= */
+function packKeys(){
+  const a = (typeof BANK_PACK !== 'undefined' && BANK_PACK) ? Object.keys(BANK_PACK) : [];
+  const b = (typeof BANK_PACK_CET !== 'undefined' && BANK_PACK_CET) ? Object.keys(BANK_PACK_CET) : [];
+  return b.length ? a.concat(b.filter(k => !BANK_PACK || !BANK_PACK[k])) : a;
+}
+// 两个包合起来查：先中高考，再四六级
+function PACK(k){
+  if(typeof BANK_PACK !== 'undefined' && BANK_PACK && BANK_PACK[k]) return BANK_PACK[k];
+  if(typeof BANK_PACK_CET !== 'undefined' && BANK_PACK_CET && BANK_PACK_CET[k]) return BANK_PACK_CET[k];
+  return null;
+}
+
+// 建中文释义索引：词库包为了省体积没带释义，这里从词表补
+function buildCnMap(){
+  CN_MAP = {};
+  if(typeof WORD_DB === 'undefined' || !WORD_DB) return;
+  for(const lv of Object.keys(WORD_DB)){
+    for(const item of WORD_DB[lv]){
+      const k = String(item[0]).toLowerCase();
+      if(!CN_MAP[k]) CN_MAP[k] = String(item[1] || '');
+    }
+  }
+}
+function cnOf(word){
+  const raw = cnFull(word);
+  return raw.length > 26 ? raw.slice(0, 26) + '…' : raw;
+}
+// 与 App 里 cleanCnText 同一套规则：去掉"人名/地名"和领域标签，保证管理页看到的释义与 App 一致
+function cleanCn(raw){
+  const s = String(raw || '').trim();
+  if(!s) return '';
+  const out = [];
+  let afterPerson = false;
+  for(const part of s.split(/[；;]/)){
+    let p = part.trim();
+    if(!p) continue;
+    if(/人名|地名|姓氏|译名|旧称/.test(p)){ afterPerson = true; continue; }
+    if(afterPerson && /^[（(][^）)]*[）)]\s*[^a-zA-Z]*$/.test(p)) continue;
+    afterPerson = false;
+    p = p.replace(/\[[^\]]{1,6}\]/g, '').replace(/\s{2,}/g, ' ').trim();
+    if(!p) continue;
+    out.push(p);
+  }
+  const res = out.join('；').replace(/[；]{2,}/g, '；').replace(/^；|；$/g, '').trim();
+  return res || s;
+}
+function cnFull(word){ return cleanCn(CN_MAP[String(word).toLowerCase()] || ''); }
+
+async function loadServerFile(){
+  try{
+    const r = await fetch('bank/src/manual_examples.json', { cache: 'no-store' });
+    if(!r.ok) throw new Error('HTTP ' + r.status);
+    const data = await r.json();
+    return (data && typeof data === 'object' && !Array.isArray(data)) ? data : {};
+  }catch(e){
+    serverOK = false;
+    return null;
+  }
+}
+
+async function boot(){
+  const keys = packKeys();
+  $('#packCount').textContent = keys.length ? keys.length + ' 词' : '';
+  buildCnMap();
+
+  if(!keys.length){
+    $('#detail').innerHTML = '<div class="empty" style="padding:60px 12px">词库文件没加载成功。<br>请确认 <code>bank/pack.js</code> 存在，并通过 <code>node server.js</code> 打开本页。</div>';
+    setConn(false, '词库未载入');
+    return;
+  }
+
+  const fromServer = await loadServerFile();
+  if(fromServer){
+    manual = fromServer;
+    setConn(true, '已连接本地服务');
+  }else{
+    manual = {};
+    setConn(false, '未连接服务（只能导出，不能保存）');
+  }
+
+  // 草稿恢复
+  const draftRaw = localStorage.getItem(LS_DRAFT);
+  if(draftRaw){
+    try{
+      const d = JSON.parse(draftRaw);
+      if(d && d.data && Object.keys(d.data).length){
+        manual = d.data;
+        dirty = true;
+        $('#banner').classList.add('on');
+        $('#bannerText').textContent = `检测到未保存的修改（${d.at || ''}），已自动恢复。`;
+      }
+    }catch(e){}
+  }
+
+  renderList('');
+  renderMeta();
+}
+
+function setConn(ok, text){
+  serverOK = ok;
+  $('#dot').className = 'dot' + (ok ? '' : ' bad');
+  $('#connText').textContent = text;
+  $('#saveBtn').disabled = !ok;
+  $('#buildBtn').disabled = !ok;
+}
+
+/* ================= 左栏列表 ================= */
+function renderList(q){
+  const keys = packKeys();
+  const query = String(q || '').trim().toLowerCase();
+  const isCn = /[\u4e00-\u9fa5]/.test(query);
+  let list;
+  if(query && isCn){
+    // 中文搜索：按释义找词
+    list = keys.filter(k => cnOf(k).includes(query) || (CN_MAP[k] || '').includes(query));
+  }else if(query){
+    const starts = keys.filter(k => k.toLowerCase().startsWith(query));
+    const has = keys.filter(k => !k.toLowerCase().startsWith(query) && k.toLowerCase().includes(query));
+    list = starts.concat(has);
+  }else{
+    // 默认先展示"已加过例句的词"，再补其余词
+    list = Object.keys(manual).sort().concat(keys.filter(k => !manual[k]));
+  }
+  list = list.slice(0, 60);
+
+  if(!list.length){
+    $('#wlist').innerHTML = `<div class="empty">没找到「${esc(q)}」。<br>这个词不在考试词库里（初中 / 高中 / 四级 / 六级，共 7549 词），暂时加不了。</div>`;
+    return;
+  }
+  $('#wlist').innerHTML = list.map(k => {
+    const b = PACK(k) || {};
+    const mines = (manual[k] || []).length;
+    const meta = [b.lv || '', cnOf(k)].filter(Boolean).join(' · ');
+    return `<div class="witem${k === currentWord ? ' on' : ''}" onclick="selectWord('${esc(k)}')">
+      <span class="w">${esc(b.w || k)}</span>
+      <span class="c">${esc(meta)}</span>
+      ${mines ? `<span class="badge">+${mines}</span>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function renderMeta(){
+  const words = Object.keys(manual).length;
+  const items = Object.values(manual).reduce((a, b) => a + b.length, 0);
+  $('#meta').textContent = `已加 ${words} 个词 / ${items} 条例句` + (dirty ? ' · 有未保存修改' : ' · 已保存');
+  $('#saveBtn').disabled = !serverOK || !dirty;
+  $('#buildBtn').disabled = !serverOK;
+}
+
+/* ================= 右栏详情 ================= */
+function selectWord(w){
+  currentWord = w;
+  editingIdx = -1;
+  renderList($('#q').value);
+  renderDetail();
+}
+
+function hl(en){
+  const s = String(en || '');
+  let out = '', last = 0, m;
+  const re = /<B>(.*?)<\/B>/gi;
+  while((m = re.exec(s))){
+    out += esc(s.slice(last, m.index)) + '<b>' + esc(m[1]) + '</b>';
+    last = m.index + m[0].length;
+  }
+  out += esc(s.slice(last));
+  return out;
+}
+
+function renderDetail(){
+  const w = currentWord;
+  if(!w){ return; }
+  const b = PACK(w) || {};
+  const uk = b.ph && b.ph[0] ? b.ph[0] : '';
+  const us = b.ph && b.ph[1] ? b.ph[1] : '';
+  const cnText = cnFull(w);
+  const packEx = [];
+  (b.ex || []).forEach(e => packEx.push({ en: e[0], src: e[1], srcType: e[2], cn: e[3] }));
+  (b.dx || []).forEach(e => packEx.push({ en: e[0], src: e[2], srcType: 'dict', cn: e[1] }));
+  const mine = manual[w] || [];
+
+  $('#detail').innerHTML = `
+    <div class="word-h">
+      <span class="w">${esc(b.w || w)}</span>
+      ${uk ? `<span class="ph">英 ${esc(uk)}</span>` : ''}
+      ${us ? `<span class="ph">美 ${esc(us)}</span>` : ''}
+      ${b.lv ? `<span class="lv">${esc(b.lv)}</span>` : ''}
+      ${mine.length ? `<span class="lv" style="color:#3b5bdb;background:#e7ecff">已加 ${mine.length} 条</span>` : ''}
+      <div class="cn">${esc(cnText)}</div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-t">词库现有例句 <span class="hint">（只读，来自真题与词典）</span></div>
+      ${packEx.length ? packEx.map(e => `
+        <div class="ex">
+          <div class="en">${hl(e.en)}</div>
+          ${e.cn ? `<div class="cn">${esc(e.cn)}</div>` : ''}
+          ${(e.srcType === 'gaokao' || e.srcType === 'zhongkao') ? '<span class="src exam">真题</span>' : ''}
+          ${e.src ? `<span class="src">${esc(e.src)}</span>` : ''}
+        </div>`).join('') : '<div class="empty">该词暂无例句</div>'}
+    </div>
+
+    <div class="sec">
+      <div class="sec-t">我加的例句 <span class="hint">（会排在最前面显示）</span></div>
+      ${mine.length ? mine.map((e, i) => `
+        <div class="ex">
+          <div class="acts">
+            <button onclick="editEx(${i})" title="编辑">✏️ 改</button>
+            <button onclick="delEx(${i})" title="删除">🗑️ 删</button>
+          </div>
+          <div class="en">${hl(e.en)}</div>
+          ${e.cn ? `<div class="cn">${esc(e.cn)}</div>` : ''}
+          <span class="src mine">自建</span><span class="src">${esc(e.src || '自建')}</span>
+        </div>`).join('') : '<div class="empty">还没有。用下面的表单加一条。</div>'}
+    </div>
+
+    <div class="sec">
+      <div class="sec-t">${editingIdx >= 0 ? '修改例句（第 ' + (editingIdx + 1) + ' 条）' : '添加例句'}</div>
+      <div class="form">
+        <div class="fld">
+          <label>英文句子 <span class="opt">（必填，句子里要出现 ${esc(w)} 或它的变形）</span></label>
+          <textarea id="fEn" placeholder="例：It is impolite to ask someone's age." oninput="onType()"></textarea>
+        </div>
+        <div class="fld">
+          <label>中文翻译 <span class="opt">（建议填写，学生更容易理解）</span></label>
+          <input id="fCn" type="text" placeholder="例：问别人的年龄是不礼貌的。" oninput="onType()">
+        </div>
+        <div class="fld">
+          <label>出处 <span class="opt">（可留空，默认「自建」）</span></label>
+          <input id="fSrc" type="text" placeholder="例：人教版八年级上册 Unit 3 / 2023·北京·阅读C" oninput="onType()">
+          <div class="quick">
+            <span class="chip" onclick="setSrc('人教版七年级上册')">人教版七上</span>
+            <span class="chip" onclick="setSrc('人教版八年级上册')">人教版八上</span>
+            <span class="chip" onclick="setSrc('人教版九年级全一册')">人教版九全</span>
+            <span class="chip" onclick="setSrc('外研版八年级上册')">外研版八上</span>
+            <span class="chip" onclick="setSrc('中考真题')">中考真题</span>
+            <span class="chip" onclick="setSrc('高考真题')">高考真题</span>
+          </div>
+        </div>
+        <div class="fld">
+          <label>效果预览</label>
+          <div class="preview" id="preview">在上面输入英文句子…</div>
+        </div>
+        <div class="btns">
+          <button class="btn pri" id="addBtn" onclick="submitEx()">${editingIdx >= 0 ? '保存修改' : '添加例句'}</button>
+          ${editingIdx >= 0 ? '<button class="btn ghost" onclick="cancelEdit()">取消</button>' : ''}
+        </div>
+      </div>
+    </div>
+  `;
+  if(editingIdx >= 0){
+    const e = (manual[w] || [])[editingIdx];
+    if(e){ $('#fEn').value = stripTags(e.en); $('#fCn').value = e.cn || ''; $('#fSrc').value = e.src === '自建' ? '' : (e.src || ''); onType(); }
+  }
+}
+
+function setSrc(v){
+  $('#fSrc').value = v;
+  onType();
+}
+
+/* 输入时实时预览 + 校验 */
+function onType(){
+  const w = currentWord;
+  const raw = $('#fEn').value.trim();
+  const box = $('#preview');
+  if(!raw){ box.innerHTML = '在上面输入英文句子…'; return; }
+  const sentence = raw.replace(/<\/?B>/gi, '');
+  if(/[\u4e00-\u9fa5]/.test(sentence)){
+    box.innerHTML = '<span class="warn">⚠️ 英文句子里不要写中文，请把中文放到下面的「中文翻译」</span>';
+    return;
+  }
+  const hit = findTarget(sentence, w);
+  if(!hit){
+    box.innerHTML = `<span class="warn">⚠️ 句子里没找到「${esc(w)}」。请确认拼写，或换一句含有该词的句子。</span>`;
+    return;
+  }
+  box.innerHTML = hl(sentence.slice(0, hit.start) + '<B>' + sentence.slice(hit.start, hit.end) + '</B>' + sentence.slice(hit.end));
+}
+
+/* ================= 增删改 ================= */
+function submitEx(){
+  const w = currentWord;
+  if(!w) return;
+  const raw = $('#fEn').value.trim();
+  const cn = $('#fCn').value.trim();
+  const src = $('#fSrc').value.trim();
+  if(!raw) return toast('请先填写英文句子', 'err');
+
+  const sentence = raw.replace(/<\/?B>/gi, '').replace(/\s+/g, ' ').trim();
+  if(/[\u4e00-\u9fa5]/.test(sentence)) return toast('英文句子里混入了中文，请分开填写', 'err');
+  const n = countWords(sentence);
+  if(n < 4) return toast('句子太短了（至少 4 个词）', 'err');
+  if(n > 40) return toast('句子太长了（不超过 40 个词）', 'err');
+  const hit = findTarget(sentence, w);
+  if(!hit) return toast(`句子里没找到「${w}」或它的变形`, 'err');
+
+  const marked = sentence.slice(0, hit.start) + '<B>' + sentence.slice(hit.start, hit.end) + '</B>' + sentence.slice(hit.end);
+
+  // 去重：和自己加的、词库现有的都比一遍
+  const list = manual[w] || [];
+  const mineKey = normKey(marked);
+  for(let i = 0; i < list.length; i++){
+    if(i !== editingIdx && normKey(list[i].en) === mineKey) return toast('这条例句已经加过了', 'err');
+  }
+  const b = PACK(w) || {};
+  const packKeysAll = (b.ex || []).map(e => normKey(e[0])).concat((b.dx || []).map(e => normKey(e[0])));
+  if(editingIdx < 0 && packKeysAll.includes(mineKey)) return toast('词库里已经有这句了', 'err');
+
+  const item = { en: marked, cn, src: src || '自建' };
+  const wasEdit = editingIdx >= 0;
+  if(wasEdit) list[editingIdx] = item; else list.push(item);
+  manual[w] = list;
+
+  markDirty();
+  cancelEdit(true);
+  renderDetail();
+  renderList($('#q').value);
+  renderMeta();
+  toast(wasEdit ? '已修改' : '已添加', 'ok');
+}
+
+function editEx(i){
+  editingIdx = i;
+  renderDetail();
+  $('#fEn').focus();
+}
+function cancelEdit(silent){
+  editingIdx = -1;
+  if(!silent) renderDetail();
+}
+function delEx(i){
+  const w = currentWord;
+  if(!confirm('确定删除这条例句？')) return;
+  manual[w].splice(i, 1);
+  if(!manual[w].length) delete manual[w];
+  markDirty();
+  renderDetail();
+  renderList($('#q').value);
+  renderMeta();
+  toast('已删除', 'ok');
+}
+
+function markDirty(){
+  dirty = true;
+  const snapshot = { at: new Date().toLocaleString('zh-CN'), data: manual };
+  try{ localStorage.setItem(LS_DRAFT, JSON.stringify(snapshot)); }catch(e){}
+}
+function discardDraft(){
+  if(!confirm('丢弃本地草稿，恢复到项目里已保存的版本？')) return;
+  localStorage.removeItem(LS_DRAFT);
+  $('#banner').classList.remove('on');
+  dirty = false;
+  boot();
+}
+
+/* ================= 保存 / 生成 / 导入导出 ================= */
+async function saveToServer(){
+  if(!serverOK) return toast('未连接本地服务，请用 node server.js 打开本页', 'err');
+  const btn = $('#saveBtn');
+  btn.disabled = true; btn.textContent = '保存中…';
+  try{
+    const r = await fetch('/api/manual-save', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ data: manual })
+    });
+    const j = await r.json();
+    if(!r.ok || !j.ok) throw new Error(j.error || ('HTTP ' + r.status));
+    dirty = false;
+    localStorage.removeItem(LS_DRAFT);
+    $('#banner').classList.remove('on');
+    renderMeta();
+    toast(`已保存：${j.words} 个词 / ${j.items} 条例句`, 'ok');
+    showLog(`已写入 ${j.path}\n上一次的版本备份为 manual_examples.json.bak`);
+  }catch(e){
+    toast('保存失败：' + e.message, 'err');
+  }finally{
+    btn.textContent = '保存到项目';
+    renderMeta();
+  }
+}
+
+async function buildPack(){
+  if(!serverOK) return toast('未连接本地服务', 'err');
+  if(dirty && !confirm('还有未保存的修改，要先保存再生成吗？\n点「确定」先保存，点「取消」直接生成（未保存的改动不会生效）')) return;
+  if(dirty) await saveToServer();
+
+  const btn = $('#buildBtn');
+  btn.disabled = true; btn.textContent = '生成中…（约 10 秒）';
+  showLog('开始重新生成词库，请稍候…\n');
+  try{
+    const r = await fetch('/api/manual-build', { method: 'POST' });
+    const j = await r.json();
+    if(!r.ok || !j.ok) throw new Error(j.error || ('HTTP ' + r.status));
+    const tail = (j.logs || []).join('\n\n');
+    showLog(tail);
+    toast('生成完成，回 App 刷新即可看到新例句', 'ok');
+  }catch(e){
+    toast('生成失败：' + e.message, 'err');
+    showLog('生成失败：' + e.message);
+  }finally{
+    btn.textContent = '生成并应用';
+    btn.disabled = false;
+  }
+}
+
+function showLog(text){
+  const el = $('#log');
+  el.textContent = text;
+  el.classList.add('on');
+}
+
+function exportJson(){
+  const blob = new Blob([JSON.stringify(manual, null, 1)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'manual_examples.json';
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 3000);
+  toast('已导出 manual_examples.json', 'ok');
+}
+
+function importJson(input){
+  const f = input.files && input.files[0];
+  if(!f) return;
+  const rd = new FileReader();
+  rd.onload = () => {
+    try{
+      const data = JSON.parse(String(rd.result));
+      if(!data || typeof data !== 'object' || Array.isArray(data)) throw new Error('格式不对');
+      const n = Object.keys(data).length;
+      if(!confirm(`导入 ${n} 个词的例句，会覆盖当前列表，继续吗？`)) return;
+      manual = data;
+      markDirty();
+      renderList($('#q').value);
+      renderMeta();
+      renderDetail();
+      toast('已导入，记得点「保存到项目」', 'ok');
+    }catch(e){
+      toast('导入失败：' + e.message, 'err');
+    }finally{
+      input.value = '';
+    }
+  };
+  rd.readAsText(f);
+}
+
+/* ================= 启动 ================= */
+document.addEventListener('DOMContentLoaded', () => {
+  $('#q').addEventListener('input', (e) => renderList(e.target.value));
+  $('#q').addEventListener('keydown', (e) => {
+    if(e.key === 'Enter'){
+      const first = $('#wlist .witem');
+      if(first) first.click();
+    }
+  });
+  boot();
+});
+window.addEventListener('beforeunload', (e) => {
+  if(dirty){ e.preventDefault(); e.returnValue = ''; }
+});
+</script>
+</body>
+</html>

@@ -77,7 +77,7 @@
 
   .card{background:var(--card);border-radius:20px;box-shadow:var(--shadow);padding:28px;margin-bottom:20px;max-width:860px;margin-left:auto;margin-right:auto}
   h2.page-title{text-align:center;margin-bottom:6px;font-size:22px}
-  .page-sub{text-align:center;color:var(--muted);margin-bottom:22px;font-size:14px}
+  .page-sub{text-align:center;color:var(--muted);margin-bottom:14px;font-size:14px}
 
   /* ===== 学习页（图片居中主打） ===== */
   .learn-grid{display:grid;grid-template-columns:1fr;gap:22px}
@@ -88,6 +88,9 @@
   .word-info{max-width:720px;margin:0 auto;width:100%}
   .word-text{font-size:44px;font-weight:800;letter-spacing:.5px}
   .word-text .syl{cursor:pointer;border-radius:4px;padding:0 2px;transition:.15s}
+  /* 音节之间加一个词典式的间隔点（ge·og·ra·phy）。用 CSS 生成，不进文本内容，
+     复制/拼写题/朗读切分都不受影响 */
+  .word-text .syl + .syl::before{content:"·";color:#c3c9dd;font-weight:400;margin:0 1px}
   .word-text .syl.stress{color:var(--primary2);font-weight:800}
   .word-text .syl.active{background:var(--red);color:#fff}
   .word-phonetic{color:var(--muted);font-size:15px;margin:6px 0 2px}
@@ -286,7 +289,7 @@
   .progress-info{color:var(--muted);font-size:14px}
 
   /* ===== 题型通用 ===== */
-  .question{background:#fbfbfe;border:1px solid var(--border);border-radius:14px;padding:18px;margin-bottom:18px}
+  .question{background:#fbfbfe;border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:12px}
   .q-index{font-size:13px;color:var(--muted);margin-bottom:6px}
   .q-sentence{font-size:17px;font-weight:500;line-height:1.8}
   /* 报刊例句的来源标注 */
@@ -334,7 +337,7 @@
   .sentence-build .frag.right{background:#e9fbf4;border-color:var(--green);color:var(--green)}
 
   /* 翻译 */
-  .trans-area textarea{width:100%;min-height:100px;border:1px solid var(--border);border-radius:12px;padding:12px;font-size:15px;font-family:inherit;resize:vertical}
+  .trans-area textarea{width:100%;min-height:88px;border:1px solid var(--border);border-radius:12px;padding:12px;font-size:15px;font-family:inherit;resize:vertical}
 
   /* 语篇 */
   .passage{font-size:16px;line-height:2.1;background:#fbfbfe;border-radius:14px;padding:20px;border:1px solid var(--border);margin-bottom:16px}
@@ -444,7 +447,7 @@
   .rank-up.show{opacity:1}
 
   .bomb-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:6px}
-  .bomb-cell{padding:14px 10px;border-radius:14px;background:#fbfbfe;border:2px solid var(--border);cursor:pointer;text-align:center;font-size:15px;font-weight:600;transition:.18s;user-select:none;min-height:52px;display:flex;align-items:center;justify-content:center;word-break:break-all}
+  .bomb-cell{padding:14px 10px;border-radius:14px;background:#fbfbfe;border:2px solid var(--border);cursor:pointer;text-align:center;font-size:15px;font-weight:600;transition:.18s;user-select:none;min-height:52px;display:flex;align-items:center;justify-content:center;overflow-wrap:break-word;word-break:normal;line-height:1.35}
   .bomb-cell.en{background:linear-gradient(135deg,#eef2ff,#e7ecff);border-color:#dbe2ff;color:#3a4bb8}
   .bomb-cell.cn{background:linear-gradient(135deg,#fff6ec,#fff0e6);border-color:#ffe0c4;color:#c0691f}
   .bomb-cell:hover{transform:translateY(-2px);box-shadow:0 6px 14px rgba(0,0,0,.10)}
@@ -530,6 +533,181 @@
     .nav-btns{flex-wrap:wrap;gap:8px}
     .nav-btns .progress-info{order:-1;flex:1 1 100%;text-align:center;margin-bottom:4px}
   }
+
+  /* ===== 词汇认知页：一屏两栏（图片在左 + 词族导图环绕） ===== */
+  /* 学习页要一屏放下，去掉卡片下边距并收紧主区底部留白 */
+  #learnPage{margin-bottom:0}
+  .main:has(#learnPage:not(.hidden)){padding-bottom:24px}
+  .learn-grid{display:grid;grid-template-columns:400px minmax(0,1fr);gap:22px;align-items:start}
+  .learn-visual{position:relative;width:400px;height:342px;min-width:0}
+  .word-img{position:absolute;left:60px;top:74px;width:280px;height:200px;max-width:none;aspect-ratio:auto;margin:0;border-radius:16px;box-shadow:0 8px 24px rgba(70,80,130,.12);z-index:1}
+  .word-img img{width:100%;height:100%;object-fit:cover}
+  .word-img .emoji{font-size:64px;line-height:1}
+
+  /* 词族导图 */
+  .mm-lines{position:absolute;inset:0;width:400px;height:342px;pointer-events:none;z-index:0;overflow:visible}
+  .mm-lines path{fill:none;stroke:#c9cff6;stroke-width:1.6;stroke-dasharray:4 5}
+  .mm-wrap{position:static;min-width:0}
+  .mm-node{position:absolute;transform:translate(-50%,-50%);max-width:118px;min-width:52px;padding:5px 8px;border-radius:11px;background:#fff;border:1.5px solid #dfe5ff;box-shadow:0 2px 8px rgba(70,80,130,.08);text-align:center;cursor:pointer;transition:.15s;z-index:2}
+  .mm-node:hover{border-color:var(--primary);transform:translate(-50%,-50%) scale(1.06);z-index:3}
+  .mm-node .n-en{font-size:11.5px;font-weight:800;line-height:1.2;overflow-wrap:break-word}
+  .mm-node .n-cn{font-size:10.5px;color:var(--muted);line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
+  .mm-node.root{background:linear-gradient(135deg,var(--primary),var(--primary2));border-color:transparent}
+  .mm-node.root .n-en,.mm-node.root .n-cn{color:#fff}
+  .mm-empty{position:absolute;left:50%;bottom:0;transform:translateX(-50%);font-size:12px;color:var(--muted);white-space:nowrap;z-index:2}
+
+  /* 右栏主视觉 */
+  .learn-main{min-width:0;text-align:left}
+  .learn-main .word-text{font-size:38px;line-height:1.22;word-break:break-word}
+  /* 长词（15 字母以上）降一档字号，避免加音节点后被迫换行、把一屏顶出去 */
+  .learn-main .word-text.long{font-size:29px;line-height:1.3}
+  .learn-main .word-phonetic{margin:4px 0 2px}
+  .learn-main .word-cn{font-size:18px;margin-top:6px;line-height:1.5}
+  .learn-main .speak-row{justify-content:flex-start;margin-top:10px;gap:8px}
+  .learn-main .btn-speak{padding:7px 14px;font-size:13px}
+
+  .badge-row{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:9px;font-size:12px;color:var(--muted)}
+  .badge-row .bd{background:#f5f6fa;border:1px solid var(--border);border-radius:6px;padding:2px 7px;white-space:nowrap}
+  .badge-row .stars{color:#f59e0b;letter-spacing:1px}
+  .badge-row .ox-badge{color:#0f6e56;font-weight:600}
+
+  .learn-main details.word-def{margin-top:7px;font-size:13px}
+  .learn-main details.word-def>summary{cursor:pointer;color:var(--muted);font-size:12.5px;list-style:none;outline:none}
+  .learn-main details.word-def>summary::-webkit-details-marker{display:none}
+  .learn-main details.word-def>summary:before{content:"▸ ";color:var(--primary)}
+  .learn-main details.word-def[open]>summary:before{content:"▾ "}
+  .learn-main details.word-def .word-def{font-size:13px;line-height:1.65;margin-top:4px}
+
+  /* 例句卡片 */
+  .ex-list{display:flex;flex-direction:column;gap:8px;margin-top:6px}
+  .example{padding:9px 11px;border-radius:12px;background:#fafbff;border:1px solid #eef0f9}
+  /* 列表本身有 8px gap，卡片再留 10px 下边距会白白多占一屏高度（六级长句正好卡在 902px） */
+  .learn-main .example{margin-bottom:0}
+  .example .en{font-size:14px;line-height:1.6;display:flex;gap:7px;align-items:flex-start}
+  .example .en b{color:var(--primary);font-weight:800}
+  .example .cn{font-size:12.5px;color:var(--muted);margin-top:3px;line-height:1.55}
+  .example .ex-src{display:inline-block;font-size:10.5px;color:#8a8fa3;background:#eef1fa;border-radius:5px;padding:1px 6px;margin-top:5px;white-space:nowrap}
+  .example .ex-src .ex-badge{display:inline-block;font-style:normal;font-size:9.5px;font-weight:800;color:#c0392b;background:#ffe9e7;border-radius:3px;padding:0 3px;margin-right:4px;letter-spacing:.3px}
+  .example .ex-src .ex-badge-manual{color:#3b5bdb;background:#e7ecff}
+  .ex-more{background:none;border:none;color:var(--primary);font-size:12.5px;cursor:pointer;padding:2px 0;text-align:left}
+
+  /* 猜词预热 */
+  .preheat{margin-bottom:12px}
+  .preheat-q{font-size:13px;color:var(--muted);margin-bottom:8px}
+  .preheat-q b{color:var(--primary);font-size:15px}
+  .preheat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+  .ph-card{position:relative;border-radius:12px;overflow:hidden;aspect-ratio:4/3;background:#eef1ff;border:2px solid transparent;cursor:pointer;transition:.15s}
+  .ph-card img{width:100%;height:100%;object-fit:cover;display:block}
+  .ph-card:hover{border-color:var(--primary2)}
+  .ph-card.right{border-color:#22a06b;box-shadow:0 0 0 3px rgba(34,160,107,.15)}
+  .ph-card.wrong{border-color:#e5484d;animation:ph-shake .3s}
+  .learn-main.masked .word-text,.learn-main.masked .word-phonetic,.learn-main.masked .word-cn,
+  .learn-main.masked .speak-row,.learn-main.masked .badge-row,.learn-main.masked details.word-def{filter:blur(7px);pointer-events:none;user-select:none}
+  @keyframes ph-shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+
+  /* 矮屏（1366×768 这类）压缩字号与间距，保证仍是一屏 */
+  @media (min-width:721px) and (max-height:820px){
+    .learn-main .word-text{font-size:30px;line-height:1.12}
+    .learn-main .word-cn{font-size:16px;margin-top:3px}
+    .learn-main .speak-row{margin-top:6px}
+    .learn-main .btn-speak{padding:5px 12px;font-size:12.5px}
+    .badge-row{margin-top:5px;font-size:11.5px}
+    .learn-main details.word-def{margin-top:4px}
+    .sec-head{margin-top:6px;margin-bottom:4px}
+    .example{padding:5px 9px}
+    .example .en{font-size:13px;line-height:1.45}
+    .example .cn{font-size:12px;margin-top:2px;line-height:1.4}
+    .example .ex-src{font-size:10px;margin-top:2px;padding:0 5px}
+    .ex-list{gap:4px;margin-top:3px}
+    .ex-more{font-size:12px;padding:1px 0}
+    /* 矮屏优先保证"单词+音标+例句"一屏；英文释义属补充信息，收起来 */
+    .learn-main details.word-def{display:none}
+    .sec-head{margin-top:4px;margin-bottom:3px}
+  }
+
+  @media(max-width:720px){
+    .learn-grid{grid-template-columns:minmax(0,1fr);gap:8px}
+    /* 用块级布局：flex 列会把横向滚动的导图撑宽，导致整卡溢出屏幕 */
+    .learn-visual{width:100%;height:auto;display:block;min-width:0}
+    .word-img{position:static;left:auto;top:auto;width:min(60vw,240px);height:auto;aspect-ratio:4/3;margin:0 auto 8px}
+    .mm-lines,.mm-empty{display:none}
+    .mm-wrap{display:flex;gap:8px;overflow-x:auto;width:100%;max-width:100%;padding:2px 2px 8px}
+    .mm-node{position:static;transform:none;flex:0 0 auto;max-width:104px}
+    .mm-node:hover{transform:none}
+    .learn-main{text-align:center}
+    .learn-main .word-text{font-size:30px}
+    .learn-main .word-cn{font-size:16px}
+    .learn-main .speak-row{justify-content:center}
+    .badge-row{justify-content:center}
+    .preheat-grid{gap:6px}
+  }
+
+  /* ===== 难度切换（基础 / 中等 / 优秀） ===== */
+  .diff-bar{display:flex;gap:6px;justify-content:center;margin:0 0 10px}
+  .diff-pill{padding:6px 14px;border-radius:99px;border:1.5px solid var(--border);background:#fff;font-size:13px;font-weight:700;color:#6b7280;cursor:pointer;transition:.15s;font-family:inherit;line-height:1.4}
+  .diff-pill:hover{border-color:var(--primary);color:var(--primary)}
+  .diff-pill.on{background:var(--primary);border-color:var(--primary);color:#fff;box-shadow:0 6px 14px rgba(79,110,247,.26)}
+
+  /* ===== 分题型倒计时 ===== */
+  .q-timer{display:flex;align-items:center;gap:10px;margin:2px 0 12px}
+  .q-timer-track{flex:1;height:6px;border-radius:99px;background:#eef0f8;overflow:hidden}
+  .q-timer-track i{display:block;height:100%;width:100%;border-radius:99px;background:linear-gradient(90deg,var(--primary),var(--primary2));transition:width .12s linear}
+  .q-timer-num{font-size:13px;font-weight:800;color:var(--primary);min-width:36px;text-align:right;font-variant-numeric:tabular-nums}
+  .q-timer.urgent .q-timer-track i{background:linear-gradient(90deg,#ff8a8a,var(--red))}
+  .q-timer.urgent .q-timer-num{color:var(--red);animation:qPulse .62s infinite}
+  @keyframes qPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.16)}}
+
+  /* ===== 答题解析卡 ===== */
+  .fb-box{display:none;margin-top:16px}
+  .fb-box.show{display:block;animation:fbIn .22s ease}
+  @keyframes fbIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  .fb-card{border-radius:14px;padding:14px 16px;border:1.5px solid;text-align:left}
+  .fb-card.ok{background:#f0faf5;border-color:#b7e6cd}
+  .fb-card.no{background:#fff5f5;border-color:#f6c9c9}
+  .fb-head{font-weight:800;font-size:15px;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+  .fb-card.ok .fb-head{color:#128a55}
+  .fb-card.no .fb-head{color:#c0392b}
+  .fb-row{display:flex;gap:10px;font-size:13.5px;line-height:1.72;padding:2px 0}
+  .fb-k{flex:0 0 58px;color:#8b91a6;font-size:12.5px;padding-top:2px;white-space:nowrap}
+  .fb-v{flex:1;color:#2a3048;word-break:break-word;min-width:0}
+  .fb-v b{color:var(--primary2)}
+  .fb-v .fb-ph{color:#7b83a0;font-weight:400}
+  .fb-v .fb-cn{color:#6b7288;font-size:12.5px;display:block;margin-top:1px}
+  .fb-actions{display:flex;gap:12px;margin-top:12px;align-items:center;flex-wrap:wrap}
+  .fb-actions .btn{padding:8px 18px;font-size:14px}
+  .fb-tip{font-size:12px;color:#8b91a6}
+
+  /* ===== 消消乐：倒计时与结算 ===== */
+  .bomb-top{display:flex;align-items:center;gap:12px;justify-content:center;margin:0 0 4px;flex-wrap:wrap}
+  .bomb-clock{font-size:15px;font-weight:900;color:var(--primary);font-variant-numeric:tabular-nums;min-width:60px;text-align:center}
+  .bomb-clock.urgent{color:var(--red);animation:qPulse .62s infinite}
+  .bomb-combo{font-size:12.5px;font-weight:800;color:#e07b39;background:#fff3e8;border-radius:99px;padding:3px 10px}
+  .bomb-combo.off{display:none}
+  .bomb-cell .cn-pos{font-size:11px;opacity:.72;margin-right:3px;font-weight:700}
+  .bomb-grid.dense{grid-template-columns:repeat(5,1fr);gap:6px}
+  .bomb-grid.dense .bomb-cell{min-height:44px;padding:8px 6px;font-size:13px;line-height:1.25}
+  @media(max-width:720px){
+    .bomb-grid{grid-template-columns:repeat(3,1fr);gap:8px}
+    .bomb-grid.dense{grid-template-columns:repeat(3,1fr)}
+    .bomb-cell{font-size:13px;padding:10px 6px}
+    .bomb-cell .cn-pos{display:block;margin:0 0 2px}
+  }
+  .bomb-tool{background:#fff;border:1.5px solid var(--border);border-radius:99px;padding:5px 12px;font-size:12.5px;font-weight:700;color:#6b7280;cursor:pointer;font-family:inherit;transition:.15s}
+  .bomb-tool.on{background:#eef1ff;border-color:#c9d2ff;color:var(--primary)}
+  .bomb-done{text-align:center;padding:18px 8px}
+  .bomb-done .bd-emoji{font-size:44px;line-height:1.2}
+  .bomb-done .bd-title{font-size:19px;font-weight:800;margin-top:4px}
+  .bomb-done .bd-grid{display:flex;justify-content:center;gap:22px;margin:16px 0 6px;flex-wrap:wrap}
+  .bomb-done .bd-item{min-width:74px}
+  .bomb-done .bd-item b{display:block;font-size:22px;color:var(--primary2);font-weight:900}
+  .bomb-done .bd-item span{font-size:12px;color:var(--muted)}
+
+  /* ===== 翻译提示区 ===== */
+  .trans-hint{background:#f7f9ff;border:1px dashed #cfd8f5;border-radius:12px;padding:10px 14px;margin:10px 0 0;font-size:13.5px;line-height:1.7;color:#4a5070}
+  .trans-hint b{color:var(--primary2)}
+  .trans-hint .th-k{display:inline-block;font-size:11.5px;font-weight:800;color:var(--primary);background:#e9edff;border-radius:6px;padding:1px 7px;margin-right:6px}
+  .trans-hint .th-model{color:#2e7d5b;font-weight:600}
+  .trans-hint .th-skel{font-family:ui-monospace,Menlo,monospace;color:#5a6072;letter-spacing:.3px}
 </style>
 </head>
 <body>
@@ -634,6 +812,8 @@
 <script src="ecdict_data.js"></script>
 <script src="wordnet_data.js"></script>
 <script src="wiktionary_data.js"></script>
+<!-- 考试词库精简包：中/高考真题例句 + 英美音标 + 学段标注（由 scripts/build_learn_pack.js 生成） -->
+<script src="bank/pack.js"></script>
 <script>
 /* ================= 单词数据 ================= */
 /* 词库从 words-data.js 的 WORD_DB 加载（7549 词，按级别分组）
@@ -792,7 +972,8 @@ function taskExamplePool(w){
   const pool = [];
   (w.examples || []).forEach((e, i) => {
     const plain = (e.en || '').replace(/<[^>]+>/g, '');
-    pool.push({ en: e.en, cn: e.cn || '', src: '', kind: 'dict', head: /^<B>/i.test((e.en || '').trim()), tail: /<\/B>\s*[.!?"']?\s*$/.test((e.en || '').trim()), len: plain.split(/\s+/).filter(Boolean).length, idx: i });
+    // 真题句带出处，题型解析里要显示；kind 单独标 exam 便于优先取用
+    pool.push({ en: e.en, cn: e.cn || '', src: e.src || '', srcType: e.srcType || '', kind: e.srcType ? 'exam' : 'dict', head: /^<B>/i.test((e.en || '').trim()), tail: /<\/B>\s*[.!?"']?\s*$/.test((e.en || '').trim()), len: plain.split(/\s+/).filter(Boolean).length, idx: i });
   });
   (w.extras || []).forEach((e, i) => {
     const plain = (e.en || '').replace(/<[^>]+>/g, '');
@@ -823,6 +1004,8 @@ function assignTaskExamples(w){
       if (p.tail && task === 'cloze') s += 2.5;
       if (p.kind === 'news') {                             // 报刊句语境完整：填空（要能猜词）和通读最需要
         if (task === 'cloze' || task === 'passage') s -= 3;
+      } else if (p.kind === 'exam') {                       // 真题句优先用于语境类题型
+        if (task === 'cloze' || task === 'passage') s -= 3.5;
       } else if (task === 'order' || task === 'trans') {
         s -= 1.2;                                          // 双语句用于组配/翻译更稳
       }
@@ -862,9 +1045,18 @@ function cnFallback(word){
   }
   return buildWord._cnIndex[String(word||'').toLowerCase()] || '';
 }
+// 音标字符归一：ECDICT 用西里尔字母 ә(U+04D9)、ASCII 撇号与冒号，统一成标准 IPA 字符
+function normIpa(s){
+  return String(s || '')
+    .replace(/\u04D9/g, 'ə')
+    .replace(/\u04D8/g, 'Ə')
+    .replace(/'/g, 'ˈ')
+    .replace(/:/g, 'ː');
+}
 function buildWord(w, cn, lv, deckId){
   if(!cn || !String(cn).trim()) cn = cnFallback(w);
   cn = String(cn == null ? '' : cn).trim() || '（暂无释义）';
+  cn = cleanCnText(cn);
   let cachedImg = "";
   try{ cachedImg = localStorage.getItem('wordimg_' + w) || ""; }catch(e){}
   const affix = matchAffixes(w);
@@ -877,8 +1069,8 @@ function buildWord(w, cn, lv, deckId){
     word: w,
     cn: cn,
     level: lv,
-    ukPhonetic: ec && ec.ph ? '/' + ec.ph + '/' : "",   // 英式音标（ECDICT，本地，免运行时查询）
-    usPhonetic: ipa,                                      // IPA 国际音标（Wiktionary，本地）
+    ukPhonetic: ec && ec.ph ? '/' + normIpa(ec.ph) + '/' : "",   // 英式音标（ECDICT，本地，免运行时查询）
+    usPhonetic: ipa ? normIpa(ipa) : "",                          // IPA 国际音标（Wiktionary，本地）
     syllables: autoSyllables(w),       // 音节自动拆分
     related: [],                        // 同源词（AFFIX_INDEX 构建后填充）
     root: affix ? { text: affix.text, meaning: affix.meaning, type: affix.type, key: affix.key } : null,
@@ -898,7 +1090,12 @@ function buildWord(w, cn, lv, deckId){
   };
 }
 
-// 音节拆分：VCV/VCCV 规则粗拆 + cmudict 权威音标校准音节数 + 标注重音
+// ================= 音节拆分 =================
+// 数据源：syllables_data.js（由 cmudict 权威发音词典离线生成，含每个词的「字母级」精确边界）
+//   { n:音节数, s:主重音下标, l:[分段...] }
+// 拆分标准：韦氏（Merriam-Webster）「最大音节首」原则——一个辅音/辅音群尽量归入后一个音节，
+//   只要它能作合法的英语词首（ge-og-ra-phy 这类错误即由此修正为 ge-o-gra-phy）。
+// 词典外的词（自定义词库/生僻词）走 ruleSyllables 规则兜底。
 function autoSyllables(w){
   if(!w) return [{text:''}];
   // 短语 / 连字符词（look after、ice-cream）：按分隔符分段，段内不再强拆，
@@ -917,67 +1114,94 @@ function autoSyllables(w){
     if(buf) segs.push(buf);
     if(segs.length > 1) return segs.map(text => ({ text, stress:false }));
   }
-  // 1. VCV/VCCV 粗拆（元音组 + 辅音归属规则）
-  const vowels = "aeiouyAEIOUY";
-  const n = w.length;
-  const isV = [];
-  for(let i=0;i<n;i++) isV.push(vowels.includes(w[i]));
-  const vGroups = [];
-  let i = 0;
-  while(i < n){
-    if(isV[i]){
-      let j = i;
-      while(j+1 < n && isV[j+1]) j++;
-      vGroups.push([i, j]);
-      i = j + 1;
-    } else {
-      i++;
-    }
+  // 1) 优先用 cmudict 精确边界（内置词库覆盖 98.9%）
+  const info = (typeof SYLLABLES_DATA !== 'undefined' && SYLLABLES_DATA[w.toLowerCase()]) || null;
+  if(info && info.l && info.l.length){
+    const n = info.n || info.l.length;
+    return info.l.map((text, idx) => ({ text: text, stress: n > 0 && idx === info.s }));
   }
-  let segs;
-  if(vGroups.length <= 1){
-    segs = [w];
-  } else {
-    segs = [];
-    let start = 0;
-    for(let g=0; g<vGroups.length; g++){
-      const ge = vGroups[g][1];
-      if(g === vGroups.length - 1){
-        segs.push(w.slice(start));
-      } else {
-        const ns = vGroups[g+1][0];
-        const consCount = ns - ge - 1;
-        let end = ge;
-        if(consCount >= 2) end = ge + 1;
-        segs.push(w.slice(start, end + 1));
-        start = end + 1;
+  // 2) 词典外：规则兜底
+  return ruleSyllables(w).map(text => ({ text, stress:false }));
+}
+
+// 朗读分段：屏幕显示用词典写法（ge·og·ra·phy），逐段朗读要用发音式（ge-o-gra-phy）。
+// 否则 "his·tor·y" 的 "y"、"fam·i·ly" 的 "i" 单独念会被读成 /waɪ/、/aɪ/，听着完全不对。
+// 两套切点数量一致，高亮下标仍一一对应。
+function readSyllables(w){
+  if(!w) return null;
+  const info = (typeof SYLLABLES_DATA !== 'undefined' && SYLLABLES_DATA[String(w).toLowerCase()]) || null;
+  if(!info || !info.p || !info.p.length) return null;
+  const s = String(w), out = [];
+  let prev = 0;
+  for(const c of info.p){ if(c > prev && c < s.length){ out.push(s.slice(prev, c)); prev = c; } }
+  out.push(s.slice(prev));
+  return out.filter(Boolean);
+}
+
+// 规则兜底拆分：元音组 + 最大音节首 + 双写辅音边界拆分
+// 仅用于词典外生词。准确率不及 cmudict，但明显优于旧的「按元音组平均切」。
+function ruleSyllables(w){
+  const lower = w.toLowerCase();
+  const L = lower.length;
+  const isV = c => 'aeiouy'.includes(c);
+  const groups = [];
+  let i = 0;
+  while(i < L){
+    if(isV(lower[i])){
+      let j = i;
+      while(j + 1 < L && isV(lower[j + 1])) j++;
+      groups.push([i, j]);
+      i = j + 1;
+    } else i++;
+  }
+  if(groups.length <= 1) return [w];
+  // 相邻元音组之间的辅音，按「最大合法音节首」分配给后一个音节
+  const cuts = [0];
+  for(let g = 0; g < groups.length - 1; g++){
+    const end = groups[g][1];
+    const nextStart = groups[g + 1][0];
+    const cons = lower.slice(end + 1, nextStart);
+    let take = cons.length;                 // 默认全部留给前一音节（闭音节）
+    for(let t = cons.length; t >= 1; t--){
+      if(isLegalOnsetStr(cons.slice(cons.length - t))){ take = cons.length - t; break; }
+    }
+    cuts.push(end + 1 + take);
+  }
+  cuts.push(L);
+  let out = [];
+  for(let k = 0; k < cuts.length - 1; k++) out.push(w.slice(cuts[k], cuts[k + 1]));
+  // 双写辅音在边界处拆分（hap-py / let-ter）
+  for(let k = 0; k < out.length - 1; k++){
+    const cur = out[k + 1];
+    if(cur.length >= 2){
+      const c = cur[0].toLowerCase();
+      if(cur[1].toLowerCase() === c && !isV(c)){
+        out[k] += cur[0];
+        out[k + 1] = cur.slice(1);
       }
     }
   }
-  // 2. cmudict 权威校准：音节数 + 主重音位置（覆盖 98.8% 词）
-  const info = (typeof SYLLABLES_DATA !== 'undefined' && SYLLABLES_DATA[w.toLowerCase()]) || null;
-  let stress = -1;
-  // 防护：cmudict 中个别词（如缩写 mm）音节数为 0，此时跳过校准，避免死循环
-  if(info && info.n >= 1){
-    let arr = segs;
-    // 音节数多拆了（如 silent e）→ 合并最短的相邻对
-    while(arr.length > 1 && arr.length > info.n){
-      let bi = 0, bl = Infinity;
-      for(let k=0;k<arr.length-1;k++){ const c = arr[k].length + arr[k+1].length; if(c < bl){ bl = c; bi = k; } }
-      arr[bi] = arr[bi] + arr[bi+1]; arr.splice(bi+1, 1);
+  // 合并无元音字母的成音节辅音段（-le 结尾除外）
+  const clean = [];
+  for(let k = 0; k < out.length; k++){
+    const t = out[k];
+    if(t && !/[aeiouy]/i.test(t) && !/le$/i.test(t) && clean.length){
+      clean[clean.length - 1] += t;         // 并入前一段
+    } else if(t){
+      clean.push(t);
     }
-    // 音节数少拆了 → 拆分最长的音节（只拆长度>=2的音节，避免拆出空串）
-    while(arr.length < info.n){
-      let mi = -1;
-      for(let k=0;k<arr.length;k++) if(arr[k].length >= 2 && (mi === -1 || arr[k].length > arr[mi].length)) mi = k;
-      if(mi === -1) break; // 没有可拆的音节，终止
-      const s = arr[mi], mid = Math.floor(s.length / 2);
-      arr.splice(mi, 1, s.slice(0, mid), s.slice(mid));
-    }
-    segs = arr;
-    stress = info.s;
   }
-  return segs.map((text, idx)=>({ text, stress: idx===stress }));
+  return clean.length ? clean : [w];
+}
+
+// 合法英语音节首（字母串）
+function isLegalOnsetStr(s){
+  if(s.length <= 1) return true;
+  const a = s[0], b = s[1];
+  if('bcdfgkpt'.includes(a) && 'lrw'.includes(b)) return true;
+  if(a === 's') return 'ptkmnwlfv'.includes(b) || b === 's';
+  if(s.length === 3) return a === 's' && 'ptk'.includes(b) && 'lrw'.includes(s[2]);
+  return false;
 }
 
 /* ================= 全局状态 ================= */
@@ -1272,8 +1496,12 @@ async function playSyllables(wordData){
   if(!wordData) return;
   const token = playToken;                       // 本次播放的“代次”
   const sp = speedCfg();
-  const syls = (wordData.syllables || []).filter(s=>s && s.text);
   const word = wordData.word;
+  // 显示分段 vs 朗读分段：数量一致时用发音式切点替换朗读文本
+  const readSegs = readSyllables(word);
+  const syls = (readSegs && readSegs.length === (wordData.syllables || []).length)
+    ? readSegs.map(text => ({ text }))
+    : (wordData.syllables || []).filter(s=>s && s.text);
   const sylEls = Array.from(document.querySelectorAll(".word-text .syl"));
   playing = true;
 
@@ -1474,6 +1702,306 @@ function toggleFamily(btn){
   btn.textContent = collapsed ? `展开全部 ${n} 个 ▾` : '收起 ▴';
 }
 
+/* ================= 学习页：词族导图 / 例句分级 / 猜词预热 ================= */
+// 词库适配接口：bank/*.js 未加载时返回 null，行为与改造前完全一致。
+// 将来只需在数据脚本区加一行 <script src="bank/gaokao.js">，学习页就会自动优先使用新词库。
+// 四六级词库按需加载：只在用到四六级词时才拉 1.6MB，中高考用户不受影响
+let cetLoading = null;
+function ensureCetPack(){
+  if(typeof BANK_PACK_CET !== 'undefined') return Promise.resolve(true);
+  if(cetLoading) return cetLoading;
+  cetLoading = new Promise(res => {
+    const s = document.createElement('script');
+    s.src = 'bank/pack_cet.js';
+    s.onload = () => res(true);
+    s.onerror = () => { cetLoading = null; res(false); };
+    document.head.appendChild(s);
+  });
+  return cetLoading;
+}
+function isCetLevel(lv){ return lv === '四级' || lv === '六级'; }
+// 真题类型：中考/高考/四级/六级
+function isExamType(t){ return t === 'gaokao' || t === 'zhongkao' || t === 'cet4' || t === 'cet6'; }
+// 这条真题句是否与当前学段匹配（匹配的加权更多）
+function examMatched(t, level){
+  return (t === 'zhongkao' && level === '初中') || (t === 'gaokao' && level === '高中')
+      || (t === 'cet4' && level === '四级') || (t === 'cet6' && level === '六级');
+}
+
+// 当前词库是四级/六级时，后台把词库包拉下来；到货后静默重画一次
+let cetWired = false;
+function warmCetPack(){
+  if(cetWired) return;
+  const g = GROUPS[currentGroup];
+  if(!g || !isCetLevel(g.level)) return;
+  cetWired = true;
+  ensureCetPack().then(ok => {
+    if(!ok){ cetWired = false; return; }
+    try{
+      for(const w of words()) w._bankOn = false;
+      learnSig = '';
+      if(appMode === 'learn') renderLearn();
+      else renderAll();
+    }catch(e){}
+  });
+}
+
+function resolveLearnData(w){
+  if(!w) return null;
+  const k = String(w.word || '').toLowerCase();
+  if(typeof BANK_PACK !== 'undefined' && BANK_PACK){
+    const hit = BANK_PACK[k] || BANK_PACK[w.word];
+    if(hit) return hit;
+  }
+  if(typeof BANK_PACK_CET !== 'undefined' && BANK_PACK_CET){
+    const hit = BANK_PACK_CET[k] || BANK_PACK_CET[w.word];
+    if(hit) return hit;
+  }
+  return null;
+}
+// 把词库数据挂到单词对象上（幂等，只做一次）。没命中词库的词保持原样。
+function applyBank(w){
+  if(!w || w._bankOn) return w;
+  const b = resolveLearnData(w);
+  if(!b) return w;          // 不标记，等四六级包到位后还能再补
+  w._bankOn = true;
+  // ① 真题例句排最前，接着是词库里「带中文+出处」的词典句，最后接原有词典句
+  const oldEx = Array.isArray(w.examples) ? w.examples.slice() : [];
+  const bankEx = (b.ex || []).map(e => ({ en:e[0], cn:e[3] || '', src:e[1] || '', srcType:e[2] || '' }));
+  const bankDict = (b.dx || []).map(e => ({ en:e[0], cn:e[1] || '', src:e[2] || '' }));
+  const merged = bankEx.concat(bankDict);
+  if(merged.length){
+    const seen = new Set(merged.map(e => String(e.en).toLowerCase()));
+    w.examples = merged.concat(oldEx.filter(e => !seen.has(String(e.en).toLowerCase())));
+  }
+  // ② 英美音标 + 来源
+  if(Array.isArray(b.ph)){
+    if(b.ph[0]) w.ukPhonetic = b.ph[0];
+    if(b.ph[1]) w.usPhonetic = b.ph[1];
+    if(b.ph[0] || b.ph[1]){
+      w._phFromBank = true;
+      w._phSrc = Array.isArray(b.phs) ? b.phs : [];
+    }
+  }
+  // ③ 词频徽标
+  if(b.co) w.collins = b.co;
+  if(b.ox) w.oxford = b.ox;
+  if(b.fr) w.frq = b.fr;
+  w._taskEx = null;        // 例句变了，题型的例句分配要重算
+  return w;
+}
+
+// ---- 学段词表（懒构建，用于判断例句超纲程度）----
+let LEVEL_VOCAB = null;
+const LEVEL_ORDER = ["初中","高中","四级","六级"];
+const LEVEL_EXPECT_LEN = { "初中":10, "高中":14, "四级":18, "六级":20 };
+const FUNC_WORDS = ("a an the and or but if because when while that which who whom whose what how why where this these those it its " +
+  "he she they them his her their we our you your i me my mine not no nor so than then there here as at by for from in into of on onto " +
+  "over to up with without about above after again against all am are be been being both can could did do does doing down during each " +
+  "few had has have having just may might more most much must now off once only other out own same should some such too under until very " +
+  "was were will would one two three first last many another get got make made take took").split(" ");
+
+function buildLevelVocab(){
+  const sets = {};
+  const acc = new Set(FUNC_WORDS);
+  for(const lv of LEVEL_ORDER){
+    (WORD_DB[lv] || []).forEach(([w]) => acc.add(String(w).toLowerCase()));
+    sets[lv] = new Set(acc);
+  }
+  LEVEL_VOCAB = sets;
+  return sets;
+}
+function vocabFor(level){
+  if(!LEVEL_VOCAB) buildLevelVocab();
+  return LEVEL_VOCAB[level] || LEVEL_VOCAB["初中"];
+}
+function currentLevelName(){
+  const g = GROUPS[currentGroup];
+  const w = words()[learnIndex];
+  return (g && g.level) || (w && w.level) || "初中";
+}
+
+// 例句难度分：越小越贴合当前学段
+function scoreExample(en, level, cn){
+  const plain = String(en || '').replace(/<[^>]+>/g, '');
+  const toks = plain.toLowerCase().match(/[a-z][a-z'’-]*/g) || [];
+  const expect = LEVEL_EXPECT_LEN[level] || 12;
+  let s = Math.abs(toks.length - expect) * 1.2;
+  const vocab = vocabFor(level);
+  let oov = 0;
+  for(const t of toks) if(!vocab.has(t)) oov++;
+  s += oov * 1.0;
+  // 句中最难的两个词，星级越低越难
+  if(typeof ECDICT_DATA !== 'undefined' && ECDICT_DATA){
+    const stars = toks
+      .map(t => { const e = ECDICT_DATA[t]; return e && e.collins ? Number(e.collins) : 0; })
+      .filter(Boolean).sort((a, b) => a - b).slice(0, 2);
+    if(stars.length) s += (stars.reduce((a, b) => a + (5 - b), 0) / stars.length) * 0.4;
+  }
+  if(!cn) s += 2.0;   // 没有中文译文降权
+  return s;
+}
+
+// 选 2~3 条例句：词典句 + 报刊句一起打分，保证至少一条带中文
+function pickLearnExamples(w, n){
+  n = n || 3;
+  const level = currentLevelName();
+  const pool = [];
+  (w.examples || []).forEach((e, i) => pool.push({
+    en: e.en, cn: e.cn || '',
+    // 早期抓取的例句只存了英文和中文，丢了书名。它们确实来自有道词典接口，
+    // 补一个诚实的来源标签（不是编书名），保证"每条例句都能标出来源"
+    src: e.src || '有道词典',
+    srcType: e.srcType || '',
+    _real: !!e.src,
+    key: 'd' + i
+  }));
+  (w.extras || []).forEach((e, i) => pool.push({ en: e.en, cn: '', src: e.src || '', srcType: '', _real: !!e.src, key: 'x' + i }));
+  if(!pool.length) return [];
+  const scored = pool.map(p => {
+    let s = scoreExample(p.en, level, p.cn);
+    // 人工补充句（管理页加的）排最前：那是有人专门挑过的句子
+    if(p.srcType === 'manual') s -= 10.5;
+    // 真题优先：同学段的真题句大幅加权；句子太长时仍会被长度罚分压下去，不会硬塞难句
+    else if(isExamType(p.srcType)){
+      s -= examMatched(p.srcType, level) ? 10 : 6;
+    }
+    // 来源优先：有具体出处的加权，既有中文又有出处的再加一档
+    if(p._real) s -= 1.5;
+    if(p._real && p.cn) s -= 2.2;
+    return { ...p, _s: s };
+  });
+  scored.sort((a, b) => a._s - b._s);
+  const out = scored.slice(0, n);
+  // 前两条里必须有一条带中文，否则零基础的学生看不到译文；优先挑"有具体出处"的那条
+  if(out.length && !out.slice(0, 2).some(p => p.cn)){
+    const withCn = scored.find(p => p.cn && p._real && !out.includes(p)) || scored.find(p => p.cn && !out.includes(p));
+    if(withCn) out[Math.min(1, out.length - 1)] = withCn;
+  }
+  return out;
+}
+
+// ---- 词族导图 ----
+// 图片占据 (60,74)-(340,274)，左右只剩 60px 放不下节点，所以节点只排在上/下两排
+const MM_POS = {
+  1: [[200, 316]],
+  2: [[200, 26], [200, 318]],
+  3: [[200, 24], [110, 318], [290, 318]],
+  4: [[100, 26], [300, 26], [100, 318], [300, 318]],
+  5: [[80, 26], [200, 22], [320, 26], [130, 318], [270, 318]],
+  6: [[80, 26], [200, 22], [320, 26], [80, 318], [200, 324], [320, 318]]
+};
+function mmLayout(n){
+  const k = Math.max(1, Math.min(6, n));
+  return MM_POS[k] || MM_POS[2];
+}
+function renderMindmap(w, famPick){
+  const pick = famPick || pickFamily(w);
+  const members = (pick.list || []).slice(0, 6);
+  if(!members.length) return `<div class="mm-wrap"></div><div class="mm-empty">暂无同源词 / 派生词</div>`;
+  const pos = mmLayout(members.length);
+  const cx = 200, cy = 174;
+  const paths = pos.map(([x, y]) => {
+    const mx = (cx + x) / 2, my = (cy + y) / 2;
+    const dx = x - cx, dy = y - cy;
+    const px = mx - dy * 0.12, py = my + dx * 0.12;
+    return `<path d="M${cx},${cy} Q${px.toFixed(1)},${py.toFixed(1)} ${x},${y}"/>`;
+  }).join('');
+  const nodes = members.map((m, i) => {
+    const [x, y] = pos[i];
+    const cn = String(m.cn || '').replace(/^[a-z]+\.\s*/i, '').split(/[，,；;]/)[0].slice(0, 10);
+    return `<div class="mm-node" style="left:${x}px;top:${y}px" data-say="${escapeHtml(m.w)}" onclick="playDataSay(this)" title="${escapeHtml(m.w)}${cn ? ' ' + escapeHtml(cn) : ''}">
+      <div class="n-en">${escapeHtml(m.w)}</div>${cn ? `<div class="n-cn">${escapeHtml(cn)}</div>` : ''}</div>`;
+  }).join('');
+  return `<div class="mm-wrap">${nodes}</div><svg class="mm-lines" viewBox="0 0 400 342" preserveAspectRatio="none">${paths}</svg>`;
+}
+
+// ---- 课前猜词预热（三选一）----
+const PREHEAT = { on: true, showWord: true };
+// 支持 ?preheat=0 关闭预热（便于课堂演示或调试）
+try{ if(new URLSearchParams(location.search).get('preheat') === '0') PREHEAT.on = false; }catch(e){}
+let preheatState = { done: new Set() };
+function preheatEnabled(){
+  if(!PREHEAT.on) return false;
+  return loadStore(LS.preheat, true) !== false;
+}
+function wordImage(word){
+  const k = String(word).toLowerCase();
+  if(typeof PICS_DATA !== 'undefined' && PICS_DATA[k]) return PICS_DATA[k];
+  if(typeof ATLAS_PICS !== 'undefined' && ATLAS_PICS[k]) return ATLAS_PICS[k];
+  return '';
+}
+// 挑 2 个干扰图：同学段、有图、按 URL 去重（有道图库存在多词共用一张图的情况）
+function pickGuessDistractors(w, n){
+  n = n || 2;
+  const target = wordImage(w.word);
+  if(!target) return null;                       // 目标词没图就直接跳过预热
+  const used = new Set([target]);
+  const picked = [];
+  const push = (x) => {
+    if(!x || x.word === w.word) return;
+    if(picked.length >= n) return;
+    const img = wordImage(x.word);
+    if(!img || used.has(img)) return;
+    used.add(img);
+    picked.push({ word: x.word, img });
+  };
+  // ① 同词族优先，② 同批词，③ 同学段词
+  try{
+    const fam = pickFamily(w).list || [];
+    for(const m of fam) push(words().find(x => x.word === m.w));
+    for(const m of fam) push((GROUPS[currentGroup].words || []).find(x => x.word === m.w));
+  }catch(e){}
+  for(const x of words()) push(x);
+  for(const x of (GROUPS[currentGroup].words || [])) push(x);
+  if(picked.length < n) return null;
+  const pack = picked.slice(0, n).map(x => ({ ...x, correct: false }));
+  pack.splice(Math.floor(Math.random() * (pack.length + 1)), 0, { word: w.word, img: target, correct: true });
+  return pack;
+}
+function preheatHtml(w, pack){
+  if(!pack) return '';
+  const cards = pack.map((c, i) => `<div class="ph-card" data-ok="${c.correct ? 1 : 0}" onclick="answerPreheat(${i},this)">
+    <img src="${c.img}" alt="" loading="lazy" onerror="this.style.visibility='hidden'"></div>`).join('');
+  return `<div class="preheat"><div class="preheat-q">先猜一猜：哪张图是 <b>${escapeHtml(w.word)}</b>？</div><div class="preheat-grid">${cards}</div></div>`;
+}
+function answerPreheat(i, el){
+  const grid = el && el.parentElement;
+  if(!grid) return;
+  if(el.dataset.ok === '1'){
+    el.classList.add('right');
+    Array.from(grid.children).forEach(c => { c.style.pointerEvents = 'none'; });
+    setTimeout(() => {
+      const main = document.querySelector('.learn-main');
+      if(main) main.classList.remove('masked');
+      const box = document.querySelector('.preheat');
+      if(box) box.remove();
+      const w = words()[learnIndex];
+      if(w){
+        preheatState.done.add(String(w.word).toLowerCase());
+        learnSig = learnSignature();      // 避免返回本页时重复弹预热
+        playWordAudio(w.word);
+      }
+    }, 620);
+  }else{
+    el.classList.add('wrong');
+    setTimeout(() => el.classList.remove('wrong'), 500);
+  }
+}
+// 例句朗读：用 data-say 传文本，避免例句重排后下标错位
+function speakDataSentence(el){
+  if(el && el.dataset && el.dataset.say) speakSentence(el.dataset.say);
+}
+// 展开/收起第 3 条例句
+function toggleMoreEx(btn){
+  const box = document.getElementById('exRest');
+  if(!box) return;
+  const collapsed = box.classList.toggle('hidden');
+  const n = box.children.length;
+  btn.textContent = collapsed ? `更多例句（${n}）▾` : '收起 ▴';
+}
+
+
 /* ================= 渲染 ================= */
 function renderTabs(){
   $("#groupTabs").innerHTML = GROUPS.map((g,i)=>`<div class="menu-group-tab ${i===currentGroup?'active':''}" onclick="switchGroup(${i})"><span>${g.emoji}</span><span>${g.name}</span></div>`).join("");
@@ -1571,6 +2099,7 @@ const MODE_META = {
 function renderAll(opts){
   // 兜底：批次/词库变化后 learnIndex 可能越界，先夹紧再渲染
   if(appMode === 'learn'){ const n = words().length; if(n && learnIndex >= n) learnIndex = n - 1; }
+  warmCetPack();
   renderTabs(); renderSteps(); updateProgress(); updateBadges(); updateRankUI();
   if(appMode !== 'learn' && MODE_META[appMode]){
     if($("#mainTitle")) $("#mainTitle").textContent = MODE_META[appMode][0];
@@ -1587,6 +2116,8 @@ function renderAll(opts){
   ["miReview","miWrongbook","miDecks","miAchievement","miBattle"].forEach(id=>{ const el=$("#"+id); if(el) el.classList.remove("active"); });
   if(miMap[appMode]){ const el=$("#"+miMap[appMode]); if(el) el.classList.add("active"); }
   stopAudio();
+  // 离开题型页时兜底停掉倒计时与背景节奏，避免"人走了还在扣时间/还在响"
+  stopCountdown(); stopBgm(); clearFb();
   updateBackBar();
   if(appMode==='review'){ renderReview(); window.scrollTo({top:0}); return; }
   if(appMode==='wrongbook'){ renderWrongbook(); window.scrollTo({top:0}); return; }
@@ -1626,7 +2157,7 @@ function updateBackBar(){
 }
 
 /* ================= 复习巩固：错题本 + 艾宾浩斯 + 自定义词库 ================= */
-const LS = { wrongbook:'lx_wrongbook', studylog:'lx_studylog', decks:'lx_decks', activeDeck:'lx_active_deck' };
+const LS = { wrongbook:'lx_wrongbook', studylog:'lx_studylog', decks:'lx_decks', activeDeck:'lx_active_deck', preheat:'lx_preheat' };
 const EBB_INTERVALS = [1, 2, 4, 7, 15, 30]; // 艾宾浩斯遗忘曲线间隔（天）
 const DAY = 86400000;
 
@@ -2562,7 +3093,8 @@ function importBackup(input){
 let learnSig = '';   // 当前学习页的渲染签名（同一词重复进入时可直接复用 DOM）
 function learnSignature(){
   const w = words()[learnIndex];
-  return [currentGroup, learnIndex, words().length, w ? w.word : '', currentBatch[0] ? currentBatch[0].word : ''].join('|');
+  const pre = w && preheatState.done.has(String(w.word).toLowerCase()) ? '1' : '0';
+  return [currentGroup, learnIndex, words().length, w ? w.word : '', currentBatch[0] ? currentBatch[0].word : '', pre].join('|');
 }
 function renderLearn(){
   const w = words()[learnIndex];
@@ -2574,56 +3106,92 @@ function renderLearn(){
     return;
   }
   $("#learnPage").classList.remove("hidden");
-  // 构建带音节高亮的单词显示
+
+  // 词库适配：命中 bank 时把真题例句/英美音标挂到词上，未命中则完全按原样渲染
+  applyBank(w);
+  const famPick = pickFamily(w);
+
+  // 音节分段（只改展示位置，拆分与朗读逻辑未动）
   const wordSpans = w.syllables.map(s=>`<span class="syl${s.stress?' stress':''}">${s.text}</span>`).join("");
-  // 例句渲染（高亮目标词）
-  const exHtml = w.examples.map((e,i)=>{
-    const enHtml = e.en.replace(/<B>(.*?)<\/B>/g, (m,p1)=>`<b>${p1}</b>`);
-    return `<div class="example"><div class="en"><button class="ex-speak" onclick="speakExampleAt(${i})" title="听例句">🔊</button>${enHtml}</div><div class="cn">${escapeHtml(e.cn)}</div></div>`;
-  }).join("");
-  // 权威数据区块：WordNet 英文释义 + 同义词（来源标注）
+
+  // 例句：按学段挑 2~3 条，默认展示 2 条，其余折起来保证一屏放得下
+  const exList = pickLearnExamples(w, 3);
+  const renderEx = (e) => {
+    const enHtml = String(e.en).replace(/<B>(.*?)<\/B>/g, (m,p1)=>`<b>${p1}</b>`);
+    const plain = String(e.en).replace(/<[^>]+>/g,'');
+    const isExam = isExamType(e.srcType);
+    const badge = isExam ? '<b class="ex-badge">真题</b>'
+      : (e.srcType === 'manual' ? '<b class="ex-badge ex-badge-manual">自建</b>' : '');
+    const src = e.src ? `<span class="ex-src">${badge}${escapeHtml(e.src)}</span>` : '';
+    return `<div class="example">
+      <div class="en"><button class="ex-speak" data-say="${escapeHtml(plain)}" onclick="speakDataSentence(this)" title="听例句">🔊</button><span>${enHtml}</span></div>
+      ${e.cn ? `<div class="cn">${escapeHtml(e.cn)}</div>` : ''}${src}</div>`;
+  };
+  const exMainHtml = exList.slice(0, 2).map(renderEx).join("") || `<div class="example"><div class="cn">该词暂无例句</div></div>`;
+  const exRest = exList.slice(2);
+  const exRestHtml = exRest.length
+    ? `<div class="ex-list hidden" id="exRest">${exRest.map(renderEx).join("")}</div>
+       <button class="ex-more" onclick="toggleMoreEx(this)">更多例句（${exRest.length}）▾</button>`
+    : '';
+
+  // 音标：命中词库时用「英美双音标 + 各自来源」，否则沿用 ECDICT + Wiktionary
+  const phHtml = w._phFromBank
+    ? `${w.ukPhonetic ? `<span class="src-tag">英${w._phSrc && w._phSrc[0] ? '·' + escapeHtml(w._phSrc[0]) : ''}</span> ${w.ukPhonetic}` : ''}${w.usPhonetic ? ` &nbsp; <span class="src-tag">美${w._phSrc && w._phSrc[1] ? '·' + escapeHtml(w._phSrc[1]) : ''}</span> ${w.usPhonetic}` : ''}`
+    : (w.ukPhonetic || w.usPhonetic)
+      ? `${w.ukPhonetic ? '<span class="src-tag">英·ECDICT</span> ' + w.ukPhonetic : ''}${w.usPhonetic ? ' &nbsp; <span class="src-tag">IPA·Wiktionary</span> ' + w.usPhonetic : ''}`
+      : '<span class="phonetic-loading">音标加载中…</span>';
+
+  // 词频徽标行（原先的两个大区块压缩成一行，给一屏腾高度）
+  const badges = [];
+  if(w.collins) badges.push(`<span class="bd">柯林斯 <b class="stars">${'★'.repeat(Math.min(5, w.collins))}</b></span>`);
+  if(w.oxford) badges.push(`<span class="bd ox-badge">牛津3000</span>`);
+  if(w.frq) badges.push(`<span class="bd">词频 #${w.frq}</span>`);
+  if(famPick && famPick.rinfo && famPick.rinfo.root){
+    const rm = famPick.rootMeaning ? `（${escapeHtml(String(famPick.rootMeaning).slice(0,6))}）` : '';
+    badges.push(`<span class="bd">词根 ${escapeHtml(famPick.rinfo.root)}${rm}</span>`);
+  }
+  const badgeHtml = badges.length ? `<div class="badge-row">${badges.join('')}</div>` : '';
+
+  // 英文释义默认收起
   const defHtml = (w.def || w.synonyms.length) ? `
-    <div class="sec-head"><h3>📖 英文释义 <span class="src-tag">WordNet</span></h3></div>
-    <div class="word-def">${w.def || ''}</div>
-    ${w.synonyms.length ? `<div class="word-syn">近义 · ${w.synonyms.slice(0,6).join('、')}</div>` : ''}` : '';
-  // 权威数据区块：ECDICT 柯林斯星级 / 牛津3000 / 词频（来源标注）
-  const statsHtml = (w.collins || w.frq || w.oxford) ? `
-    <div class="sec-head"><h3>📊 词频 · 星级 <span class="src-tag">ECDICT</span></h3></div>
-    <div class="word-stats">
-      ${w.collins ? `柯林斯星级 <b class="stars">${'★'.repeat(Math.min(5, w.collins))}</b>` : ''}
-      ${w.oxford ? ' · <b class="ox-badge">牛津3000核心词</b>' : ''}
-      ${w.frq ? ` · 常用度排名 <b>#${w.frq}</b>` : ''}
-    </div>` : '';
-  // 音标：本地 ECDICT 英式 + Wiktionary IPA，标注来源
-  const phHtml = (w.ukPhonetic || w.usPhonetic)
-    ? `${w.ukPhonetic ? '<span class="src-tag">英·ECDICT</span> ' + w.ukPhonetic : ''}${w.usPhonetic ? ' &nbsp; <span class="src-tag">IPA·Wiktionary</span> ' + w.usPhonetic : ''}`
-    : '<span class="phonetic-loading">音标加载中…</span>';
-  // 词汇发散：词根拆解 + 词族折叠卡 + 近义词辨析
-  const mindmapHtml = renderVocabFamily(w);
+    <details class="word-def">
+      <summary>英文释义 · 同义词 <span class="src-tag">WordNet</span></summary>
+      <div class="word-def">${w.def || ''}</div>
+      ${w.synonyms.length ? `<div class="word-syn">近义 · ${w.synonyms.slice(0,6).join('、')}</div>` : ''}
+    </details>` : '';
+
+  // 猜词预热（三选一）
+  const preheatOn = preheatEnabled() && !preheatState.done.has(String(w.word).toLowerCase());
+  const guessPack = preheatOn ? pickGuessDistractors(w, 2) : null;
+  const preheatMarkup = guessPack ? preheatHtml(w, guessPack) : '';
+
   // 图片：有则显示，无则占位（异步加载）
   const imgHtml = w.imageUrl
-    ? `<img src="${w.imageUrl}" alt="${w.word}" onerror="this.parentElement.innerHTML='<span class=&quot;emoji&quot;>🖼️</span>'">`
+    ? `<img src="${w.imageUrl}" alt="${escapeHtml(w.word)}" onerror="this.parentElement.innerHTML='<span class=&quot;emoji&quot;>🖼️</span>'">`
     : `<span class="emoji" id="imgPlaceholder">🖼️</span>`;
+
   $("#learnPage").innerHTML = `
     <div class="learn-grid">
-      <div class="word-main">
+      <div class="learn-visual">
         <div class="word-img" id="wordImg">${imgHtml}</div>
-        <div class="word-text">${wordSpans}</div>
+        ${renderMindmap(w, famPick)}
+      </div>
+      <div class="learn-main${guessPack ? ' masked' : ''}">
+        ${preheatMarkup}
+        <div class="word-text${String(w.word).length >= 15 ? ' long' : ''}">${wordSpans}</div>
         <div class="word-phonetic" id="phoneticBox">${phHtml}</div>
-        <div class="word-cn">${w.cn}</div>
+        <div class="word-cn">${escapeHtml(w.cn)}</div>
         <div class="speak-row">
-          <button class="btn-speak" onclick="playCurrentWord()">🔊 整词发音</button>
-          <button class="btn-speak" onclick="playSyllables(words()[${learnIndex}])">🔊 音节拆分朗读</button>
-          <button class="btn-speak" data-word="${escapeHtml(w.word)}" data-cn="${escapeHtml(w.cn)}" onclick="markWrongFromBtn(this)">📌 标记易错</button>
+          <button class="btn-speak" onclick="playCurrentWord()">🔊 整词</button>
+          <button class="btn-speak" onclick="playSyllables(words()[${learnIndex}])">🔊 音节</button>
+          <button class="btn-speak" data-word="${escapeHtml(w.word)}" data-cn="${escapeHtml(w.cn)}" onclick="markWrongFromBtn(this)">📌 易错</button>
           ${speedSwitchHtml()}
         </div>
-      </div>
-      <div class="word-info">
-        ${mindmapHtml}
+        ${badgeHtml}
         ${defHtml}
-        ${statsHtml}
-        <div class="sec-head"><h3>💬 常用例句</h3>${speedSwitchHtml()}</div>
-        ${exHtml}
+        <div class="sec-head"><h3>💬 常用例句</h3></div>
+        <div class="ex-list">${exMainHtml}</div>
+        ${exRestHtml}
       </div>
     </div>
     <div class="nav-btns">
@@ -2633,12 +3201,14 @@ function renderLearn(){
     </div>
   `;
   learnSig = learnSignature();
-  // 自动播放读音：延时器可取消，离开页面不会再“延迟出声”
+  // 自动播放读音：预热未完成时不播，否则等于把答案读出来
   if(learnAudioTimer) clearTimeout(learnAudioTimer);
-  learnAudioTimer = setTimeout(()=>{
-    learnAudioTimer = null;
-    if(appMode === 'learn' && currentStep === 0) playWordAudio(w.word);
-  }, 320);
+  if(!guessPack){
+    learnAudioTimer = setTimeout(()=>{
+      learnAudioTimer = null;
+      if(appMode === 'learn' && currentStep === 0) playWordAudio(w.word);
+    }, 320);
+  }
   // 异步加载音标和图片
   loadPhonetic(w);
   loadImage(w);
@@ -2781,31 +3351,591 @@ function prevWord(){
   }
 }
 
+/* ================= 通用组件：难度 · 计时 · 解析 · 意群 ================= */
+/* 三档难度不只改秒数：选项数量、干扰项相似度、提示强度、意群数量都跟着变 */
+const DIFF = {
+  basic:{ key:'basic', name:'基础', icon:'🌱', optN:3, near:false, hint:'full',
+          time:{ choice:15, fill:15, sentence:45, trans:25 }, chunk:[3,5] },
+  mid:  { key:'mid',   name:'中等', icon:'🌿', optN:4, near:false, hint:'part',
+          time:{ choice:12, fill:12, sentence:35, trans:22 }, chunk:[5,8] },
+  hard: { key:'hard',  name:'优秀', icon:'🌳', optN:4, near:true,  hint:'none',
+          time:{ choice:10, fill:10, sentence:30, trans:20 }, chunk:[8,99] }
+};
+const DIFF_ORDER = ['basic','mid','hard'];
+const LS_DIFF = 'lx_diff';
+const LS_BGM = 'lx_bgm';
+function curDiff(){
+  let k = 'mid';
+  try{ k = loadStore(LS_DIFF, 'mid') || 'mid'; }catch(e){}
+  return DIFF[k] || DIFF.mid;
+}
+function setDiff(k){
+  if(!DIFF[k] || k === curDiff().key) return;
+  saveStore(LS_DIFF, k);
+  stopCountdown(); stopBgm();
+  toast(`${DIFF[k].icon} 难度已切换为「${DIFF[k].name}」`);
+  rerenderStep();
+}
+// 切难度后原地重画当前题型（保留题号，不清进度）
+function rerenderStep(){
+  if(appMode !== 'learn') return;
+  if(currentStep === 1) renderMatch();
+  else if(currentStep === 2) renderChoiceQ();
+  else if(currentStep === 3) renderFillQ();
+  else if(currentStep === 5) renderSentenceQ();
+  else if(currentStep === 6) renderTransQ();
+}
+function diffBar(){
+  const cur = curDiff();
+  return `<div class="diff-bar">${DIFF_ORDER.map(k=>{
+    const d = DIFF[k];
+    return `<button class="diff-pill${k===cur.key?' on':''}" onclick="setDiff('${k}')">${d.icon} ${d.name}</button>`;
+  }).join('')}</div>`;
+}
+
+/* ---- 释义精简：只取最常用的 N 个义项并标词性；短语（无词性前缀）不标词性 ---- */
+const CN_POS_RE = /^((?:(?:n|v|vt|vi|adj|adv|prep|conj|pron|num|art|int|aux|modal|abbr)\s*\.\s*&?\s*)+)/i;
+const CN_BRACKET_RE = /^[\[【][^\]】]*[\]】]\s*/;
+// 释义清洗：去掉 ECDICT 自带的人文噪音（"n. (Able)人名；(英)埃布尔"）与领域标签（"[经管]"）
+function cleanCnText(cn){
+  const raw = String(cn == null ? '' : cn).trim();
+  if(!raw) return raw;
+  const out = [];
+  let afterPerson = false;
+  for(const part of raw.split(/[；;]/)){
+    let p = part.trim();
+    if(!p) continue;
+    if(/人名|地名|姓氏|译名|旧称/.test(p)){ afterPerson = true; continue; }
+    // 紧跟在"人名"后面的纯音译片段，如 "(英)埃布尔"
+    if(afterPerson && /^[（(][^）)]*[）)]\s*[^a-zA-Z]*$/.test(p)) continue;
+    afterPerson = false;
+    p = p.replace(/\[[^\]]{1,6}\]/g, '').replace(/\s{2,}/g, ' ').trim();
+    if(!p) continue;
+    out.push(p);
+  }
+  const res = out.join('；').replace(/；{2,}/g, '；').replace(/^；|；$/g, '').trim();
+  return res || raw;   // 全部被清掉说明本来就是人名/地名，保留原文
+}
+function coreCn(cn, n){
+  n = n || 2;
+  let raw = String(cn || '').trim();
+  if(!raw) return { pos:'', senses:[], text:'（暂无释义）', short:'（暂无释义）' };
+  raw = raw.replace(CN_BRACKET_RE, '');          // 去掉 [broke-broken] 这类变形标注
+  const posList = [];
+  const pushPos = s => {
+    const t = String(s || '').replace(/\s+/g, '').replace(/&$/, '');
+    if(t && !posList.includes(t)) posList.push(t);
+  };
+  const m0 = raw.match(CN_POS_RE);
+  let body = raw;
+  if(m0){ pushPos(m0[1]); body = body.slice(m0[0].length); }
+  let parts = body.split(/[；;]/).map(s => s.trim()).filter(Boolean);
+  if(!parts.length) parts = [body];
+  const all = [];
+  for(const part of parts){
+    let t = part.replace(CN_BRACKET_RE, '');
+    const m = t.match(CN_POS_RE);
+    if(m){ pushPos(m[1]); t = t.slice(m[0].length); }   // 义项自带的词性挪到统一标签里
+    // 义项内部的逗号是近义并列，只留前半，避免"放弃，抛弃，遗弃，纵情"这类堆砌
+    t = t.split(/[，,]/)[0].trim();
+    if(!t || all.includes(t)) continue;
+    all.push(t);
+  }
+  // "人名/地名"这类词典标注对背单词没有意义，优先剔掉
+  const clean = all.filter(t => !/人名|地名|姓氏|简称/.test(t));
+  const senses = (clean.length ? clean : all).slice(0, n);
+  const pos = posList.join('/');
+  const text = (pos ? pos + ' ' : '') + senses.join('；');
+  return { pos, senses, text, short: senses[0] || '' };
+}
+
+/* ---- 分题型倒计时 ---- */
+let qTimer = null;
+function stopCountdown(){ if(qTimer){ clearInterval(qTimer); qTimer = null; } }
+function startCountdown(sec, onTick, onEnd){
+  stopCountdown();
+  const total = Math.max(1, sec) * 1000;
+  const end = Date.now() + total;
+  const tick = () => {
+    const left = Math.max(0, end - Date.now());
+    if(onTick) onTick(left / 1000, left / total);
+    if(left <= 0){ stopCountdown(); if(onEnd) onEnd(); }
+  };
+  tick();
+  qTimer = setInterval(tick, 100);
+}
+function timerBar(sec){
+  return `<div class="q-timer" id="qTimerBox">
+      <div class="q-timer-track"><i id="qTimerFill"></i></div>
+      <span class="q-timer-num" id="qTimerNum">${sec}s</span>
+    </div>`;
+}
+// 驱动题目上的计时条；到点回调 onEnd（按"超时=答错"处理）
+function runQTimer(sec, onEnd){
+  const fill = $("#qTimerFill"), num = $("#qTimerNum"), box = $("#qTimerBox");
+  startCountdown(sec, (left, ratio) => {
+    if(!fill || !num) return;
+    fill.style.width = Math.max(0, Math.min(1, ratio)) * 100 + '%';
+    num.textContent = Math.ceil(left) + 's';
+    if(box) box.classList.toggle('urgent', ratio <= 0.25);
+  }, onEnd);
+}
+
+/* ---- 答题解析卡（全题型通用） ---- */
+let fbNext = null;
+function fbContinue(){ const f = fbNext; fbNext = null; if(f) f(); }
+function clearFb(){
+  const b = $("#fbBox");
+  if(b){ b.classList.remove("show"); b.innerHTML = ''; }
+  fbNext = null;
+}
+function fbRowsHtml(rows){
+  return rows.filter(r => r && r[1]).map(([k, v]) =>
+    `<div class="fb-row"><span class="fb-k">${escapeHtml(k)}</span><span class="fb-v">${v}</span></div>`).join('');
+}
+function showFb(opts){
+  const box = $("#fbBox");
+  if(!box) return;
+  const ok = !!opts.ok;
+  box.innerHTML = `<div class="fb-card ${ok?'ok':'no'}">
+      <div class="fb-head">${ok ? '✅ 答对了' : '❌ ' + escapeHtml(opts.head || '答错了')}</div>
+      ${fbRowsHtml(opts.rows)}
+      <div class="fb-actions">
+        <button class="btn btn-primary" onclick="fbContinue()">${escapeHtml(opts.btn || '继续 →')}</button>
+        ${opts.tip ? `<span class="fb-tip">${escapeHtml(opts.tip)}</span>` : ''}
+      </div>
+    </div>`;
+  box.classList.add("show");
+  fbNext = opts.onNext || null;
+  try{ box.scrollIntoView({ block:'nearest', behavior:'smooth' }); }catch(e){}
+}
+// 全库/当前批次查词，用于"你选的这个词是什么意思"
+function findWordInfo(word){
+  const k = String(word || '').toLowerCase().trim();
+  if(!k) return null;
+  const hit = words().find(w => w && w.word && w.word.toLowerCase() === k);
+  if(hit) return hit;
+  const a = ALL_WORDS.find(x => x.w.toLowerCase() === k);
+  return a ? { word:a.w, cn:a.cn } : null;
+}
+// 组装一条解析：释义 / 音标 / 你选的 / 例句 / 同源词
+function explainRows(w, chosen){
+  if(!w) return [];
+  const rows = [];
+  const cc = coreCn(w.cn, 3);
+  rows.push(['释义', `<b>${escapeHtml(cc.text)}</b>`]);
+  const ph = w.ukPhonetic || w.usPhonetic || '';
+  if(ph) rows.push(['音标', `<span class="fb-ph">${escapeHtml(normIpa(ph))}</span>`]);
+  if(chosen){
+    const cw = findWordInfo(chosen);
+    if(cw && String(cw.word).toLowerCase() !== String(w.word).toLowerCase()){
+      rows.push(['你选的', `<b>${escapeHtml(cw.word)}</b> ${escapeHtml(coreCn(cw.cn, 1).text)}`]);
+    }
+  }
+  // 例句优先用词汇认知页刚学的那句，形成"学—练"呼应
+  let ex = null;
+  try{ ex = (pickLearnExamples(w, 1) || [])[0] || null; }catch(e){}
+  if(!ex && w.examples && w.examples[0]) ex = w.examples[0];
+  if(ex && ex.en){
+    const en = String(ex.en).replace(/<B>(.*?)<\/B>/gi, '<b>$1</b>').replace(/<(?!\/?b>)[^>]+>/g, '');
+    const srcLine = ex.src ? `<span class="fb-cn">出处：${escapeHtml(ex.src)}</span>` : '';
+    rows.push(['例句', `<span class="fb-ex">${en}${ex.cn ? `<span class="fb-cn">${escapeHtml(ex.cn)}</span>` : ''}${srcLine}</span>`]);
+  }
+  // 构词：同源/派生词给出 2-3 个，帮助建立词族记忆
+  try{
+    const fam = pickFamily(w);
+    const mates = (fam.list || []).filter(x => x.w && x.w.toLowerCase() !== w.word.toLowerCase()).slice(0, 3);
+    if(mates.length) rows.push(['同源词', mates.map(x => `<b>${escapeHtml(x.w)}</b>`).join(' · ')]);
+  }catch(e){}
+  return rows;
+}
+function fbWordAnswer(w, chosen, ok, head){
+  return {
+    ok, head,
+    rows: explainRows(w, chosen),
+    btn: ok ? '继续 →' : '我看懂了，继续 →'
+  };
+}
+
+/* ---- 背景节奏（Web Audio 合成，无外部音频文件；可在 HUD 里一键关闭） ---- */
+const bgm = {
+  ac:null, timer:null, on:false, urgent:false, step:0, muted:false,
+  ensure(){
+    if(this.muted) return null;
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if(!AC) return null;
+    if(!this.ac){
+      try{ this.ac = new AC(); }catch(e){ return null; }
+    }
+    if(this.ac.state === 'suspended'){ try{ this.ac.resume(); }catch(e){} }
+    return this.ac;
+  },
+  blip(freq, dur, type, vol){
+    const ac = this.ac;
+    if(!ac) return;
+    try{
+      const t = ac.currentTime;
+      const o = ac.createOscillator(), g = ac.createGain();
+      o.type = type || 'sine';
+      o.frequency.setValueAtTime(freq, t);
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.linearRampToValueAtTime(vol, t + 0.006);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      o.connect(g); g.connect(ac.destination);
+      o.start(t); o.stop(t + dur + 0.02);
+    }catch(e){}
+  },
+  beat(){
+    this.step++;
+    if(this.step % 4 === 1){ this.blip(104, 0.16, 'sine', 0.09); this.blip(208, 0.09, 'triangle', 0.03); }
+    else this.blip(150, 0.055, 'square', 0.022);
+    if(this.urgent) this.blip(880, 0.03, 'square', 0.018);
+  },
+  start(){
+    if(!this.ensure()) return;
+    if(this.timer) return;
+    this.on = true; this.step = 0;
+    const loop = () => {
+      if(!this.on) return;
+      this.beat();
+      this.timer = setTimeout(loop, this.urgent ? 300 : 420);
+    };
+    this.timer = setTimeout(loop, 80);
+  },
+  stop(){ this.on = false; if(this.timer){ clearTimeout(this.timer); this.timer = null; } this.urgent = false; },
+  setUrgent(v){ this.urgent = !!v; },
+  toggle(){
+    const next = !loadStore(LS_BGM, true);
+    saveStore(LS_BGM, next);
+    this.muted = !next;
+    if(next){ this.start(); } else { this.stop(); }
+    return next;
+  },
+  enabled(){ return !!loadStore(LS_BGM, true); }
+};
+function stopBgm(){ bgm.stop(); }
+
+/* ---- 意群切分：按「介词短语 / 从句 / 标点」成组，而不是拆成单个单词 ---- */
+const PREP_SET = new Set(('about above across after against along among around as at before behind below beneath beside besides between beyond by despite down during except for from in inside into like near of off on onto out outside over past since through throughout till to toward towards under until up upon with within without').split(' '));
+const SUBORD_SET = new Set(('because although though while when whenever where wherever if unless until since than whether that which who whom whose what how why').split(' '));
+const COORD_SET = new Set(['and','but','or','so','yet']);
+const DET_SET = new Set(('a an the this that these those my your his her its our their some any no every each another other').split(' '));
+const AUX_SET = new Set('is am are was were be been being do does did have has had will would can could shall should may might must'.split(' '));
+// 规则动词靠词库里的 "v." 前缀推导变形；不规则动词单独列（went / made / took 这类查不到原形）
+const IRREG_VERBS = new Set(('went gone made took taken said found gave given got gotten knew known saw seen came come thought told became become left felt put brought began begun kept held wrote written stood heard let meant set met ran paid sat spoke spoken led grew grown lost fell fallen sent built understood drew drawn broke broken spent cut rose risen drove driven bought wore worn chose chosen ate eaten read woke woken taught caught threw thrown slept slid sought sold fought struck dealt arose arisen forbade forbidden forgave forgiven froze frozen hid hidden bit bitten blew blown bore borne swore sworn tore torn').split(' '));
+let _verbSet = null;
+function verbForms(){
+  if(_verbSet) return _verbSet;
+  const s = new Set(IRREG_VERBS);
+  const add = w => { if(w && w.length > 1) s.add(w); };
+  for(const lv of Object.keys(WORD_DB)){
+    for(const item of WORD_DB[lv]){
+      const word = String(item[0] || '').toLowerCase().replace(/[^a-z]/g, '');
+      if(!word) continue;
+      const m = String(item[1] || '').match(CN_POS_RE);
+      if(!m || !/v/.test(m[1].toLowerCase())) continue;
+      add(word);
+      if(/e$/.test(word)){ add(word + 's'); add(word + 'd'); add(word.slice(0, -1) + 'ing'); }
+      else if(/[^aeiou]y$/.test(word)){ add(word.slice(0, -1) + 'ies'); add(word.slice(0, -1) + 'ied'); add(word + 'ing'); }
+      else {
+        add(word + 's'); add(word + 'ed'); add(word + 'ing');
+        if(/[^aeiou][aeiou][bdgklmnprt]$/.test(word)){
+          add(word + word.slice(-1) + 'ed');
+          add(word + word.slice(-1) + 'ing');
+        }
+      }
+    }
+  }
+  _verbSet = s;
+  return s;
+}
+function tokenIsVerb(t){
+  if(!t || AUX_SET.has(t)) return false;
+  return verbForms().has(t);
+}
+// 粗略的形容词判断，只用于「形容词 + 名词」不误判成「主语 + 谓语」
+function looksAdj(w){
+  return /(al|ive|ous|ic|ical|able|ible|ful|less|ary|ent|ant|ish)$/.test(String(w || '').toLowerCase().replace(/[,.;:!?]$/, ''));
+}
+function chunkSentence(text){
+  const raw = String(text || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+  if(!raw) return [];
+  const toks = raw.match(/[A-Za-z0-9'’\-]+[,.;:!?]?/g) || [];
+  if(!toks.length) return [];
+  const chunks = [];
+  let cur = [];
+  const flush = () => { if(cur.length){ chunks.push(cur.join(' ')); cur = []; } };
+  const bare = s => String(s || '').toLowerCase().replace(/[,.;:!?]$/, '');
+  const lastBare = () => bare(cur[cur.length - 1]);
+  const curIsPP = () => cur.length > 0 && PREP_SET.has(bare(cur[0]));
+  for(let i = 0; i < toks.length; i++){
+    const tk = toks[i];
+    const low = bare(tk);
+    const prevPunct = i > 0 && /[,.;:!?]$/.test(toks[i - 1]);
+    let boundary = false;
+    if(prevPunct) boundary = true;
+    else if(SUBORD_SET.has(low) && cur.length >= 2) boundary = true;
+    else if(COORD_SET.has(low) && cur.length >= 5) boundary = true;
+    // 介词短语内部不再切：只有"上一个词不是限定词"时才认为前一个介词短语已经说完
+    else if(PREP_SET.has(low) && cur.length >= 2 && !DET_SET.has(lastBare())) boundary = true;
+    // 介词短语说完了，谓语（含助动词）另起一块。
+    // 例外：前一个词是形容词、当前词又长得像第三人称单数/复数（answers、plans、works），
+    // 多半是「形容词 + 名词」，不是谓语，切下去会把 academic answers 劈成两半。
+    else if(cur.length >= 3 && curIsPP() && !COORD_SET.has(lastBare()) && (AUX_SET.has(low) || (tokenIsVerb(low) && !(looksAdj(lastBare()) && /s$/.test(low))))) boundary = true;
+    if(boundary) flush();
+    cur.push(tk);
+    if(/[,.;:!?]$/.test(tk)) flush();
+  }
+  flush();
+  // 把孤零零的单词语群并到相邻语群（否则会出现只有一个 "The" 的碎片）
+  for(let i = chunks.length - 1; i >= 0; i--){
+    if(chunks[i].split(' ').length > 1 || chunks.length === 1) continue;
+    if(i > 0) chunks[i - 1] += ' ' + chunks[i];
+    else chunks[i + 1] = chunks[i] + ' ' + chunks[i + 1];
+    chunks.splice(i, 1);
+  }
+  return chunks;
+}
+// 优秀档如果自然意群不够 8 块，就把最长的那块继续拆细（在 and / to / with 等连接处）
+function forceChunks(chunks, target){
+  const out = chunks.slice();
+  const wc = s => String(s).trim().split(/\s+/).filter(Boolean).length;
+  // 四档切法，从语法边界到弱边界依次退让：
+  // ① 从属连词/关系词 ② 逗号 ③ 助动词/不定式 to ④ 介词
+  // 每轮只切「最长且可切」的一块，且切开后两侧都至少 2 个词，避免切出孤立单词。
+  const TIERS = [
+    { re: /^(.+?)\s+(and|or|but|so|because|although|though|while|when|if|that|which|who|where)\s+(.+)$/i,
+      parts: m => [m[1], m[2] + ' ' + m[3]] },
+    { re: /^(.+?),+\s*(.+)$/,
+      parts: m => [m[1] + ',', m[2]] },
+    { re: /^(.+?)\s+(to|is|are|was|were|has|have|had|will|would|can|could|should|may|might|must|do|does|did)\s+(.+)$/i,
+      parts: m => [m[1], m[2] + ' ' + m[3]] },
+    { re: /^(.+?)\s+(with|for|from|by|in|on|at|of|about|into|over|under|after|before)\s+(.+)$/i,
+      parts: m => [m[1], m[2] + ' ' + m[3]] }
+  ];
+  let guard = 0;
+  while(out.length < target && guard++ < 30){
+    let best = null;
+    for(const t of TIERS){
+      for(let i = 0; i < out.length; i++){
+        const m = out[i].match(t.re);
+        if(!m) continue;
+        const parts = t.parts(m);
+        if(parts.length < 2 || parts.some(p => wc(p) < 2)) continue;
+        const len = wc(out[i]);
+        if(!best || len > best.len) best = { i, parts, len };
+      }
+      if(best) break;               // 高优先级切法有解就不动用更弱的
+    }
+    if(!best) break;
+    out.splice(best.i, 1, ...best.parts);
+  }
+  return out;
+}
+// 按难度挑句子：基础要 3-5 个意群，优秀要 8 个以上
+function chunkedExample(w, diffKey, exclude){
+  const d = DIFF[diffKey] || DIFF.mid;
+  const lo = d.chunk[0], hi = d.chunk[1];
+  const skip = exclude || new Set();
+  const pool = taskExamplePool(w);
+  // 逐级放宽扫描，优先级从高到低：
+  // ① 有中文译文 + 意群数落在本档区间（理想解）
+  // ② 有中文译文（真题句多数没有译文，双语句常常只有一两块）
+  // ③ 无译文但意群数在区间内（优秀档靠这类长真题句才凑得出 ≥8 块）
+  // ④ 兜底：任何能拼成两句以上的句子
+  // 若一锅端打分，长真题句会靠长度优势挤掉双语句，学生看到「（暂无译文）」只能瞎猜。
+  const scan = (needCn, needRange, longest) => {
+    let best = null, bestScore = 1e9;
+    for(const p of pool){
+      if(needCn && !p.cn) continue;
+      const plain = p.en.replace(/<[^>]+>/g, '');
+      const key = plain.toLowerCase().replace(/\s+/g, ' ').trim();
+      if(skip.has(key)) continue;
+      const ch = chunkSentence(plain);
+      const n = ch.length;
+      if(n < 2) continue;                                // 只有一块就拼不出句子
+      if(needRange && (n < lo || n > hi)) continue;
+      let s = 0;
+      if(n < lo) s += (lo - n) * 5;
+      if(n > hi) s += (n - hi) * 5;
+      if(!p.cn) s += 4;                                 // 连词成句需要中文参考
+      s += Math.abs(n - (lo + Math.min(hi, 12)) / 2) * 0.4;
+      s += p.idx * 0.02;
+      if(longest) s = -n * 10 + p.idx * 0.02;           // 兜底：宁可要最长的句子
+      if(s < bestScore){ bestScore = s; best = { en:p.en, cn:p.cn, src:p.src, chunks:ch, n }; }
+    }
+    return best;
+  };
+  // 优秀档优先保证「≥8 个意群」的难度，宁可放弃译文；基础/中等优先保证有译文。
+  // 最后一档专门取「该词最长的句子」：短句再漂亮也拼不出 8 块，不如把难度顶到语料上限。
+  const order = d.key === 'hard'
+    ? [[true, true], [false, true], [false, false, true], [true, false]]
+    : [[true, true], [true, false], [false, true], [false, false]];
+  let best = null;
+  for(const [cn, rg, lg] of order){ best = scan(cn, rg, lg); if(best) break; }
+  // 意群不足下限时，按连接词/介词再拆一层（优秀档固定拆到 8 块），保证难度分层真实存在；
+  // 拆不动（句子本身太短）就保持原样，不硬造短语。
+  const target = d.key === 'hard' ? 8 : lo;
+  if(best && best.chunks.length < target){
+    const forced = forceChunks(best.chunks, target);
+    if(forced.length > best.chunks.length){ best.chunks = forced; best.n = forced.length; }
+  }
+  return best;
+}
+
+/* ---- 翻译判定：关键词覆盖率，而不是"只含目标词" ---- */
+const STOP_EN = new Set(('a an the is are was were be been being am do does did have has had will would can could shall should may might must to of in on at for with from by as and or but if that this these those it its i you he she we they me him her us them my your his our their not no so than then there here what which who when where why how').split(' '));
+function transStem(t){
+  let s = String(t || '').toLowerCase();
+  if(s.length > 5) s = s.replace(/(ations|ation|ings|ing|ies|ied|ed|es|ly|ment|ness)$/, '');
+  if(s.length > 4 && s.endsWith('e')) s = s.slice(0, -1);
+  if(s.length > 4 && s.endsWith('i')) s = s.slice(0, -1) + 'y';
+  return s;
+}
+function transScore(input, ref, target){
+  const norm = s => String(s || '').toLowerCase().replace(/[’]/g, "'")
+    .replace(/[^a-z0-9' ]+/g, ' ').replace(/\s+/g, ' ').trim();
+  const a = norm(input), b = norm(ref);
+  const inToks = a.split(' ').filter(Boolean);
+  const inStems = new Set(inToks.map(transStem));
+  const key = [...new Set(b.split(' ').filter(t => t && !STOP_EN.has(t) && t.length > 1))];
+  const hit = [], miss = [];
+  for(const t of key){ (inStems.has(transStem(t)) ? hit : miss).push(t); }
+  const recall = key.length ? hit.length / key.length : 0;
+  const hasTarget = inStems.has(transStem(norm(target)));
+  return { recall, hit, miss, hasTarget, keyN:key.length };
+}
+
+/* ---- 句型识别（翻译题"中等"档给句式提示） ---- */
+const PATTERNS = [
+  { re:/^it\s+is\s+\w+\s+(for|of)\s+\w+\s+to\s+/i, label:'It is + adj. + for/of sb. + to do' },
+  { re:/^it\s+takes?\s+/i, label:'It takes sb. + 时间/精力 + to do' },
+  { re:/^there\s+(is|are|was|were)\b/i, label:'There be 句型' },
+  { re:/\bnot only\b[\s\S]+\bbut also\b/i, label:'not only … but also …' },
+  { re:/\b(so|such)\b[\s\S]+\bthat\b/i, label:'so / such … that …' },
+  { re:/\btoo\b[\s\S]+\bto\b/i, label:'too … to …' },
+  // 只保留无歧义的使役结构：have/get 在疑问句里多是助动词，容易误判
+  { re:/\b(made|make|makes|making|let|lets|letting)\s+\w+\s+\w+/i, label:'make / let + 宾语 + 动词原形' },
+  { re:/\b(get|got|gets|getting)\s+\w+\s+to\s+\w+/i, label:'get sb. to do sth.' },
+  { re:/\b(is|are|was|were|be|been|being)\s+\w+(ed|en)\b/i, label:'被动语态 be + 过去分词' },
+  { re:/\b(who|which|whose)\b/i, label:'含定语从句' },
+  { re:/\b(if|unless)\b/i, label:'if / unless 条件句' },
+  { re:/\b(because|since|although|though|while)\b/i, label:'原因/让步状语从句' },
+  { re:/\b(wish|hope|wonder)\b/i, label:'wish / hope / wonder + 从句' }
+];
+function detectPattern(s){
+  const t = String(s || '').replace(/<[^>]+>/g, '');
+  for(const p of PATTERNS) if(p.re.test(t)) return p.label;
+  return '主谓宾 / 主系表基本句型';
+}
+// 把参考译文中的实词挖空，得到可模仿的句式骨架
+function skeletonOf(s){
+  const toks = String(s || '').replace(/<[^>]+>/g, '').match(/[A-Za-z0-9'’\-]+[,.;:!?]?/g) || [];
+  return toks.map(tk => {
+    const low = tk.toLowerCase().replace(/[,.;:!?]$/, '');
+    const punct = (tk.match(/[,.;:!?]$/) || [''])[0];
+    if(STOP_EN.has(low) || low.length <= 2) return tk;
+    return '____' + punct;
+  }).join(' ');
+}
+
 /* ================= 题型1：语义词联（开心消消乐玩法） ================= */
-let matchState = { selected:null, cleared:0, total:0, cells:[] };
+let matchState = { selected:null, cleared:0, total:0, cells:[], misses:0, best:0 };
+// 限时：每对约 4~6.5 秒（随难度收紧），再加 12 秒找牌缓冲
+function matchTimeLimit(n){
+  const k = curDiff().key;
+  const per = k === 'hard' ? 4.0 : (k === 'mid' ? 5.0 : 6.5);
+  return Math.round(n * per) + 12;
+}
 function renderMatch(){
-  const w = words();
+  const list = words();
+  stopCountdown(); stopBgm();
+  // 窄屏只放一个义项，否则卡片会被文字撑成两三种断行
+  const cnN = (typeof window !== 'undefined' && window.innerWidth < 560) ? 1 : 2;
   const cells = [];
-  w.forEach((x,i)=>{ cells.push({ type:'en', text:x.word, pair:i }); cells.push({ type:'cn', text:x.cn, pair:i }); });
-  matchState = { selected:null, cleared:0, total:w.length, cells: shuffle(cells) };
+  list.forEach((x,i)=>{
+    cells.push({ type:'en', text:x.word, pair:i });
+    // 只显示最常用的义项 + 词性，拒绝把整条释义堆在卡片上
+    const cc = coreCn(x.cn, cnN);
+    cells.push({ type:'cn', text:cc.text, pair:i, pos:cc.pos, body:cc.senses.join('；') });
+  });
+  const limit = matchTimeLimit(list.length);
+  matchState = { selected:null, cleared:0, total:list.length, cells:shuffle(cells), misses:0, best:0, limit, t0:Date.now() };
   $("#matchPage").classList.remove("hidden");
   $("#matchPage").innerHTML = `
     <h2 class="page-title">🍬 语义词联 · 消消乐</h2>
-    <p class="page-sub">点选英文与对应中文释义，配对消除，全部消除即过关</p>
+    <p class="page-sub">点英文听发音，找出对应释义，配对消除</p>
+    ${diffBar()}
+    <div class="bomb-top">
+      <span class="bomb-clock" id="bombClock">${limit}s</span>
+      <span class="bomb-combo off" id="bombCombo"></span>
+      <button class="bomb-tool${bgm.enabled()?' on':''}" id="bombBgm" onclick="toggleMatchBgm()">🎵 背景音</button>
+    </div>
     <div class="bomb-hud">
       <span>已消除 <b id="bombCleared">0</b> / ${matchState.total}</span>
-      <span>本关得分 <b id="bombScore">0</b></span>
+      <span>失误 <b id="bombMiss">0</b></span>
     </div>
-    <div class="bomb-grid">
-      ${matchState.cells.map((c,i)=>`<div class="bomb-cell ${c.type}" id="bomb-${i}" onclick="bombClick(${i})">${escapeHtml(c.text)}</div>`).join("")}
+    <div class="bomb-grid${matchState.cells.length > 24 ? ' dense' : ''}" id="bombGrid">
+      ${matchState.cells.map((c,i)=>`<div class="bomb-cell ${c.type}" id="bomb-${i}" onclick="bombClick(${i})">${
+        c.type === 'cn'
+          ? (c.pos ? `<span class="cn-pos">${escapeHtml(c.pos)}</span>` : '') + escapeHtml(c.body || c.text)
+          : escapeHtml(c.text)
+      }</div>`).join("")}
     </div>
-    <div style="text-align:center;margin-top:20px"><button class="btn btn-skip" onclick="goStep(2)">跳过本题型 →</button></div>
+    <div style="text-align:center;margin-top:18px"><button class="btn btn-skip" onclick="goStep(2)">跳过本题型 →</button></div>
   `;
+  bgm.muted = !bgm.enabled();
+  if(bgm.enabled()) bgm.start();
+  startCountdown(limit, (left)=>{
+    const el = $("#bombClock");
+    if(el){ el.textContent = Math.ceil(left) + 's'; el.classList.toggle('urgent', left <= 15); }
+    bgm.setUrgent(left <= 15);
+  }, ()=>{ matchFinish('timeout'); });
+}
+function toggleMatchBgm(){
+  const on = bgm.toggle();
+  const btn = $("#bombBgm");
+  if(btn) btn.classList.toggle('on', on);
+  toast(on ? '🎵 背景音已开启' : '🔇 背景音已关闭');
+  if(on && matchState.t0 && matchState.limit){
+    bgm.setUrgent((matchState.limit * 1000 - (Date.now() - matchState.t0)) / 1000 <= 15);
+  }
+}
+function matchFinish(reason){
+  stopCountdown(); stopBgm();
+  const st = matchState;
+  const used = Math.max(1, Math.round((Date.now() - st.t0) / 1000));
+  const rate = st.total ? Math.round(st.cleared / st.total * 100) : 0;
+  const clear = reason === 'clear';
+  let score = st.cleared * 12 + st.best * 8;
+  if(clear) score += Math.max(0, st.limit - used) * 2;
+  $("#matchPage").innerHTML = `
+    <h2 class="page-title">🍬 语义词联 · 消消乐</h2>
+    ${diffBar()}
+    <div class="bomb-done">
+      <div class="bd-emoji">${clear ? '🎉' : '⏰'}</div>
+      <div class="bd-title">${clear ? '全部消除，过关！' : '时间到，还差一点'}</div>
+      <div class="bd-grid">
+        <div class="bd-item"><b>${st.cleared}/${st.total}</b><span>已消除</span></div>
+        <div class="bd-item"><b>${rate}%</b><span>完成度</span></div>
+        <div class="bd-item"><b>${used}s</b><span>用时</span></div>
+        <div class="bd-item"><b>${score}</b><span>本关得分</span></div>
+      </div>
+      <div class="page-sub" style="margin:10px 0 0">失误 ${st.misses} 次${st.best > 1 ? ` · 最高连对 ${st.best}` : ''}</div>
+    </div>
+    <div style="text-align:center;margin-top:18px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+      <button class="btn btn-ghost" onclick="renderMatch()">再挑战一次</button>
+      <button class="btn btn-primary" onclick="goStep(2)">下一题型 →</button>
+    </div>`;
+  if(clear && score > 0) addPoints(score, '消消乐过关', 'answer');
 }
 function bombClick(i){
   const cell = matchState.cells[i];
   const el = $("#bomb-"+i);
   if(!el || el.classList.contains("cleared") || el.classList.contains("right")) return;
+  // 浏览器自动播放限制：首次点击时补启动背景节奏
+  if(bgm.enabled() && !bgm.on) bgm.start();
+  if(cell.type === 'en' && matchState.selected === null) playWordAudio(cell.text);
   if(matchState.selected === null){
     matchState.selected = i;
     el.classList.add("selected");
@@ -2825,16 +3955,19 @@ function bombClick(i){
     elA.classList.add("right");
     el.classList.add("right");
     matchState.cleared++;
+    matchState.best = Math.max(matchState.best || 0, matchState.cleared);
     $("#bombCleared").textContent = matchState.cleared;
-    $("#bombScore").textContent = matchState.cleared * 2;
     recordAnswer('match', true, 2, false);   // 对拼玩法不计入答题正确率
     matchState.selected = null;
     if(matchState.cleared === matchState.total){
-      setTimeout(()=>{ toast("🎉 全部消除！"); setTimeout(()=>goStep(2),1200); }, 700);
+      setTimeout(()=>matchFinish('clear'), 520);
     }
   } else {
-    const enCell = a.type==='en' ? a : b;
-    addWrong(enCell.text, words().find(x=>x.word===enCell.text)?.cn || '');
+    const enCell = a.type === 'en' ? a : b;
+    addWrong(enCell.text, (words().find(x=>x.word===enCell.text)||{}).cn || '');
+    matchState.misses++;
+    const missEl = $("#bombMiss");
+    if(missEl) missEl.textContent = matchState.misses;
     el.classList.add("wrong"); elA.classList.add("wrong");
     matchState.selected = null;
     setTimeout(()=>{ el.classList.remove("wrong","selected"); elA.classList.remove("wrong","selected"); },400);
@@ -2848,56 +3981,128 @@ function renderChoice(){
   choiceState = { idx:0 };
   renderChoiceQ();
 }
-// 生成 4 个释义选项：同批 → 本级 → 全词库逐级兜底，保证小词库也有完整选项
+// 释义相似度：词性相同 + 汉字重合 → 越像。优秀档挑"像的"当干扰项，基础档挑"不像的"
+function optAffinity(a, b){
+  let s = 0;
+  if(a.pos && b.pos && a.pos === b.pos) s += 2;
+  const set = new Set(a.senses.join('').split(''));
+  for(const ch of b.senses.join('')) if(set.has(ch)) s += 1;
+  return s;
+}
+// 生成释义选项：同批 → 本级 → 全库逐级兜底，选项数量随难度变化
 function choiceOptions(w, n){
-  const ans = String(w.cn||'').trim() || '（暂无释义）';
-  const used = new Set([ans]);
-  const out = [ans];
-  const push = c => {
-    const t = String(c||'').trim();
-    if(!t || used.has(t) || out.length >= n) return;
-    used.add(t); out.push(t);
+  const d = curDiff();
+  n = n || d.optN;
+  const ansCc = coreCn(w.cn, 2);
+  const ans = ansCc.text;
+  const out = [{ text: ans, word: w.word }];
+  const usedText = new Set([ans]);
+  const usedWord = new Set([String(w.word).toLowerCase()]);
+  const pool = [];
+  const seen = new Set();
+  const addPool = (arr, cap) => {
+    for(const x of arr){
+      if(pool.length >= cap) return;
+      if(!x || !x.word || !x.cn) continue;
+      const k = String(x.word).toLowerCase();
+      if(seen.has(k) || usedWord.has(k)) continue;
+      seen.add(k);
+      pool.push({ word:x.word, cn:x.cn, cc:coreCn(x.cn, 2) });
+    }
   };
-  shuffle(words()).forEach(x => push(x.cn));
-  if(out.length < n) shuffle(GROUPS[currentGroup].words).forEach(x => push(x.cn));
-  if(out.length < n){
-    const pool = [];
-    for(const lv of Object.keys(WORD_DB)) for(const item of WORD_DB[lv]) pool.push(item[1]);
-    shuffle(pool).forEach(push);
+  addPool(words(), 24);
+  addPool(GROUPS[currentGroup].words, 48);
+  if(pool.length < n * 3){
+    const all = [];
+    for(const lv of Object.keys(WORD_DB)) for(const item of WORD_DB[lv]) all.push({ word:item[0], cn:item[1] });
+    addPool(all, n * 6);
   }
-  return shuffle(out.slice(0, n));
+  const scored = pool.map(p => ({ ...p, aff: optAffinity(ansCc, p.cc) }));
+  scored.sort((a, b) => b.aff - a.aff);
+  // 优秀档：从最像的一端取；基础/中等：从最不像的一端取，避免近义混淆
+  const list = d.near ? scored : scored.slice().reverse();
+  for(const p of list){
+    if(out.length >= n) break;
+    if(!p.cc.text || usedText.has(p.cc.text)) continue;
+    usedText.add(p.cc.text);
+    out.push({ text:p.cc.text, word:p.word });
+  }
+  return shuffle(out);
 }
 function renderChoiceQ(){
   const w = words()[choiceState.idx];
-  const opts = choiceOptions(w, 4);
-  choiceState.answer = String(w.cn||'').trim() || '（暂无释义）';
-  // 例句：取本题型专属句（不同题型不同语境），目标词加粗
-  const example = taskExample(w, 'meaning');
-  const enHtml = example.en.replace(/<B>(.*?)<\/B>/g, (m,p1)=>`<b>${p1}</b>`);
+  applyBank(w);
+  const d = curDiff();
+  const opts = choiceOptions(w, d.optN);
+  choiceState.answer = coreCn(w.cn, 2).text;
+  choiceState.opts = opts;
+  choiceState.word = w;
+  // 优先复用【词汇认知】刚学过的句子：学过再考，降低记忆负担
+  let ex = null;
+  try{ ex = (pickLearnExamples(w, 1) || [])[0] || null; }catch(e){}
+  if(!ex) ex = taskExample(w, 'meaning');
+  const plain = String(ex.en || '').replace(/<[^>]+>/g, '');
+  const enHtml = String(ex.en || '').replace(/<B>(.*?)<\/B>/gi, (m,p1)=>`<b>${p1}</b>`).replace(/<(?!\/?b>)[^>]+>/g, '');
+  const sec = d.time.choice;
   $("#choicePage").classList.remove("hidden");
   $("#choicePage").innerHTML = `
     <h2 class="page-title">🎯 词义甄别</h2>
     <p class="page-sub">语境之中，辨明加粗单词的真义</p>
+    ${diffBar()}
     <div class="question">
       <div class="q-index">第 ${choiceState.idx+1} / ${words().length} 题</div>
-      <div class="q-sentence">${enHtml}</div>
-      ${example.src ? `<div class="q-src">例句来源：${example.src}</div>` : ''}
+      ${timerBar(sec)}
+      <div class="q-sentence">
+        <button class="ex-speak" data-say="${escapeHtml(plain)}" onclick="speakDataSentence(this)" title="朗读题干">🔊</button>${enHtml}
+      </div>
+      ${ex.src ? `<div class="q-src">例句来源：${escapeHtml(ex.src)}</div>` : ''}
+      ${ex.cn ? `<div class="q-src" style="color:#7b83a0">${escapeHtml(ex.cn)}</div>` : ''}
     </div>
-    <div class="options">${opts.map((o,i)=>`<div class="option" onclick="answerChoice(${i},this)">${escapeHtml(o)}</div>`).join("")}</div>
-    <div style="text-align:center;margin-top:20px"><button class="btn btn-skip" onclick="goStep(3)">跳过本题型 →</button></div>
+    <div class="options">${opts.map((o,i)=>`<div class="option" onclick="answerChoice(${i},this)">${escapeHtml(o.text)}</div>`).join("")}</div>
+    <div class="fb-box" id="fbBox"></div>
+    <div style="text-align:center;margin-top:18px"><button class="btn btn-skip" onclick="goStep(3)">跳过本题型 →</button></div>
   `;
+  clearFb();
+  runQTimer(sec, ()=>choiceTimeout());
+}
+function choiceExplainRows(w, picked){
+  const rows = [['正确答案', `<b>${escapeHtml(coreCn(w.cn, 2).text)}</b>`]];
+  return rows.concat(explainRows(w, picked).slice(1));
+}
+function choiceNext(){
+  clearFb();
+  if(choiceState.idx < words().length - 1){ choiceState.idx++; renderChoiceQ(); }
+  else { goStep(3); }
+}
+function choiceTimeout(){
+  const w = choiceState.word;
+  if(!w) return;
+  recordAnswer('choice', false, 2);
+  addWrong(w.word, w.cn);
+  document.querySelectorAll("#choicePage .option").forEach((o,k)=>{
+    o.style.pointerEvents = "none";
+    if(choiceState.opts[k] && choiceState.opts[k].text === choiceState.answer) o.classList.add("right");
+  });
+  showFb({ ok:false, head:'超时了，没在时间内选出', rows:choiceExplainRows(w, ''), onNext:()=>choiceNext() });
 }
 function answerChoice(i, el){
-  const opts = el.parentElement.querySelectorAll(".option");
-  const correct = el.textContent.trim() === choiceState.answer;
-  const r = recordAnswer('choice', correct, 2);
-  if(correct){ el.classList.add("right"); toast("✅ 正确！ +" + r.gain + (r.mult>1 ? "（连对×"+r.mult+"）" : "")); }
-  else { el.classList.add("wrong"); addWrong(words()[choiceState.idx].word, words()[choiceState.idx].cn); opts.forEach(o=>{ if(o.textContent.trim()===choiceState.answer) o.classList.add("right"); }); toast("❌ 正确答案已标绿"); }
+  stopCountdown();
+  const opts = [...el.parentElement.querySelectorAll(".option")];
   opts.forEach(o=>o.style.pointerEvents="none");
-  setTimeout(()=>{
-    if(choiceState.idx < words().length-1){ choiceState.idx++; renderChoiceQ(); }
-    else { goStep(3); }
-  }, 1200);
+  const picked = choiceState.opts[i];
+  const w = choiceState.word;
+  const correct = picked && picked.text === choiceState.answer;
+  const r = recordAnswer('choice', correct, 2);
+  if(correct){
+    el.classList.add("right");
+    toast("✅ 正确！ +" + r.gain + (r.mult>1 ? "（连对×"+r.mult+"）" : ""));
+    setTimeout(()=>choiceNext(), 650);
+  } else {
+    el.classList.add("wrong");
+    addWrong(w.word, w.cn);
+    opts.forEach((o,k)=>{ if(choiceState.opts[k] && choiceState.opts[k].text === choiceState.answer) o.classList.add("right"); });
+    showFb({ ok:false, head:'选错了', rows:choiceExplainRows(w, picked ? picked.word : ''), onNext:()=>choiceNext() });
+  }
 }
 
 /* ================= 题型3：选词填空 ================= */
@@ -2948,43 +4153,194 @@ function renderFill(){
 }
 // 把句中的目标词整词挖空：优先用 <B></B> 标记定位，可连带挖掉变形（abandoned → ______）
 function blankTarget(en, word){
+  const w = String(word || '').toLowerCase();
+  const key = w.slice(0, Math.min(4, w.length));
   const re = /<B>(.*?)<\/B>/gi;
   let m;
   while ((m = re.exec(en))) {
-    if (m[1].toLowerCase().startsWith(word.toLowerCase())) {
+    const t = m[1].toLowerCase();
+    if (t.startsWith(w) || (key && t.startsWith(key))) {
       return en.slice(0, m.index) + '<b>______</b>' + en.slice(m.index + m[0].length);
     }
   }
-  return en.replace(new RegExp(word, 'i'), '<b>______</b>');
+  // 没有 <B> 标记：按词形前缀找第一个匹配的整词挖掉
+  const tokRe = /\b[A-Za-z][A-Za-z'’-]*\b/g;
+  let t;
+  while ((t = tokRe.exec(en))) {
+    if (key && t[0].toLowerCase().startsWith(key)) {
+      return en.slice(0, t.index) + '<b>______</b>' + en.slice(t.index + t[0].length);
+    }
+  }
+  return en;
+}
+// 判断句子里是否出现了目标词（含变形），用于挑"能挖空"的句子
+function containsWordForm(text, word){
+  const w = String(word || '').toLowerCase();
+  const key = w.slice(0, Math.min(4, w.length));
+  if (!key) return false;
+  const toks = String(text || '').toLowerCase().match(/[a-z][a-z'’-]*/g) || [];
+  return toks.some(t => t.startsWith(key));
+}
+// 词汇认知页真正展开过的句子（默认 2 条），填空要避开它们
+function learnExampleKeys(w){
+  const set = new Set();
+  try{
+    for(const e of (pickLearnExamples(w, 2) || [])){
+      set.add(String(e.en).replace(/<[^>]+>/g, '').toLowerCase().replace(/\s+/g, ' ').trim());
+    }
+  }catch(e){}
+  return set;
+}
+// 超纲词计数：判断一条例句对当前学段是不是太难
+function oovOf(en, level){
+  const plain = String(en || '').replace(/<[^>]+>/g, '');
+  const toks = plain.toLowerCase().match(/[a-z][a-z'’-]*/g) || [];
+  const vocab = vocabFor(level);
+  let n = 0;
+  for(const t of toks) if(!vocab.has(t)) n++;
+  return n;
+}
+// 挑一条"没学过"的句子：长度贴合难度，超纲词越少越好
+function fillExample(w, d){
+  const skip = learnExampleKeys(w);
+  // 同一批词里，连词成句已经用过的那句就不要再拿来填空，避免两个题型重复
+  try{
+    const ord = chunkedExample(w, d.key);
+    if(ord) skip.add(String(ord.en).replace(/<[^>]+>/g, '').toLowerCase().replace(/\s+/g, ' ').trim());
+  }catch(e){}
+  const level = currentLevelName();
+  const wantLen = d.key === 'hard' ? 20 : (d.key === 'mid' ? 16 : 12);
+  const rank = (blocked) => {
+    let best = null, bestScore = 1e9;
+    for(const p of taskExamplePool(w)){
+      const plain = p.en.replace(/<[^>]+>/g, '');
+      const key = plain.toLowerCase().replace(/\s+/g, ' ').trim();
+      if(blocked.has(key)) continue;
+      if(!containsWordForm(plain, w.word)) continue;  // 句子里得有目标词才能挖空
+      // 超纲词重罚：宁可句子短一点，也不要出现读不懂的难词；真题句给额外优先
+      const examBonus = isExamType(p.srcType) ? -6 : 0;
+      const s = scoreExample(p.en, level, 'x') + oovOf(p.en, level) * 2.5 + Math.abs(p.len - wantLen) * 2.0 + examBonus;
+      if(s < bestScore){ bestScore = s; best = p; }
+    }
+    return best;
+  };
+  let best = rank(skip);
+  // 严格条件下挑不到合适的（太短/太长），放宽到"只避开学习页首句"，保证句子难度更贴档位
+  if(!best || Math.abs((best.len || 0) - wantLen) > 9){
+    const relax = new Set();
+    try{
+      const first = (pickLearnExamples(w, 1) || [])[0];
+      if(first) relax.add(String(first.en).replace(/<[^>]+>/g, '').toLowerCase().replace(/\s+/g, ' ').trim());
+    }catch(e){}
+    const alt = rank(relax);
+    if(alt && (!best || Math.abs(alt.len - wantLen) < Math.abs(best.len - wantLen))) best = alt;
+  }
+  return best || taskExample(w, 'cloze');
+}
+// 生成选词填空选项：正确词 + 易混词 + 同源词 + 已学旧词 + 全库随机兜底
+function buildFillOptions(w, n){
+  const d = curDiff();
+  n = n || d.optN;
+  const correct = w.word;
+  const used = new Set([correct.toLowerCase()]);
+  const opts = [correct];
+  // 1. 易混形近/义近词（基础档不用，否则一上来就太难）
+  if(d.key !== 'basic'){
+    (CONFUSABLE[w.word] || []).filter(x => !used.has(x.toLowerCase())).slice(0, n - 2)
+      .forEach(x => { opts.push(x); used.add(x.toLowerCase()); });
+  }
+  // 2. 同源词（词根词缀相关）
+  if(w._affixKey && opts.length < n){
+    const same = (AFFIX_INDEX[w._affixKey] || []).filter(x => x.word !== w.word && !used.has(x.word.toLowerCase()));
+    if(same.length){ opts.push(same[0].word); used.add(same[0].word.toLowerCase()); }
+  }
+  // 3. 过往复习的旧词（艾宾浩斯已学过的词）
+  const studied = Object.keys(loadStudylog()).filter(x => x.toLowerCase() !== correct.toLowerCase() && !used.has(x.toLowerCase()));
+  for(const s of shuffle(studied)){ if(opts.length >= n) break; opts.push(s); used.add(s.toLowerCase()); }
+  // 4. 全词库随机兜底（保证选项数量始终够）
+  if(opts.length < n){
+    const all = [];
+    for(const lv of Object.keys(WORD_DB)) for(const [word] of WORD_DB[lv]){ if(!used.has(word.toLowerCase())) all.push(word); }
+    shuffle(all).slice(0, n - opts.length).forEach(x => opts.push(x));
+  }
+  return shuffle(opts.slice(0, n));
 }
 function renderFillQ(){
   const w = words()[fillState.idx];
-  // 挖空：取「语境填空」专属例句，把目标词（含变形）整词挖掉
-  const example = taskExample(w, 'cloze');
-  const sentenceHtml = blankTarget(example.en, w.word);
-  // 选项：正确词 + 易混词 + 同源词 + 已学旧词（buildFillOptions 统一生成）
-  const opts = buildFillOptions(w);
+  applyBank(w);
+  const d = curDiff();
+  // 挖空：取「语境填空」专属且未在词汇认知页出现过的例句
+  const ex = fillExample(w, d);
+  const sentenceHtml = blankTarget(ex.en, w.word);
+  const plain = String(ex.en).replace(/<[^>]+>/g, '');
+  const opts = buildFillOptions(w, d.optN);
   fillState.answer = w.word;
+  fillState.word = w;
+  fillState.opts = opts;
+  const sec = d.time.fill;
   $("#fillPage").classList.remove("hidden");
   $("#fillPage").innerHTML = `
     <h2 class="page-title">✍️ 语境填空</h2>
     <p class="page-sub">一词入句，选择恰如其分的单词</p>
+    ${diffBar()}
     <div class="question">
-      <div class="q-index">第 ${fillState.idx+1} / ${words().length} 题 · 中文：${w.cn}</div>
-      <div class="q-sentence">${sentenceHtml}</div>
+      <div class="q-index">第 ${fillState.idx+1} / ${words().length} 题 · 中文：${escapeHtml(coreCn(w.cn, 2).text)}</div>
+      ${timerBar(sec)}
+      <div class="q-sentence">
+        <button class="ex-speak" data-say="${escapeHtml(plain)}" onclick="speakDataSentence(this)" title="朗读整句">🔊</button>${sentenceHtml}
+      </div>
+      ${ex.src ? `<div class="q-src">例句来源：${escapeHtml(ex.src)}</div>` : ''}
     </div>
     <div class="options">${opts.map((o,i)=>`<div class="option" onclick="answerFill(${i},this)">${escapeHtml(o)}</div>`).join("")}</div>
-    <div style="text-align:center;margin-top:20px"><button class="btn btn-skip" onclick="goStep(4)">跳过本题型 →</button></div>
+    <div class="fb-box" id="fbBox"></div>
+    <div style="text-align:center;margin-top:18px"><button class="btn btn-skip" onclick="goStep(4)">跳过本题型 →</button></div>
   `;
+  clearFb();
+  runQTimer(sec, ()=>fillTimeout());
+}
+function fillNext(){
+  clearFb();
+  if(fillState.idx < words().length - 1){ fillState.idx++; renderFillQ(); }
+  else { goStep(4); }
+}
+function fillExplainRows(w, picked){
+  const cc = coreCn(w.cn, 3);
+  const rows = [['正确答案', `<b>${escapeHtml(w.word)}</b>　<span class="fb-ph">${escapeHtml(coreCn(w.cn, 1).text)}</span>`]];
+  rows.push(['释义', escapeHtml(cc.text)]);
+  if(picked && picked.toLowerCase() !== w.word.toLowerCase()){
+    rows.push(['你选的', `<b>${escapeHtml(picked)}</b>`]);
+  }
+  return rows.concat(explainRows(w, '').slice(1));
+}
+function fillTimeout(){
+  const w = fillState.word;
+  if(!w) return;
+  recordAnswer('fill', false, 2);
+  addWrong(w.word, w.cn);
+  document.querySelectorAll("#fillPage .option").forEach(o=>{
+    o.style.pointerEvents = "none";
+    if(o.textContent.trim() === fillState.answer) o.classList.add("right");
+  });
+  showFb({ ok:false, head:'超时了，没在时间内选出', rows:fillExplainRows(w, ''), onNext:()=>fillNext() });
 }
 function answerFill(i, el){
-  const opts = el.parentElement.querySelectorAll(".option");
-  const correct = el.textContent.trim() === fillState.answer;
+  stopCountdown();
+  const opts = [...el.parentElement.querySelectorAll(".option")];
+  opts.forEach(o=>o.style.pointerEvents = "none");
+  const w = fillState.word;
+  const picked = el.textContent.trim();
+  const correct = picked === fillState.answer;
   const r = recordAnswer('fill', correct, 2);
-  if(correct){ el.classList.add("right"); toast("✅ 正确！ +" + r.gain + (r.mult>1 ? "（连对×"+r.mult+"）" : "")); }
-  else { el.classList.add("wrong"); addWrong(words()[fillState.idx].word, words()[fillState.idx].cn); opts.forEach(o=>{ if(o.textContent.trim()===fillState.answer) o.classList.add("right"); }); toast("❌ 正确答案已标绿"); }
-  opts.forEach(o=>o.style.pointerEvents="none");
-  setTimeout(()=>{ if(fillState.idx<words().length-1){ fillState.idx++; renderFillQ(); } else { goStep(4); } }, 1200);
+  if(correct){
+    el.classList.add("right");
+    toast("✅ 正确！ +" + r.gain + (r.mult>1 ? "（连对×"+r.mult+"）" : ""));
+    setTimeout(()=>fillNext(), 650);
+  } else {
+    el.classList.add("wrong");
+    addWrong(w.word, w.cn);
+    opts.forEach(o=>{ if(o.textContent.trim() === fillState.answer) o.classList.add("right"); });
+    showFb({ ok:false, head:'选错了', rows:fillExplainRows(w, picked), onNext:()=>fillNext() });
+  }
 }
 
 /* ================= 题型4：单词拼写（修复bug） ================= */
@@ -2996,6 +4352,7 @@ function renderSpell(){
 function renderSpellWord(){
   const w = words()[spellState.idx];
   if(!w){ goStep(5); return; }
+  applyBank(w);
   const chars = w.word.split("");
   const isLetter = ch => /[A-Za-z]/.test(ch);
   // 空格 / 连字符 / 撇号固定给出，不再当作可拖动字母，短语也能正常拼
@@ -3004,13 +4361,12 @@ function renderSpellWord(){
   spellState.slots = chars.map(ch => isLetter(ch) ? "" : ch);
   spellState.letterIndex = chars.map(() => null);
   spellState.letters = shuffle(chars.filter(isLetter));
-  const letterN = chars.filter(isLetter).length;
   $("#spellPage").classList.remove("hidden");
   $("#spellPage").innerHTML = `
     <h2 class="page-title">🔤 拼写重构</h2>
     <p class="page-sub">乱序字母归位，重现原词（点击已填字母可修改）</p>
     <div style="text-align:center">
-      <div class="spell-cn">释义：${escapeHtml(w.cn||'（暂无释义）')} &nbsp; <span style="color:var(--muted)">(${letterN} 个字母${chars.length>letterN?'，空格/符号已给出':''})</span></div>
+      <div class="spell-cn">释义：${escapeHtml(coreCn(w.cn, 3).text)}</div>
       <button class="btn btn-ghost" style="padding:8px 20px;font-size:14px;margin-bottom:14px" onclick="playSpellWord()">🔊 听发音</button>
       <div class="answer-slots">${chars.map((ch,i)=> spellState.fixed[i] !== null
         ? `<div class="slot fixed" id="slot-${i}" title="空格/符号（已给出）">${spellState.fixed[i] === ' ' ? '␣' : escapeHtml(spellState.fixed[i])}</div>`
@@ -3019,8 +4375,15 @@ function renderSpellWord(){
       <button class="btn btn-primary" onclick="checkSpell()">提交答案</button>
       <button class="btn btn-ghost" onclick="clearSpell()">清空重来</button>
     </div>
+    <div class="fb-box" id="fbBox"></div>
     <div style="text-align:center;margin-top:20px"><button class="btn btn-skip" onclick="goStep(5)">跳过本题型 →</button></div>
   `;
+  clearFb();
+}
+function spellNext(){
+  clearFb();
+  if(spellState.idx < words().length - 1){ spellState.idx++; renderSpellWord(); }
+  else { goStep(5); }
 }
 function addLetter(i){
   const w = words()[spellState.idx];
@@ -3077,17 +4440,29 @@ function checkSpell(){
     slots.forEach(s=>s.classList.add("right"));
     const r = recordAnswer('spell', true, 3);
     toast("✅ 拼写正确！ +" + r.gain + (r.mult>1 ? "（连对×"+r.mult+"）" : ""));
-    setTimeout(()=>{ if(spellState.idx<words().length-1){ spellState.idx++; renderSpellWord(); } else { goStep(5); } },900);
+    setTimeout(()=>spellNext(), 800);
   } else {
     recordAnswer('spell', false, 3);
     slots.forEach((s,i)=>s.classList.add(w.word[i]===ans[i]?"right":"wrong"));
     addWrong(w.word, w.cn);
-    toast("❌ 拼错了，点击已填字母修改后重试");
-    setTimeout(()=>{ slots.forEach(s=>s.classList.remove("right","wrong")); },1000);
+    // 答错立刻给出正确答案 + 解析，而不是让学生反复盲猜
+    showFb({
+      ok:false, head:'拼写错了',
+      rows:[
+        ['正确答案', `<b>${escapeHtml(w.word)}</b>`],
+        ...explainRows(w, '')
+      ],
+      btn:'我记住了，下一题 →',
+      tip:'对照上面的音节与音标再读一遍',
+      onNext:()=>spellNext()
+    });
+    setTimeout(()=>{
+      slots.forEach((s,i)=>{ s.classList.remove("right","wrong"); if(spellState.fixed[i] === null) s.textContent = w.word[i] || ''; s.classList.add("right"); });
+    }, 900);
   }
 }
 
-/* ================= 题型5：连词成句 ================= */
+/* ================= 题型5：连词成句（意群组配） ================= */
 let sentenceState = { idx:0, frags:[], built:[] };
 function renderSentence(){
   sentenceState = { idx:0 };
@@ -3095,64 +4470,120 @@ function renderSentence(){
 }
 function renderSentenceQ(){
   const w = words()[sentenceState.idx];
-  // 句式组配专属例句（优先有中文参考、长度适中的句子）
-  const example = taskExample(w, 'order');
-  const plain = example.en.replace(/<[^>]+>/g,"");
-  // 拆分为碎片（按单词+标点）
-  const tokens = plain.match(/[A-Za-z']+|[.,?!]/g) || [];
-  sentenceState.frags = shuffle(tokens);
+  if(!w){ goStep(6); return; }
+  applyBank(w);
+  const d = curDiff();
+  // 按意群切分（介词短语 / 从句 / 标点成组），并按难度挑块数合适的句子
+  let pick = null;
+  try{ pick = chunkedExample(w, d.key); }catch(e){}
+  if(!pick || !pick.chunks || pick.chunks.length < 2){
+    const ex = taskExample(w, 'order');
+    const plain = String(ex.en || '').replace(/<[^>]+>/g, '');
+    pick = { cn:ex.cn || '', src:ex.src || '', chunks:chunkSentence(plain) };
+  }
+  if(!pick.chunks || !pick.chunks.length) pick.chunks = [String(w.word)];
+  sentenceState.frags = shuffle(pick.chunks.map((c, i) => ({ text:c, id:i })));
   sentenceState.built = [];
-  sentenceState.target = tokens;
+  sentenceState.answer = pick.chunks;
+  sentenceState.word = w;
+  const sec = d.time.sentence;
   $("#sentencePage").classList.remove("hidden");
   $("#sentencePage").innerHTML = `
     <h2 class="page-title">🧩 句式组配</h2>
-    <p class="page-sub">缀词成句，拼出完整句式（点击已选碎片可撤回）</p>
+    <p class="page-sub">按意群拼句 · 每块是一个短语，不是单个单词（点已选块可撤回）</p>
+    ${diffBar()}
     <div class="question">
-      <div class="q-index">第 ${sentenceState.idx+1} / ${words().length} 题</div>
-      <div class="q-sentence" style="color:var(--muted)">参考中文：${example.cn}</div>
+      <div class="q-index">第 ${sentenceState.idx+1} / ${words().length} 题 · 共 ${pick.chunks.length} 个意群</div>
+      ${timerBar(sec)}
+      <div class="q-sentence" style="color:var(--muted);font-size:15px">${pick.cn
+        ? '参考中文：' + escapeHtml(pick.cn)
+        : '拼句提示：句中要用到「' + escapeHtml(w.word) + '（' + escapeHtml(String(w.cn || '').replace(/^[a-z]+\.\s*/i, '').split(/[；;，,]/)[0]) + '）」'}</div>
     </div>
     <div class="sentence-build" id="buildArea"></div>
-    <div class="sentence-frag" id="fragArea">${sentenceState.frags.map((f,i)=>`<span class="frag" id="fr-${i}" onclick="pickFrag(${i})">${escapeHtml(f)}</span>`).join("")}</div>
+    <div class="sentence-frag" id="fragArea">${sentenceState.frags.map((f,i)=>`<span class="frag" id="fr-${i}" onclick="pickFrag(${i})">${escapeHtml(f.text)}</span>`).join("")}</div>
     <div style="text-align:center;margin-top:16px"><button class="btn btn-primary" onclick="checkSentence()">提交答案</button></div>
+    <div class="fb-box" id="fbBox"></div>
     <div style="text-align:center;margin-top:14px"><button class="btn btn-skip" onclick="goStep(6)">跳过本题型 →（基础薄弱可跳过）</button></div>
   `;
+  clearFb();
+  runQTimer(sec, ()=>sentenceTimeout());
+}
+function sentenceNext(){
+  clearFb();
+  if(sentenceState.idx < words().length - 1){ sentenceState.idx++; renderSentenceQ(); }
+  else { goStep(6); }
 }
 function pickFrag(i){
   const f = sentenceState.frags[i];
   const fr = $("#fr-"+i);
-  if(fr.classList.contains("used")) return;
-  sentenceState.built.push({text:f, idx:i});
+  if(!f || !fr || fr.classList.contains("used")) return;
+  sentenceState.built.push({ text:f.text, id:f.id });
   fr.classList.add("used");
   renderBuild();
 }
 function renderBuild(){
   const area = $("#buildArea");
-  area.innerHTML = sentenceState.built.map((b,k)=>`<span class="frag" onclick="unpickFrag(${k})">${b.text}</span>`).join("");
+  if(!area) return;
+  area.innerHTML = sentenceState.built.map((b,k)=>`<span class="frag" onclick="unpickFrag(${k})">${escapeHtml(b.text)}</span>`).join("");
 }
 function unpickFrag(k){
   const b = sentenceState.built[k];
+  if(!b) return;
   sentenceState.built.splice(k,1);
-  const fr = $("#fr-"+b.idx);
+  const idx = sentenceState.frags.findIndex(f => f.id === b.id);
+  const fr = idx >= 0 ? $("#fr-"+idx) : null;
   if(fr) fr.classList.remove("used");
   renderBuild();
 }
+function sentenceReveal(){
+  const area = $("#buildArea");
+  if(!area) return;
+  area.innerHTML = `<div style="width:100%;text-align:center;line-height:2">
+      <span style="color:var(--muted);font-size:12.5px">正确语序</span><br>
+      <b style="font-size:16px;color:#128a55">${escapeHtml(sentenceState.answer.join(' '))}</b>
+    </div>`;
+}
 function checkSentence(){
-  const builtStr = sentenceState.built.map(b=>b.text).join(" ");
-  const targetStr = sentenceState.target.join(" ");
+  stopCountdown();
+  const builtStr = sentenceState.built.map(b=>b.text).join(' ');
+  const targetStr = sentenceState.answer.join(' ');
   const area = $("#buildArea");
   if(builtStr === targetStr){
     area.querySelectorAll(".frag").forEach(f=>f.classList.add("right"));
     const r = recordAnswer('sentence', true, 3);
     toast("✅ 拼句正确！ +" + r.gain + (r.mult>1 ? "（连对×"+r.mult+"）" : ""));
-    setTimeout(()=>{ if(sentenceState.idx<words().length-1){ sentenceState.idx++; renderSentenceQ(); } else { goStep(6); } },1100);
+    setTimeout(()=>sentenceNext(), 800);
   } else {
     recordAnswer('sentence', false, 3);
-    addWrong(words()[sentenceState.idx].word, words()[sentenceState.idx].cn);
-    toast("❌ 顺序不对，点击已选碎片撤回重排");
+    const w = sentenceState.word;
+    addWrong(w.word, w.cn);
+    sentenceReveal();
+    showFb({
+      ok:false, head:'语序不对',
+      rows:[
+        ['正确语序', `<b>${escapeHtml(targetStr)}</b>`],
+        ...explainRows(w, '')
+      ],
+      btn:'我读懂了，下一题 →',
+      onNext:()=>sentenceNext()
+    });
   }
 }
+function sentenceTimeout(){
+  if(!sentenceState.answer) return;
+  recordAnswer('sentence', false, 3);
+  const w = sentenceState.word;
+  addWrong(w.word, w.cn);
+  sentenceReveal();
+  showFb({
+    ok:false, head:'超时了，没在时间内拼完',
+    rows:[['正确语序', `<b>${escapeHtml(sentenceState.answer.join(' '))}</b>`], ...explainRows(w, '')],
+    btn:'下一题 →',
+    onNext:()=>sentenceNext()
+  });
+}
 
-/* ================= 题型6：句子翻译 ================= */
+/* ================= 题型6：句子翻译（三级提示） ================= */
 let transState = { idx:0 };
 function renderTrans(){
   transState = { idx:0 };
@@ -3160,38 +4591,121 @@ function renderTrans(){
 }
 function renderTransQ(){
   const w = words()[transState.idx];
+  if(!w){ goStep(7); return; }
+  applyBank(w);
+  const d = curDiff();
   // 双语转译专属例句（需带中文，且与填空/组配所用句子不同）
-  const example = taskExample(w, 'trans');
-  transState.answer = example.en.replace(/<[^>]+>/g,"");
+  let ex = taskExample(w, 'trans');
+  if(!ex || !ex.cn){
+    const alt = (pickLearnExamples(w, 3) || []).find(e => e.cn);
+    if(alt) ex = alt;
+  }
+  const ref = String(ex.en || '').replace(/<[^>]+>/g, '');
+  transState.answer = ref;
+  transState.word = w;
+  const label = detectPattern(ref);
+  const ph = w.ukPhonetic || w.usPhonetic || '';
+  const cc = coreCn(w.cn, 2);
+  let hint = '';
+  if(d.hint === 'full'){
+    // 基础档：给出同句型完整范例 + 句式骨架，可直接照着仿写
+    let model = null;
+    try{
+      const others = (pickLearnExamples(w, 4) || []).filter(e => {
+        const p = String(e.en || '').replace(/<[^>]+>/g, '');
+        return p && p.toLowerCase().replace(/\s+/g, ' ') !== ref.toLowerCase().replace(/\s+/g, ' ');
+      });
+      model = others.find(e => detectPattern(String(e.en)) === label) || others[0] || null;
+    }catch(e){}
+    hint = `<div class="trans-hint">
+      <div><span class="th-k">句式</span>${escapeHtml(label)}</div>
+      <div style="margin-top:6px"><span class="th-k">模板</span><span class="th-skel">${escapeHtml(skeletonOf(ref))}</span><span style="color:#8b91a6;font-size:12px;margin-left:6px">照着模板把空格填满</span></div>
+      ${model ? `<div style="margin-top:6px"><span class="th-k">例句</span><span class="th-model">${escapeHtml(String(model.en).replace(/<[^>]+>/g, ''))}</span>${model.cn ? `<div style="color:#7b83a0;font-size:12.5px;margin-left:2px">${escapeHtml(model.cn)}</div>` : ''}</div>` : ''}
+    </div>`;
+  } else if(d.hint === 'part'){
+    hint = `<div class="trans-hint">
+      <div><span class="th-k">句式</span>${escapeHtml(label)}</div>
+      <div style="margin-top:6px"><span class="th-k">重点词</span><b>${escapeHtml(w.word)}</b>${ph ? ` <span class="th-skel">${escapeHtml(normIpa(ph))}</span>` : ''} · ${escapeHtml(cc.text)}</div>
+    </div>`;
+  }
+  const sec = d.time.trans;
   $("#transPage").classList.remove("hidden");
   $("#transPage").innerHTML = `
     <h2 class="page-title">🌐 双语转译</h2>
-    <p class="page-sub">汉译英，运用本节课所学单词</p>
+    <p class="page-sub">汉译英，用上本节课学到的词</p>
+    ${diffBar()}
     <div class="question">
-      <div class="q-index">第 ${transState.idx+1} / ${words().length} 题 · 提示单词：${w.word}</div>
-      <div class="q-sentence">${example.cn}</div>
+      <div class="q-index">第 ${transState.idx+1} / ${words().length} 题 · 提示单词：${escapeHtml(w.word)}</div>
+      ${timerBar(sec)}
+      <div class="q-sentence">${escapeHtml(ex.cn || '（该句暂无中文，请看下方提示作答）')}</div>
     </div>
-    <div class="trans-area"><textarea id="transInput" placeholder="在此输入英文翻译..."></textarea></div>
+    ${hint}
+    <div class="trans-area" style="margin-top:14px"><textarea id="transInput" placeholder="在此输入英文翻译..."></textarea></div>
     <div style="text-align:center;margin-top:16px"><button class="btn btn-primary" onclick="checkTrans()">提交并查看答案</button></div>
+    <div class="fb-box" id="fbBox"></div>
     <div style="text-align:center;margin-top:14px"><button class="btn btn-skip" onclick="goStep(7)">跳过本题型 →（基础薄弱可跳过）</button></div>
   `;
+  clearFb();
+  runQTimer(sec, ()=>transTimeout());
+}
+function transNext(){
+  clearFb();
+  if(transState.idx < words().length - 1){ transState.idx++; renderTransQ(); }
+  else { goStep(7); }
+}
+function transExplainRows(input){
+  const w = transState.word;
+  const d = curDiff();
+  const res = transScore(input || '', transState.answer, w.word);
+  const need = d.key === 'hard' ? 0.78 : (d.key === 'mid' ? 0.70 : 0.62);
+  const rows = [['参考答案', `<b>${escapeHtml(transState.answer)}</b>`]];
+  const hit = res.hit.map(t => `<span style="color:#128a55">${escapeHtml(t)}</span>`).join(' ');
+  const miss = res.miss.map(t => `<span style="color:#c0392b">${escapeHtml(t)}</span>`).join(' ');
+  rows.push(['关键词', `${hit}${miss ? ' ' + miss : ''}<span class="fb-cn">绿色=答对的关键词，红色=漏掉的；本档需覆盖 ${Math.round(need*100)}%</span>`]);
+  if(!res.hasTarget) rows.push(['提醒', `句中必须用上 <b>${escapeHtml(w.word)}</b>`]);
+  return { rows, res, need };
 }
 function checkTrans(){
-  const input = $("#transInput").value.trim();
+  stopCountdown();
+  const input = (($("#transInput") && $("#transInput").value) || '').trim();
   if(!input){ toast("请先输入你的翻译"); return; }
-  // 简单判分：比较是否包含目标词
-  const target = words()[transState.idx].word.toLowerCase();
-  const hasTarget = input.toLowerCase().includes(target);
-  let msg = "";
-  if(hasTarget){ const r = recordAnswer('trans', true, 2); msg = "✅ 很好！你正确使用了目标单词 "+words()[transState.idx].word+" +"+r.gain; }
-  else { recordAnswer('trans', false, 2); msg = "⚠️ 建议在句中用上目标单词 "+words()[transState.idx].word; addWrong(words()[transState.idx].word, words()[transState.idx].cn); }
-  // 显示参考答案
-  toast(msg);
-  const area = document.querySelector("#transPage .trans-area");
-  area.innerHTML = `<div style="color:var(--green);font-weight:600;margin-bottom:6px">参考答案：</div><div>${escapeHtml(transState.answer)}</div><div style="margin-top:14px"><button class="btn btn-ghost" onclick="nextTrans()">下一题 →</button></div>`;
+  const w = transState.word;
+  const { rows, res, need } = transExplainRows(input);
+  const pass = res.hasTarget && res.recall >= need;
+  const r = recordAnswer('trans', pass, 2);
+  const ta = $("#transInput"); if(ta) ta.disabled = true;
+  if(pass){
+    toast("✅ 通过！ +" + r.gain);
+    showFb({
+      ok:true, rows,
+      btn:'下一题 →',
+      tip:`覆盖率 ${Math.round(res.recall*100)}%`,
+      onNext:()=>transNext()
+    });
+  } else {
+    addWrong(w.word, w.cn);
+    if(!res.hasTarget) toast("⚠️ 句中还没用上目标单词");
+    showFb({
+      ok:false, head: res.hasTarget ? '句子还差一些关键词' : '没用上目标单词',
+      rows,
+      btn:'对照答案，下一题 →',
+      tip:`覆盖率 ${Math.round(res.recall*100)}% / 需 ${Math.round(need*100)}%`,
+      onNext:()=>transNext()
+    });
+  }
 }
-function nextTrans(){
-  if(transState.idx<words().length-1){ transState.idx++; renderTransQ(); } else { goStep(7); }
+function transTimeout(){
+  const w = transState.word;
+  if(!w) return;
+  recordAnswer('trans', false, 2);
+  addWrong(w.word, w.cn);
+  const ta = $("#transInput"); if(ta) ta.disabled = true;
+  showFb({
+    ok:false, head:'超时了，没在时间内写完',
+    rows:[['参考答案', `<b>${escapeHtml(transState.answer)}</b>`], ...explainRows(w, '')],
+    btn:'下一题 →',
+    onNext:()=>transNext()
+  });
 }
 
 /* ================= 题型7：语篇短文 ================= */
@@ -3471,6 +4985,30 @@ const PK_AI = {
 let pk = null;
 let pkTick = null;
 
+/* ---- 水平匹配：按本人近期正确率折算一个"相近、略高一点"的对手 ---- */
+function pkMyAcc(){
+  const s = loadStats();
+  const n = s.ans || 0;
+  if(n < 8) return 60;                                   // 样本太少，按中等偏下起步
+  const base = Math.round(s.right / n * 100);
+  return base;
+}
+function pkAutoCfg(){
+  const mine = pkMyAcc();
+  const target = Math.min(94, Math.max(50, mine + 7));   // 只高一点点：够得着又有压力
+  const p = target / 100;
+  const fast = 4300 - p * 3200;                           // 正确率越高，反应越快
+  return {
+    key:'auto', name:'匹配对手', icon:'🎯', p,
+    min: Math.round(fast * 0.72), max: Math.round(fast * 1.35),
+    mine, target
+  };
+}
+function pkCfg(level){
+  if(!level || level === 'auto') return pkAutoCfg();
+  return PK_AI[level] || PK_AI.normal;
+}
+
 function pkBank(){
   // 出题来源：当前词库（自定义词库优先，否则当前分组）
   const list = words().filter(w => w && w.word && w.cn);
@@ -3518,7 +5056,7 @@ function pkQuestions(n){
     return {
       word: w.word, cn: w.cn, en2cn: false,
       prompt: pkCleanCn(w.cn),
-      promptSub: w.word.length + ' 个字母',
+      promptSub: '',
       options,
       answer: w.word
     };
@@ -3573,9 +5111,19 @@ function pkOnlineTip(){
 
 /* ---------- 人机 / 双人 设置页 ---------- */
 function renderPkAiSetup(){
+  const auto = pkAutoCfg();
+  const sample = (loadStats().ans || 0);
   $("#battlePage").innerHTML = `
     <h2 class="page-title">🤖 人机竞速</h2>
-    <p class="page-sub">选择难度，AI 会按自己的水平与你同时作答</p>
+    <p class="page-sub">默认按你近期正确率匹配对手：水平相近，略高一点</p>
+    <div class="pk-levels">
+      <div class="pk-level" onclick="startPk('ai','auto')" style="border-color:#c9d0f5;background:linear-gradient(135deg,#f7f8ff,#fdf8ff)">
+        <div class="pk-level-icon">${auto.icon}</div>
+        <div class="pk-level-name">${auto.name}</div>
+        <div class="pk-level-desc">你 ${auto.mine}% · 对手约 ${Math.round(auto.p*100)}%<br>反应 ${(auto.min/1000).toFixed(1)}–${(auto.max/1000).toFixed(1)} 秒${sample < 8 ? '<br><span style="color:#c08a2b">答题样本少，先按中等水平估算</span>' : ''}</div>
+      </div>
+    </div>
+    <p class="page-sub" style="margin:18px 0 8px">或者自选对手强度</p>
     <div class="pk-levels">
       ${Object.entries(PK_AI).map(([k,v])=>`
         <div class="pk-level" onclick="startPk('ai','${k}')">
@@ -3604,13 +5152,14 @@ function startPk(mode, level, name1, name2){
   stopPkTimer();
   const n1 = name1 || ($("#pkName1") && $("#pkName1").value.trim()) || '选手一';
   const n2 = name2 || ($("#pkName2") && $("#pkName2").value.trim()) || '选手二';
+  const cfg = pkCfg(level);
   pk = {
-    mode, level: level || 'normal',
+    mode, level: level || 'normal', aiCfg: cfg,
     qs: pkQuestions(PK_CONF.QN),
     idx: 0, turn: 0, phase: 'q',
     startAt: Date.now(),
     players: mode === 'ai'
-      ? [{ name:'你', score:0, right:0, ms:0, total:0 }, { name:(PK_AI[level||'normal'].icon + ' ' + PK_AI[level||'normal'].name + ' AI'), score:0, right:0, ms:0, total:0 }]
+      ? [{ name:'你', score:0, right:0, ms:0, total:0 }, { name:(cfg.icon + ' ' + cfg.name + ' AI'), score:0, right:0, ms:0, total:0 }]
       : [{ name:n1, score:0, right:0, ms:0, total:0 }, { name:n2, score:0, right:0, ms:0, total:0 }],
     answered: [false, false],
     ai: null,
@@ -3734,7 +5283,7 @@ function pkRunAi(){
   if(!st) return;
   const fbNow = $("#pkFeedback");
   if(!fbNow) return;                 // 页面已离开对战，直接放弃本回合
-  const cfg = PK_AI[st.level] || PK_AI.normal;
+  const cfg = st.aiCfg || pkCfg(st.level);
   const think = cfg.min + Math.random() * (cfg.max - cfg.min);
   const willRight = Math.random() < cfg.p;
   fbNow.innerHTML += `<span class="ai-thinking">${st.players[1].name} 思考中…</span>`;

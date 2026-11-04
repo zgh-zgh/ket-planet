@@ -1,0 +1,165 @@
+{
+  "generatedAt": "2026-11-03T12:36:33.806Z",
+  "zhongkao": {
+    "label": "中考库（初中 1987 词）",
+    "total": 1987,
+    "phUk": 1986,
+    "phUs": 1986,
+    "exGe2": 1984,
+    "exGe4": 1980,
+    "examGe1": 1938,
+    "examGe2": 1901,
+    "famAny": 1642,
+    "famGap": 0,
+    "sylOk": 1979,
+    "sylTotal": 1979,
+    "sylBad": [],
+    "img": 1868,
+    "srcDist": {
+      "gaokao": 2855,
+      "zhongkao": 2810,
+      "media": 30,
+      "dict": 2190,
+      "news": 47
+    },
+    "flags": {
+      "fam_gap": 539,
+      "no_img": 119,
+      "few_exam_ex": 37,
+      "no_exam_ex": 49,
+      "few_ex": 3,
+      "no_ph_uk": 1,
+      "no_ph_us": 1,
+      "no_syl": 8
+    },
+    "exTotal": 7932,
+    "p": {
+      "phUk": 99.9,
+      "phUs": 99.9,
+      "exGe2": 99.8,
+      "exGe4": 99.6,
+      "examGe1": 97.5,
+      "examGe2": 95.7,
+      "famAny": 82.6,
+      "sylOk": 100,
+      "img": 94
+    }
+  },
+  "gaokao": {
+    "label": "高考库（初中+高中累计）",
+    "total": 3908,
+    "phUk": 3899,
+    "phUs": 3901,
+    "exGe2": 3900,
+    "exGe4": 3886,
+    "examGe1": 3538,
+    "examGe2": 3274,
+    "famAny": 3262,
+    "famGap": 0,
+    "sylOk": 3869,
+    "sylTotal": 3869,
+    "sylBad": [],
+    "img": 3638,
+    "srcDist": {
+      "gaokao": 6493,
+      "zhongkao": 3313,
+      "media": 40,
+      "dict": 5387,
+      "news": 353
+    },
+    "flags": {
+      "fam_gap": 1005,
+      "no_img": 270,
+      "few_exam_ex": 264,
+      "no_exam_ex": 370,
+      "few_ex": 8,
+      "no_ph_uk": 9,
+      "no_ph_us": 7,
+      "no_syl": 39
+    },
+    "exTotal": 15586,
+    "p": {
+      "phUk": 99.8,
+      "phUs": 99.8,
+      "exGe2": 99.8,
+      "exGe4": 99.4,
+      "examGe1": 90.5,
+      "examGe2": 83.8,
+      "famAny": 83.5,
+      "sylOk": 100,
+      "img": 93.1
+    }
+  },
+  "sizes": {
+    "zhongkao": {
+      "raw": 3.52,
+      "gzip": 0.79
+    },
+    "gaokao": {
+      "raw": 7.06,
+      "gzip": 1.67
+    }
+  },
+  "gates": [
+    {
+      "name": "词表完整性",
+      "value": "1987 / 3908",
+      "pass": true,
+      "rule": "应与初中 1987、初中+高中 3908 一致"
+    },
+    {
+      "name": "英式音标覆盖",
+      "value": "99.9% / 99.8%",
+      "pass": true,
+      "rule": "≥99%"
+    },
+    {
+      "name": "美式音标覆盖",
+      "value": "99.9% / 99.8%",
+      "pass": true,
+      "rule": "≥60%（Wiktionary 仅覆盖 945 词）"
+    },
+    {
+      "name": "例句 ≥2 条",
+      "value": "99.8% / 99.8%",
+      "pass": true,
+      "rule": "≥99%"
+    },
+    {
+      "name": "真题例句 ≥1 条",
+      "value": "97.5% / 90.5%",
+      "pass": true,
+      "rule": "观测项"
+    },
+    {
+      "name": "真题例句 ≥2 条",
+      "value": "95.7% / 83.8%",
+      "pass": true,
+      "rule": "≥55%"
+    },
+    {
+      "name": "相关词覆盖",
+      "value": "82.6% / 83.5%",
+      "pass": true,
+      "rule": "≥80%"
+    },
+    {
+      "name": "音节自洽",
+      "value": "100% / 100%",
+      "pass": true,
+      "rule": "100%"
+    },
+    {
+      "name": "配图覆盖",
+      "value": "94% / 93.1%",
+      "pass": true,
+      "rule": "观测项"
+    },
+    {
+      "name": "单库体积(原始)",
+      "value": "3.52MB / 7.06MB",
+      "pass": true,
+      "rule": "观测项"
+    }
+  ]
+}

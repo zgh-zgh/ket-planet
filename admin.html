@@ -7,6 +7,7 @@
 <script src="words-data.js"></script>
 <script src="bank/pack.js"></script>
 <script src="bank/pack_cet.js"></script>
+<script src="syllables_data.js"></script>
 <style>
   :root{
     --bg:#f6f7fb; --card:#fff; --primary:#4f6ef7; --primary2:#7c5cf0;
@@ -99,6 +100,15 @@
   .preview b{color:var(--primary)}
   .preview .warn{color:var(--red);font-size:12.5px}
 
+  /* 音节编辑 */
+  .syl-chips{display:flex;flex-wrap:wrap;align-items:center;gap:2px;margin:8px 0 6px;min-height:30px}
+  .syl-chip{border:1px solid #dfe4f5;background:#fff;border-radius:8px;padding:3px 9px;font-size:14px;
+            cursor:pointer;color:#3c4358;letter-spacing:.2px}
+  .syl-chip:hover{border-color:var(--primary);color:var(--primary)}
+  .syl-chip.on{background:linear-gradient(135deg,var(--primary),var(--primary2));border-color:transparent;color:#fff;font-weight:700}
+  .syl-dot{color:#b9bfd4;font-size:14px;padding:0 1px}
+  .syl-tag{font-size:10.5px;font-weight:800;color:#8a5a00;background:#fff2d6;border-radius:6px;padding:1px 6px}
+
   .btns{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
   .btn{border:none;border-radius:10px;padding:9px 16px;font-size:13.5px;font-weight:700;cursor:pointer;
        background:#eef1fa;color:#4a5169;transition:.15s}
@@ -138,7 +148,7 @@
 
 <div class="topbar">
   <div class="logo">词</div>
-  <div class="title">例句管理台<small>给单词补例句 · 改完重新生成即可</small></div>
+  <div class="title">例句管理台<small>补例句 · 校音节 · 改完重新生成即可</small></div>
   <div class="grow"></div>
   <div class="status"><span class="dot" id="dot"></span><span id="connText">检查连接…</span></div>
 </div>
@@ -149,6 +159,7 @@
     ② 全部加完点右下「<b>保存到项目</b>」&nbsp;&nbsp;
     ③ 点「<b>生成并应用</b>」（约 10 秒），回 App 刷新即可看到。
     <br>覆盖中考、高考、四级、六级四个词库（共 7549 词）。
+    <br><b>音节不对也能改：</b>右边「音节划分」里用 <b>·</b> 分隔改好（如 choc·o·late），点「保存音节」，约 2 秒生效，不用点「生成并应用」。
   </div>
 
   <div class="banner" id="banner">
@@ -196,6 +207,9 @@ let currentWord = '';     // 当前编辑的词
 let editingIdx = -1;      // 正在编辑第几条（-1 表示新增）
 let dirty = false;        // 有未保存修改
 let serverOK = false;
+let SYL = {};             // 音节数据（自动生成结果，保存后重新拉取）
+let sylManual = {};       // 人工指定的音节 { word: {l:[...], s:0} }
+let sylStress = 0;        // 音节编辑里当前的重音下标
 
 function toast(msg, type){
   const el = $('#toast');
@@ -281,16 +295,31 @@ function cleanCn(raw){
 }
 function cnFull(word){ return cleanCn(CN_MAP[String(word).toLowerCase()] || ''); }
 
-async function loadServerFile(){
+async function fetchJson(url){
   try{
-    const r = await fetch('bank/src/manual_examples.json', { cache: 'no-store' });
+    const r = await fetch(url, { cache: 'no-store' });
     if(!r.ok) throw new Error('HTTP ' + r.status);
-    const data = await r.json();
-    return (data && typeof data === 'object' && !Array.isArray(data)) ? data : {};
-  }catch(e){
-    serverOK = false;
-    return null;
-  }
+    return await r.json();
+  }catch(e){ return null; }
+}
+
+async function loadServerFile(){
+  const data = await fetchJson('bank/src/manual_examples.json');
+  if(!data || typeof data !== 'object' || Array.isArray(data)){ serverOK = false; return null; }
+  return data;
+}
+
+// 音节数据：管理页需要显示「当前切分」，所以把 syllables_data.js 也载入。
+// 保存后文件变了，这里重新拉一次（页面上那份 const 变量没法改，用自己的 SYL 存）。
+async function reloadSyllableData(){
+  try{
+    const r = await fetch('syllables_data.js', { cache: 'no-store' });
+    if(!r.ok) return false;
+    const txt = await r.text();
+    const body = txt.split('\n').filter(l => !l.trim().startsWith('//')).join('\n');
+    SYL = JSON.parse(body.slice(body.indexOf('{'), body.lastIndexOf('}') + 1)) || {};
+    return true;
+  }catch(e){ return false; }
 }
 
 async function boot(){
@@ -312,6 +341,11 @@ async function boot(){
     manual = {};
     setConn(false, '未连接服务（只能导出，不能保存）');
   }
+
+  // 音节：自动生成结果 + 人工指定
+  SYL = (typeof SYLLABLES_DATA !== 'undefined' && SYLLABLES_DATA) ? SYLLABLES_DATA : {};
+  const sm = await fetchJson('bank/src/manual_syllables.json');
+  sylManual = (sm && typeof sm === 'object' && !Array.isArray(sm)) ? sm : {};
 
   // 草稿恢复
   const draftRaw = localStorage.getItem(LS_DRAFT);
@@ -414,6 +448,14 @@ function renderDetail(){
   (b.dx || []).forEach(e => packEx.push({ en: e[0], src: e[2], srcType: 'dict', cn: e[1] }));
   const mine = manual[w] || [];
 
+  // 音节：人工指定优先，否则用自动生成结果
+  const lw = String(w).toLowerCase();
+  const sylMine = sylManual[lw] || null;
+  const sylAuto = SYL[lw] || null;
+  const sylSegs = sylMine ? sylMine.l : (sylAuto ? sylAuto.l : [lw]);
+  const sylS = sylMine ? sylMine.s : (sylAuto ? sylAuto.s : 0);
+  sylStress = (sylS >= 0 && sylS < sylSegs.length) ? sylS : 0;
+
   $('#detail').innerHTML = `
     <div class="word-h">
       <span class="w">${esc(b.w || w)}</span>
@@ -422,6 +464,24 @@ function renderDetail(){
       ${b.lv ? `<span class="lv">${esc(b.lv)}</span>` : ''}
       ${mine.length ? `<span class="lv" style="color:#3b5bdb;background:#e7ecff">已加 ${mine.length} 条</span>` : ''}
       <div class="cn">${esc(cnText)}</div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-t">音节划分 <span class="hint">（屏幕上显示用，用 · 分隔）</span>
+        ${sylMine ? '<span class="syl-tag">人工指定</span>' : ''}
+      </div>
+      <div class="form">
+        <div class="fld">
+          <label>分段 <span class="opt">（点下面任一段，把它设为主重音）</span></label>
+          <input id="sylIn" type="text" value="${esc(sylSegs.join('·'))}" spellcheck="false" autocomplete="off" oninput="onSylType()">
+          <div class="syl-chips" id="sylChips"></div>
+          <div class="preview" id="sylPreview"></div>
+        </div>
+        <div class="btns">
+          <button class="btn pri" id="sylSaveBtn" onclick="saveSyl(false)">保存音节</button>
+          ${sylMine ? '<button class="btn ghost" onclick="saveSyl(true)">恢复自动切分</button>' : ''}
+        </div>
+      </div>
     </div>
 
     <div class="sec">
@@ -486,6 +546,61 @@ function renderDetail(){
   if(editingIdx >= 0){
     const e = (manual[w] || [])[editingIdx];
     if(e){ $('#fEn').value = stripTags(e.en); $('#fCn').value = e.cn || ''; $('#fSrc').value = e.src === '自建' ? '' : (e.src || ''); onType(); }
+  }
+  onSylType();
+}
+
+/* ================= 音节编辑 ================= */
+function sylParse(){
+  const raw = ($('#sylIn') ? $('#sylIn').value : '').trim();
+  const word = String(currentWord || '').toLowerCase();
+  const parts = raw.split(/[·•・.]/).map(s => s.trim()).filter(Boolean);
+  return { parts, word };
+}
+
+function onSylType(){
+  const chips = $('#sylChips'), box = $('#sylPreview'), btn = $('#sylSaveBtn');
+  if(!chips || !box) return;
+  const { parts, word } = sylParse();
+  if(sylStress >= parts.length) sylStress = 0;
+  chips.innerHTML = parts.length
+    ? parts.map((p, i) => `<span class="syl-chip${i === sylStress ? ' on' : ''}" onclick="pickSylStress(${i})">${esc(p)}</span>`).join('<span class="syl-dot">·</span>')
+    : '<span class="syl-dot">（还没有分段）</span>';
+  const ok = parts.length > 0 && parts.join('') === word;
+  if(ok){
+    box.innerHTML = `显示为 <b>${parts.map(esc).join('·')}</b>　共 ${parts.length} 个音节，重音在第 ${sylStress + 1} 段`;
+  }else{
+    box.innerHTML = `<span class="warn">⚠️ 分段拼起来是「${esc(parts.join(''))}」，和「${esc(word)}」对不上。字母一个都不能多、不能少。</span>`;
+  }
+  if(btn) btn.disabled = !ok;
+}
+
+function pickSylStress(i){
+  sylStress = i;
+  onSylType();
+}
+
+async function saveSyl(remove){
+  if(!serverOK) return toast('未连接本地服务，请用 node server.js 打开本页', 'err');
+  const { parts, word } = sylParse();
+  const btn = $('#sylSaveBtn');
+  const old = btn.textContent;
+  btn.disabled = true; btn.textContent = '保存中…';
+  try{
+    const payload = remove ? { word, remove: true } : { word, segs: parts, stress: sylStress };
+    const r = await fetch('/api/syllable-save', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
+    });
+    const j = await r.json();
+    if(!r.ok || !j.ok) throw new Error(j.error || ('HTTP ' + r.status));
+    if(remove) delete sylManual[word]; else sylManual[word] = { l: parts, s: sylStress };
+    await reloadSyllableData();          // 让「自动切分」显示最新结果
+    toast(remove ? '已恢复自动切分' : '音节已保存，回 App 刷新即可看到', 'ok');
+    showLog((j.logs || []).join('\n\n'));
+    renderDetail();
+  }catch(e){
+    toast('保存失败：' + e.message, 'err');
+    btn.textContent = old; btn.disabled = false;
   }
 }
 

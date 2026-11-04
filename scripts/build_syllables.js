@@ -113,6 +113,36 @@ const EXCEPTIONS = {
   'restaurant': ['res', 'tau', 'rant'],
 };
 
+// 管理页写入的人工音节（bank/src/manual_syllables.json）
+// 格式：{ "chocolate": { "l": ["choc","o","late"], "s": 0 } }
+// 用途：cmudict 记的是「实际发音」，chocolate / vegetable 这类「拼写比发音多一个音节」
+// 的词它天生给不出词典写法，只能人工指定。这里优先级最高，覆盖后不再看音素。
+const OVR_FILE = path.join(__dirname, '..', 'bank', 'src', 'manual_syllables.json');
+function loadOverrides() {
+  const out = {};
+  if (!fs.existsSync(OVR_FILE)) return out;
+  let raw;
+  try { raw = JSON.parse(fs.readFileSync(OVR_FILE, 'utf8')); }
+  catch (e) { console.warn('⚠️ manual_syllables.json 解析失败，已忽略：' + e.message); return out; }
+  let ok = 0, bad = 0;
+  for (const k of Object.keys(raw || {})) {
+    const key = String(k).toLowerCase().trim();
+    const v = raw[k];
+    const segs = Array.isArray(v) ? v.map(String) : (v && Array.isArray(v.l) ? v.l.map(String) : null);
+    if (!key || !segs || !segs.length) { bad++; continue; }
+    // 不变式：分段拼回去必须等于原词、不许有空段
+    if (segs.join('') !== key || segs.some(s => !s.length)) {
+      console.warn(`⚠️ 跳过「${key}」：分段拼回是「${segs.join('')}」，与原词不一致`);
+      bad++; continue;
+    }
+    const sIdx = v && !Array.isArray(v) && Number.isInteger(v.s) ? v.s : 0;
+    out[key] = { l: segs, s: sIdx >= 0 && sIdx < segs.length ? sIdx : segs.length - 1 };
+    ok++;
+  }
+  if (ok || bad) console.log(`人工音节覆盖：生效 ${ok} 词${bad ? `，忽略 ${bad} 词` : ''}`);
+  return out;
+}
+
 // ---------- 4. G2P 对齐（DP）----------
 // 返回：长度为 phonemes.length 的数组，每项 {start,end}（字母下标区间，end 开区间）
 // 未被任何音素覆盖的字母（静音）另行记录
@@ -454,9 +484,16 @@ function main() {
   }
 
   const out = {};
-  let hit = 0, miss = 0, alignFail = 0;
+  const OVR = loadOverrides();
+  let hit = 0, miss = 0, alignFail = 0, ovr = 0;
   for (const w of wordSet) {
     const key = w.toLowerCase();
+    // 人工覆盖优先：cmudict 给不出「拼写音节」的少数词走这里
+    if (OVR[key]) {
+      out[key] = { n: OVR[key].l.length, s: OVR[key].s, l: OVR[key].l.slice() };
+      hit++; ovr++;
+      continue;
+    }
     // 含空格/连字符的复合词：按分隔符切分，与旧显示行为一致
     if (/[\s\-]/.test(w)) {
       const segs = splitOnSeparators(w);
@@ -482,14 +519,16 @@ function main() {
     //                   词典写法里 "his·tor·y" 的 "y" 单独念会变成 /waɪ/，不能拿来读。
     const finish = (r) => {
       if (!r) return null;
-      if (EXCEPTIONS[key]) r.l = EXCEPTIONS[key].slice();
+      if (EXCEPTIONS[key]) { r.l = EXCEPTIONS[key].slice(); r.n = r.l.length; }
       // 合并无元音的成音节辅音段（-sm / 词尾 -r / u-s-ual 等），并同步重音下标与 n
       if (r.n > 1) {
         const cleaned = mergeVowelLess(r.l, r.s);
         r.l = cleaned.segs;
         r.s = cleaned.stress;
-        r.n = r.l.length;
       }
+      // 兜底：n 一律以分段数为准（"mm" 这类没有元音的词，音素法会算出 n=0）
+      r.n = r.l.length;
+      if (r.s >= r.n) r.s = r.n - 1;
       return r;
     };
 
@@ -513,6 +552,7 @@ function main() {
     '// l = 词典写法（ge·og·ra·phy）；p = 逐段朗读用的字母切点（发音式，segments 数量与 l 相同）\n';
   fs.writeFileSync(path.join(root, OUT), header + 'const SYLLABLES_DATA=' + json + ';\n');
   console.log('总词数:', wordSet.size, '命中:', hit, '未命中:', miss, '对齐失败:', alignFail);
+  if (ovr) console.log('其中人工指定音节:', ovr, '词');
   console.log('带朗读切点:', Object.keys(out).filter(k => out[k].p).length);
   console.log('已写入', OUT, '大小:', (json.length / 1024).toFixed(1), 'KB');
 }

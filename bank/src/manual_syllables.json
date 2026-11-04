@@ -1,0 +1,78 @@
+{
+ "chocolate": {
+  "l": [
+   "choc",
+   "o",
+   "late"
+  ],
+  "s": 0
+ },
+ "cooperate": {
+  "l": [
+   "co",
+   "op",
+   "er",
+   "ate"
+  ],
+  "s": 0
+ },
+ "desperate": {
+  "l": [
+   "des",
+   "per",
+   "ate"
+  ],
+  "s": 0
+ },
+ "diamond": {
+  "l": [
+   "di",
+   "a",
+   "mond"
+  ],
+  "s": 0
+ },
+ "graduate": {
+  "l": [
+   "grad",
+   "u",
+   "ate"
+  ],
+  "s": 0
+ },
+ "interesting": {
+  "l": [
+   "in",
+   "ter",
+   "est",
+   "ing"
+  ],
+  "s": 0
+ },
+ "privilege": {
+  "l": [
+   "priv",
+   "i",
+   "lege"
+  ],
+  "s": 0
+ },
+ "temperature": {
+  "l": [
+   "tem",
+   "per",
+   "a",
+   "ture"
+  ],
+  "s": 0
+ },
+ "vegetable": {
+  "l": [
+   "veg",
+   "e",
+   "ta",
+   "ble"
+  ],
+  "s": 0
+ }
+}

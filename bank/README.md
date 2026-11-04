@@ -145,6 +145,10 @@ corpus/cet/cet4_v2.db                      四六级真题库（Apache-2.0）
 
 ## 五、人工补录（后台管理页的数据接口）
 
+管理页地址：`http://127.0.0.1:3000/admin.html`（先 `node server.js`）。
+
+> `server.js` 未入库（里面有图片生成的 API key，写在 `.gitignore` 里）。换机器时要把这个文件单独拷过去，否则管理页只能导出、不能保存。
+
 ### 补例句 `src/manual_examples.json`
 
 ```json
@@ -172,6 +176,24 @@ corpus/cet/cet4_v2.db                      四六级真题库（Apache-2.0）
 
 改完重新运行 `node scripts/build_bank.js` 即生效，不需要改代码。
 
+### 校音节 `src/manual_syllables.json`
+
+cmudict 记的是**实际发音**，`chocolate`（词典 choc·o·late，读音 2 个音节）、`vegetable`（词典 veg·e·ta·ble，读音 3 个音节）这类「拼写比发音多一个音节」的词它天生给不出词典写法。这里人工指定，优先级最高：
+
+```json
+{
+  "chocolate": { "l": ["choc", "o", "late"], "s": 0 },
+  "vegetable": { "l": ["veg", "e", "ta", "ble"], "s": 0 }
+}
+```
+
+- `l` 分段，**拼回去必须等于原词**（脚本会校验，不合格自动跳过并打印警告）
+- `s` 主重音下标（0 起；`-1` 表示无重音）
+- 人工指定后不再生成朗读切点 `p`，逐段朗读直接用 `l`
+- 改完运行 `node scripts/build_syllables.js`（约 1.5 秒）；管理页里点「保存音节」会自动跑这一步
+
+已人工校订 9 词：chocolate、vegetable、diamond、interesting、temperature、privilege、cooperate、desperate、graduate。
+
 ---
 
 ## 六、已知缺口与后续
@@ -180,7 +202,7 @@ corpus/cet/cet4_v2.db                      四六级真题库（Apache-2.0）
 2. **8 个词例句不足 2 条**：`prisoner`、`Mr.`、`adj.`、`behavious`、`communism`、`handtruck`、`Tibet`、`ambassadress`。其中 `adj.` 与 `behavious` 是原词表的脏数据。
 3. **中考例句无法标年份**：数据源未提供年份、地区，只能标到题型；如需年份需另抓中考网（图片版 PDF，成本高）。
 4. **真题例句无中文译文**：未做机器翻译，`cn` 留空。可在管理页人工补。
-5. **音节已改词典式**：`syllables_data.js` 现按韦氏闭音节规则生成（`ge·og·ra·phy`、`his·tor·y`），另存 `p` 字段给逐段朗读用（发音式）。少数「拼写比发音多一音节」的词（`chocolate`）仍按发音计数。
+5. **音节已改词典式**：`syllables_data.js` 现按韦氏闭音节规则生成（`ge·og·ra·phy`、`his·tor·y`），另存 `p` 字段给逐段朗读用（发音式）。极少数「拼写比发音多一个音节」的词（`chocolate`、`vegetable`）无法由音素推出词典写法，已写进 `src/manual_syllables.json` 人工指定，管理页可继续补。
 6. **四六级真题语料偏少**：只有四六级真题 15 套（2019–2025），六级没有独立真题，靠四级题与高考题补；六级真题句覆盖 41%、四级 74%，其余用词典句兜底，不会出现空题干。
 7. **315 个六级词、95 个四级词没有词库例句**：学习页会退回 `examples_data.js` 的词典/报刊句（实测每词仍能抽到 3 条），题型不受影响。
 8. **原词表自带词性错误**：如 `planetary` 标注为 `n. 行星的`（应为 adj.）。这是 KyleBing 词表的数据，可在管理页人工改释义。

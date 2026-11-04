@@ -20,6 +20,7 @@ bank/.bak/
 .exam_progress.json
 # 管理页保存时自动留的上一版备份
 bank/src/manual_examples.json.bak
+bank/src/manual_syllables.json.bak
 # 词库构建中间产物：可由 corpus + scripts 重新生成，体积大且整段含真题原文
 bank/src/exam_examples.json
 bank/src/exam_examples_cet.json

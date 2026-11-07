@@ -6578,6 +6578,7 @@ function renderAccountUI(){
 }
 function openAuth(tab){
   closeWordPop();
+  try{ closeDrawer(); }catch(e){}          // 手机端：先收起侧边抽屉，再弹窗
   authTab = tab || (currentAccount() ? 'profile' : 'login');
   renderAuthModal();
 }
@@ -6669,6 +6670,14 @@ function renderAuthModal(){
         </div>
       </div>
     </div>`;
+  // 回车直接提交，手机上少点一次
+  root.querySelectorAll('.auth-field input').forEach(inp => {
+    inp.addEventListener('keydown', (e) => {
+      if(e.key !== 'Enter') return;
+      e.preventDefault();
+      if(isReg) doRegister(); else doLogin();
+    });
+  });
   const first = document.getElementById('auEmail');
   if(first) setTimeout(()=>{ try{ first.focus(); }catch(e){} }, 30);
 }

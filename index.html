@@ -649,6 +649,71 @@
   .example .ex-src .ex-badge{display:inline-block;font-style:normal;font-size:9.5px;font-weight:800;color:#c0392b;background:#ffe9e7;border-radius:3px;padding:0 3px;margin-right:4px;letter-spacing:.3px}
   .example .ex-src .ex-badge-manual{color:#3b5bdb;background:#e7ecff}
 
+  /* 例句译文：默认收起，点「显示翻译」才在英文下面出现（先猜后译，不提前剧透） */
+  .example .cn{display:none}
+  .ex-list.show-cn .example .cn{display:block}
+  .ex-trans-btn{display:inline-flex;align-items:center;gap:4px;border:1px solid var(--border);background:#fff;color:var(--primary);font-size:11.5px;font-weight:700;border-radius:14px;padding:3px 10px;cursor:pointer;transition:.15s;font-family:inherit;white-space:nowrap}
+  .ex-trans-btn:hover{background:#f3f6ff;border-color:var(--primary)}
+  .ex-trans-btn.on{background:#eef2ff;border-color:var(--primary);color:var(--primary2)}
+
+  /* 例句里每个单词都可点：点一下弹释义卡 */
+  .example .w{cursor:pointer;border-radius:4px;padding:0 1px;transition:background .12s}
+  .example .w:hover{background:#e9eeff;color:var(--primary)}
+  .example .w.on{background:#dfe6ff;color:var(--primary2)}
+
+  /* 音节拆分：默认不拆，点「逐段朗读」后才展开，位置在完整单词正下方 */
+  .syl-split{display:flex;align-items:center;flex-wrap:wrap;gap:3px;margin:5px 0 0;padding:4px 10px;border-radius:10px;background:#f6f8ff;border:1px dashed #d8e0ff;font-size:21px;font-weight:800;line-height:1.3;animation:sylIn .2s ease-out}
+  .syl-split .syl{cursor:pointer;padding:0 2px;border-radius:6px;transition:.14s;color:var(--text)}
+  .syl-split .syl + .syl::before{content:"·";color:#b9c0d6;font-weight:400;margin:0 2px}
+  .syl-split .syl.noseq::before{content:none;margin:0}
+  .syl-split .syl:hover{background:#e9eeff;color:var(--primary)}
+  .syl-split .syl.stress{color:var(--primary2)}
+  .syl-split .syl.active{background:var(--red);color:#fff}
+  .syl-split .syl.active::before{color:#f3b4b4}
+  .syl-split .split-tip{font-size:11px;font-weight:400;color:#a6acbf;margin-left:auto;white-space:nowrap}
+  @keyframes sylIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+
+  /* 例句单词点读卡 */
+  .word-pop{position:fixed;z-index:320;width:min(300px,86vw);background:#fff;border-radius:14px;box-shadow:0 16px 40px rgba(30,40,80,.22);border:1px solid #e8ebf9;padding:12px 14px 12px;font-size:13px;animation:popIn .14s ease-out}
+  .word-pop .wp-head{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;padding-right:14px}
+  .word-pop .wp-word{font-size:20px;font-weight:800;color:var(--text)}
+  .word-pop .wp-ph{font-size:12px;color:#7b83a0}
+  .word-pop .wp-cn{margin-top:6px;line-height:1.6;color:#41485f;max-height:86px;overflow:auto}
+  .word-pop .wp-wait{color:#a8aec2}
+  .word-pop .wp-more{font-size:11.5px;color:var(--primary);margin-top:4px;cursor:pointer;text-decoration:none}
+  .word-pop .wp-acts{display:flex;gap:8px;margin-top:10px}
+  .word-pop .wp-btn{flex:1;border:none;border-radius:9px;padding:7px 0;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit}
+  .word-pop .wp-say{background:#eef2ff;color:var(--primary)}
+  .word-pop .wp-say:hover{background:#e2e9ff}
+  .word-pop .wp-go{background:linear-gradient(135deg,var(--primary),var(--primary2));color:#fff}
+  .word-pop .wp-go:disabled{background:#e8eaf3;color:#a8aec2;cursor:not-allowed}
+  .word-pop .wp-close{position:absolute;right:6px;top:3px;border:none;background:none;font-size:14px;color:#b6bccd;cursor:pointer;line-height:1}
+  @keyframes popIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+  /* ===== 账号（邮箱验证码注册 / 登录） ===== */
+  .acct-avatar{width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--primary2));color:#fff;font-size:11px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto}
+  .auth-tabs{display:flex;gap:6px;margin-bottom:14px;background:#f2f4fa;border-radius:12px;padding:4px}
+  .auth-tab{flex:1;border:none;background:none;padding:8px 0;border-radius:9px;font-size:13.5px;font-weight:700;color:#7a819a;cursor:pointer;font-family:inherit;transition:.15s}
+  .auth-tab.on{background:#fff;color:var(--primary);box-shadow:0 2px 8px rgba(70,80,130,.10)}
+  .auth-field{margin-bottom:11px}
+  .auth-field label{display:block;font-size:12px;color:#7a819a;margin-bottom:5px}
+  .auth-field input{width:100%;border:1.5px solid var(--border);border-radius:10px;padding:9px 12px;font-size:14px;font-family:inherit;outline:none;transition:.15s;background:#fff;color:var(--text)}
+  .auth-field input:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(79,110,247,.10)}
+  .auth-row{display:flex;gap:8px;align-items:stretch}
+  .auth-row input{flex:1;min-width:0}
+  .auth-code-btn{flex:0 0 auto;border:1.5px solid var(--primary);background:#fff;color:var(--primary);font-size:12.5px;font-weight:700;border-radius:10px;padding:0 14px;cursor:pointer;font-family:inherit;white-space:nowrap}
+  .auth-code-btn:disabled{border-color:#dfe3ef;color:#a8aec2;cursor:not-allowed;background:#f7f8fc}
+  .auth-msg{font-size:12.5px;line-height:1.5;margin:2px 0 10px;min-height:18px}
+  .auth-msg.err{color:#d64545}
+  .auth-msg.ok{color:#1f8a5f}
+  .auth-tip{font-size:11.5px;color:#9aa0b6;line-height:1.65;margin-top:12px;padding-top:10px;border-top:1px dashed var(--border)}
+  .auth-user{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+  .auth-user .au-avatar{width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--primary2));color:#fff;font-size:19px;font-weight:800;display:flex;align-items:center;justify-content:center}
+  .auth-user .au-name{font-size:16px;font-weight:800;color:var(--text)}
+  .auth-user .au-mail{font-size:12.5px;color:#8a90a6;margin-top:2px}
+  .modal-x{border:none;background:none;font-size:15px;color:#b6bccd;cursor:pointer;line-height:1;padding:2px 4px}
+  .modal-x:hover{color:#7a819a}
+
   /* 猜词预热 */
   .preheat{margin-bottom:12px}
   .preheat-q{font-size:13px;color:var(--muted);margin-bottom:8px}
@@ -835,6 +900,13 @@
     <div class="menu-group" id="growthMenu">
       <div class="menu-item" id="miAchievement" onclick="openMode('achievement')"><span class="mi-icon">🏆</span><span>段位成就</span><span class="mi-num" id="ptsBadge"></span></div>
     </div>
+    <div class="menu-label">账号</div>
+    <div class="menu-group" id="acctMenu">
+      <div class="menu-item" id="miAccount" onclick="openAuth()">
+        <span class="mi-icon" id="acctIcon">👤</span>
+        <span id="acctLabel">登录 / 注册</span>
+      </div>
+    </div>
     <div class="sidebar-foot">墨词 Lexi · 词汇训练系统</div>
   </aside>
   <main class="main">
@@ -864,6 +936,7 @@
   </main>
 </div>
 <div class="toast" id="toast"></div>
+<div id="authRoot"></div>
 
 <script src="words-data.js"></script>
 <script src="examples_data.js"></script>
@@ -1582,6 +1655,7 @@ if(window.speechSynthesis){ speechSynthesis.getVoices(); speechSynthesis.onvoice
 async function playSyllables(wordData){
   stopAudio();
   if(!wordData) return;
+  revealSyllables();                              // 点「逐段朗读」才把单词拆开，并显示在整词下方
   const token = playToken;                       // 本次播放的“代次”
   const sp = speedCfg();
   const word = wordData.word;
@@ -1590,7 +1664,7 @@ async function playSyllables(wordData){
   const syls = (readSegs && readSegs.length === (wordData.syllables || []).length)
     ? readSegs.map(text => ({ text }))
     : (wordData.syllables || []).filter(s=>s && s.text);
-  const sylEls = Array.from(document.querySelectorAll(".word-text .syl"));
+  const sylEls = Array.from(document.querySelectorAll("#sylSplit .syl"));
   playing = true;
 
   // 并行预取：第一段开始播时，后面的片段已在下载，抵消接口延迟
@@ -1646,6 +1720,7 @@ async function playSyllables(wordData){
 async function playSylAt(i){
   const w = words()[learnIndex];
   if(!w) return;
+  revealSyllables();
   const read = readSyllables(w.word);
   const syls = (read && read.length === (w.syllables || []).length)
     ? read : (w.syllables || []).map(s => s.text);
@@ -1653,7 +1728,7 @@ async function playSylAt(i){
   if(!text) return;
   stopAudio();
   const token = playToken;
-  const els = Array.from(document.querySelectorAll(".word-text .syl"));
+  const els = Array.from(document.querySelectorAll("#sylSplit .syl"));
   els.forEach((el, k) => el.classList.toggle("active", k === i));
   const sp = speedCfg();
   let ok = false;
@@ -1670,6 +1745,176 @@ async function playSylAt(i){
     els.forEach(el => el.classList.remove("active"));
   }, 240);
 }
+
+/* ================= 学习页交互：按需拆音节 / 例句点词 / 译文开关 ================= */
+
+/* 音节按需拆分：默认整词显示，点「逐段朗读」才展开到单词下方 */
+function revealSyllables(){
+  const box = document.getElementById("sylSplit");
+  if(!box || !box.classList.contains("hidden")) return;
+  box.classList.remove("hidden");
+  const cap = document.getElementById("sylCap");
+  if(cap && cap.dataset.after) cap.innerHTML = cap.dataset.after;
+  const hint = document.getElementById("sylHint");
+  if(hint) hint.textContent = "点任一分段可单独试读";
+}
+
+/* 例句里的单词包成可点节点：只在 HTML 标签之外替换，保留 <b> 原词高亮 */
+function wrapClickWords(html){
+  return String(html).split(/(<[^>]*>)/).map(seg=>{
+    if(!seg) return seg;
+    if(seg.charAt(0) === "<") return seg;
+    return seg.replace(/[A-Za-z][A-Za-z'’\-]*/g, m =>
+      `<span class="w" data-w="${m}">${m}</span>`);
+  }).join("");
+}
+
+/* 例句译文开关：默认收起，点一下在英文下面展开 */
+function toggleExTrans(btn){
+  const list = document.getElementById("exList");
+  if(!list) return;
+  const on = list.classList.toggle("show-cn");
+  if(btn){
+    btn.classList.toggle("on", on);
+    btn.textContent = on ? "隐藏翻译" : "显示翻译";
+  }
+  closeWordPop();
+}
+
+/* ---- 例句点词卡：释义 + 发音 + 一键跳到该词的词汇认知页 ---- */
+let wordPopEl = null;
+function lookupWordLocal(word){
+  const lw = String(word || "").toLowerCase();
+  let cn = "";
+  try{ cn = vocabCnMap()[lw] || ""; }catch(e){}
+  const ec = (typeof ECDICT_DATA !== "undefined" && ECDICT_DATA[lw]) || null;
+  const ph = ec && ec.ph ? "/" + normIpa(ec.ph) + "/" : "";
+  return { cn: String(cn).replace(/\[网络\]/g, "").trim(), ph };
+}
+function findWordAnywhere(word){
+  const lw = String(word || "").toLowerCase();
+  const cur = words().find(x => String(x.word).toLowerCase() === lw);
+  if(cur) return cur;
+  const hit = ALL_WORDS.find(x => x.w.toLowerCase() === lw);
+  return hit || null;
+}
+function closeWordPop(){
+  if(wordPopEl){ wordPopEl.remove(); wordPopEl = null; }
+  document.querySelectorAll(".example .w.on").forEach(e => e.classList.remove("on"));
+}
+function positionWordPop(pop, rect){
+  const pad = 8;
+  const w = pop.offsetWidth, h = pop.offsetHeight;
+  let left = rect.left + rect.width / 2 - w / 2;
+  left = Math.max(pad, Math.min(window.innerWidth - w - pad, left));
+  let top = rect.bottom + 8;
+  if(top + h > window.innerHeight - pad) top = Math.max(pad, rect.top - h - 8);
+  pop.style.left = left + "px";
+  pop.style.top = top + "px";
+}
+function openWordPop(el){
+  const word = String((el && el.dataset && el.dataset.w) || (el && el.textContent) || "").trim();
+  if(!word) return;
+  // 再点同一个词 = 收起
+  if(wordPopEl && wordPopEl.dataset.w === word && el.classList.contains("on")){ closeWordPop(); return; }
+  closeWordPop();
+  el.classList.add("on");
+  const info = lookupWordLocal(word);
+  const inLib = !!findWordAnywhere(word);
+  const pop = document.createElement("div");
+  pop.className = "word-pop";
+  pop.dataset.w = word;
+  pop.innerHTML = `
+    <button class="wp-close" aria-label="关闭">✕</button>
+    <div class="wp-head"><span class="wp-word">${escapeHtml(word)}</span>${info.ph ? `<span class="wp-ph">${escapeHtml(info.ph)}</span>` : ""}</div>
+    <div class="wp-cn">${info.cn ? escapeHtml(info.cn) : '<span class="wp-wait">释义查询中…</span>'}</div>
+    <div class="wp-acts">
+      <button class="wp-btn wp-say">🔊 发音</button>
+      <button class="wp-btn wp-go"${inLib ? "" : ' disabled title="当前词库里没有这个词"'}>${inLib ? "去学习 →" : "词库中暂无"}</button>
+    </div>`;
+  document.body.appendChild(pop);
+  wordPopEl = pop;
+  pop._anchor = el;
+  pop._rect = el.getBoundingClientRect();
+  positionWordPop(pop, pop._rect);
+  pop.querySelector(".wp-close").onclick = closeWordPop;
+  pop.querySelector(".wp-say").onclick = () => playWordAudio(word);
+  const go = pop.querySelector(".wp-go");
+  if(inLib) go.onclick = () => jumpToWordByName(word);
+  if(!info.cn) fillPopMeaning(pop, word);
+}
+// 本地词库没有的词，走服务端查一个中文释义（有道词典中转）
+async function fillPopMeaning(pop, word){
+  const box = pop && pop.querySelector(".wp-cn");
+  if(!box) return;
+  try{
+    const r = await fetch("/api/lookup?q=" + encodeURIComponent(word));
+    if(!r.ok) throw new Error("http " + r.status);
+    const d = await r.json();
+    if(wordPopEl !== pop) return;               // 卡片已经被关掉/换词
+    const cn = String(d.cn || "").trim();
+    const ph = String(d.ph || "").trim();
+    box.innerHTML = cn ? escapeHtml(cn) : '<span class="wp-wait">暂无释义</span>';
+    if(ph && !pop.querySelector(".wp-ph")){
+      const s = document.createElement("span");
+      s.className = "wp-ph"; s.textContent = ph;
+      pop.querySelector(".wp-head").appendChild(s);
+    }
+    if(pop._rect) positionWordPop(pop, pop._rect);
+  }catch(e){
+    if(wordPopEl === pop && box) box.innerHTML = '<span class="wp-wait">释义获取失败，可先听发音</span>';
+  }
+}
+/* 一键跳到某个词的词汇认知页：当前批次有就直接切，没有就按学段定位并重建批次 */
+function jumpToWordByName(word){
+  const lw = String(word || "").toLowerCase();
+  if(!lw) return;
+  closeWordPop();
+  const curIdx = words().findIndex(x => String(x.word).toLowerCase() === lw);
+  if(curIdx >= 0){
+    learnIndex = curIdx; currentStep = 0; appMode = "learn"; lastStudyStep = 0;
+    renderAll(); pushRoute();
+    return;
+  }
+  const hit = ALL_WORDS.find(x => x.w.toLowerCase() === lw);
+  if(!hit){ toast(`「${word}」不在词库里`); return; }
+  const lvIdx = LEVELS.indexOf(hit.lv);
+  if(lvIdx < 0){ toast(`「${word}」不在词库里`); return; }
+  // 跨级别不能混批：先记下原来是不是同一学段、是不是自定义词库
+  const sameLevel = !activeCustomWords && lvIdx === currentGroup && currentBatch.length > 0;
+  if(getActiveDeckId() !== null || activeCustomWords){
+    setActiveDeckId(null);
+    activeCustomWords = null;
+  }
+  const pool = GROUPS[lvIdx].words;
+  const target = pool.find(x => x.word.toLowerCase() === lw);
+  if(!target){ toast(`「${word}」不在词库里`); return; }
+  // 同级别：把词插进当前批次，原批次保留，看完还能接着学
+  // 跨级别：目标词放首位、按该学段重建批次
+  if(sameLevel){
+    if(!currentBatch.some(x => String(x.word).toLowerCase() === lw)) currentBatch.push(target);
+    learnIndex = currentBatch.findIndex(x => String(x.word).toLowerCase() === lw);
+  } else {
+    currentGroup = lvIdx;
+    currentBatch = [target].concat(shuffle(pool.filter(x => x !== target)).slice(0, BATCH_SIZE - 1));
+    learnIndex = 0;
+  }
+  currentStep = 0;
+  appMode = "learn";
+  lastStudyStep = 0;
+  resetBatchState();
+  renderAll();
+  pushRoute();
+  toast(`已定位到 ${target.word}`);
+}
+// 点例句空白处 / 滚动 / Esc 都收起卡片
+document.addEventListener("click", (e)=>{
+  const hit = e.target && e.target.closest ? e.target.closest(".example .w") : null;
+  if(hit){ openWordPop(hit); return; }
+  if(wordPopEl && !(e.target.closest && e.target.closest(".word-pop"))) closeWordPop();
+});
+document.addEventListener("keydown", (e)=>{ if(e.key === "Escape") closeWordPop(); });
+window.addEventListener("scroll", ()=>{ if(wordPopEl) closeWordPop(); }, { passive:true });
 
 /* ================= 词汇发散：词根拆解 + 词族（可折叠）+ 近义词辨析 ================= */
 let VOCAB_CN = null;
@@ -3237,23 +3482,24 @@ function renderLearn(){
   applyBank(w);
   const famPick = pickFamily(w);
 
-  // 音节：主视觉就是「标准音节拆分」，每段可点读
-  const wordSpans = w.syllables.map((s, i) =>
-    `<span class="syl${s.stress ? ' stress' : ''}${s.lead ? ' noseq' : ''}" data-i="${i}" onclick="playSylAt(${i})" title="点读这一段">${s.lead || ''}${s.text}</span>`).join("");
+  // 单词：默认只给完整词形；音节点「逐段朗读」才拆（拆分结果出现在单词下方）
+  const wordFull = escapeHtml(w.word);
   const sylN = w.syllables.length;
   const stressAt = w.syllables.findIndex(s => s.stress);
+  const sylSpans = w.syllables.map((s, i) =>
+    `<span class="syl${s.stress ? ' stress' : ''}${s.lead ? ' noseq' : ''}" data-i="${i}" onclick="playSylAt(${i})" title="点读这一段">${s.lead || ''}${s.text}</span>`).join("");
 
-  // 例句：按学段挑 2~3 条，全部常驻显示（学生不必翻页/展开）
+  // 例句：英文里每个词都能点（查义 / 发音 / 跳到该词的认知页），中文默认收起
   const exList = pickLearnExamples(w, 3);
   const renderEx = (e) => {
-    const enHtml = String(e.en).replace(/<B>(.*?)<\/B>/g, (m,p1)=>`<b>${p1}</b>`);
+    const enHtml = wrapClickWords(String(e.en).replace(/<B>(.*?)<\/B>/g, (m,p1)=>`<b>${p1}</b>`));
     const plain = String(e.en).replace(/<[^>]+>/g,'');
     const isExam = isExamType(e.srcType);
     const badge = isExam ? '<b class="ex-badge">真题</b>'
       : (e.srcType === 'manual' ? '<b class="ex-badge ex-badge-manual">自建</b>' : '');
     const src = e.src ? `<span class="ex-src">${badge}${escapeHtml(e.src)}</span>` : '';
     return `<div class="example">
-      <div class="en"><button class="ex-speak" data-say="${escapeHtml(plain)}" onclick="speakDataSentence(this)" title="听例句">🔊</button><span>${enHtml}</span></div>
+      <div class="en"><button class="ex-speak" data-say="${escapeHtml(plain)}" onclick="speakDataSentence(this)" title="听例句">🔊</button><span class="ex-en">${enHtml}</span></div>
       ${e.cn ? `<div class="cn">${escapeHtml(e.cn)}</div>` : ''}${src}</div>`;
   };
   const exHtml = exList.map(renderEx).join("") || `<div class="example"><div class="cn">该词暂无例句</div></div>`;
@@ -3307,25 +3553,29 @@ function renderLearn(){
         ${preheatMarkup}
         <div class="word-hero">
           <div class="hero-top">
-            <span>音节拆分 · <b>${sylN} 段</b>${sylN > 1 && stressAt >= 0 ? `　重音第 ${stressAt + 1} 段` : ''}</span>
+            <span id="sylCap" data-after="音节拆分 · <b>${sylN} 段</b>${sylN > 1 && stressAt >= 0 ? `　重音第 ${stressAt + 1} 段` : ''}">整词认读 · 点「逐段朗读」拆音节</span>
             <button class="btn-speak" data-word="${escapeHtml(w.word)}" data-cn="${escapeHtml(w.cn)}" onclick="markWrongFromBtn(this)" style="border-style:dashed">📌 易错</button>
           </div>
           <div class="word-line">
-            <div class="word-text${String(w.word).length >= 15 ? ' long' : ''}" id="wordText">${wordSpans}</div>
+            <div class="word-text${String(w.word).length >= 15 ? ' long' : ''}" id="wordText"><span class="word-full">${wordFull}</span></div>
             <button class="word-play" id="wordPlay" onclick="playCurrentWord()" title="整词发音">🔊</button>
           </div>
+          <div class="syl-split hidden" id="sylSplit">${sylSpans}<span class="split-tip">点任一分段可单独试读</span></div>
           <div class="word-phonetic" id="phoneticBox">${phHtml}</div>
           <div class="syl-bar">
             <button class="btn-speak solid" onclick="playSyllables(words()[${learnIndex}])">🎵 逐段朗读</button>
             ${speedSwitchHtml()}
-            <span class="syl-hint">点任一分段可单独试读</span>
+            <span class="syl-hint" id="sylHint">先整词听，再拆段</span>
           </div>
         </div>
         <div class="word-cn" title="${escapeHtml(w.cn)}">${escapeHtml(cnCore.text)}</div>
         ${badgeHtml}
         ${defHtml}
-        <div class="sec-head"><h3>💬 常用例句 <span style="font-size:11px;font-weight:400;color:#9aa0b6">课本原句 · 中高考真题高频句</span></h3></div>
-        <div class="ex-list">${exHtml}</div>
+        <div class="sec-head">
+          <h3>💬 常用例句 <span style="font-size:11px;font-weight:400;color:#9aa0b6">课本原句 · 中高考真题高频句</span></h3>
+          <button class="ex-trans-btn" id="exTransBtn" onclick="toggleExTrans(this)" title="在英文下面显示中文翻译">显示翻译</button>
+        </div>
+        <div class="ex-list" id="exList">${exHtml}</div>
       </div>
     </div>
     <div class="nav-btns">
@@ -6273,6 +6523,251 @@ function applyRoute(st){
 }
 window.addEventListener('popstate', e => applyRoute(e.state || parseRoute()));
 
+/* ================= 账号：邮箱验证码注册 / 登录 ================= */
+// 说明：验证码由服务端（QQ 邮箱 SMTP）发出并签名校验，账号信息保存在本机浏览器，
+// 与学习进度、错题本同一存储层级，不涉及云端同步。
+const LS_ACCOUNT = 'moci_account_v1';
+const LS_ACCOUNTS = 'moci_accounts_v1';
+let authTab = 'login';
+let authToken = null;       // 服务端签发的验证码令牌（不含验证码本身）
+let authEmail = '';         // 令牌对应的邮箱
+let authTimer = null;       // 重发倒计时
+
+function loadAccounts(){
+  try{ return JSON.parse(localStorage.getItem(LS_ACCOUNTS) || '{}') || {}; }catch(e){ return {}; }
+}
+function saveAccounts(o){
+  try{ localStorage.setItem(LS_ACCOUNTS, JSON.stringify(o)); }catch(e){}
+}
+function currentAccount(){
+  try{ const s = localStorage.getItem(LS_ACCOUNT); return s ? JSON.parse(s) : null; }catch(e){ return null; }
+}
+function setCurrentAccount(a){
+  try{ a ? localStorage.setItem(LS_ACCOUNT, JSON.stringify(a)) : localStorage.removeItem(LS_ACCOUNT); }catch(e){}
+  renderAccountUI();
+}
+function randHex(n){
+  const a = new Uint8Array(n);
+  try{ crypto.getRandomValues(a); }catch(e){ for(let i=0;i<n;i++) a[i] = Math.floor(Math.random()*256); }
+  return Array.from(a).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+async function hashPassword(pwd, salt){
+  const raw = salt + '|' + pwd;
+  try{
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(raw));
+    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+  }catch(e){                                  // 非安全上下文（file://）兜底
+    let h = 5381;
+    for(let i=0;i<raw.length;i++) h = ((h*33) ^ raw.charCodeAt(i)) >>> 0;
+    return 'w' + h.toString(16) + raw.length;
+  }
+}
+function renderAccountUI(){
+  const icon = document.getElementById('acctIcon');
+  const label = document.getElementById('acctLabel');
+  if(!icon || !label) return;
+  const a = currentAccount();
+  if(a){
+    const ini = String(a.name || a.email || '?').trim().charAt(0).toUpperCase();
+    icon.innerHTML = `<span class="acct-avatar">${escapeHtml(ini)}</span>`;
+    label.textContent = a.name || a.email;
+  }else{
+    icon.textContent = '👤';
+    label.textContent = '登录 / 注册';
+  }
+}
+function openAuth(tab){
+  closeWordPop();
+  authTab = tab || (currentAccount() ? 'profile' : 'login');
+  renderAuthModal();
+}
+function switchAuth(tab){
+  const email = (document.getElementById('auEmail') || {}).value || '';
+  authTab = tab === 'register' ? 'register' : 'login';
+  renderAuthModal();
+  const el = document.getElementById('auEmail');
+  if(el && email) el.value = email;
+}
+function closeAuth(){
+  const root = document.getElementById('authRoot');
+  if(root) root.innerHTML = '';
+  if(authTimer){ clearInterval(authTimer); authTimer = null; }
+}
+function authMsg(text, type){
+  const el = document.getElementById('auMsg');
+  if(!el) return;
+  el.textContent = text || '';
+  el.className = 'auth-msg' + (type ? ' ' + type : '');
+}
+function renderAuthModal(){
+  const root = document.getElementById('authRoot');
+  if(!root) return;
+  const a = currentAccount();
+  if(authTab === 'profile' && a){
+    const ini = String(a.name || a.email || '?').trim().charAt(0).toUpperCase();
+    root.innerHTML = `
+      <div class="modal-mask" onclick="if(event.target===this)closeAuth()">
+        <div class="modal-box" style="max-width:400px">
+          <div class="modal-head">我的账号</div>
+          <div class="modal-body">
+            <div class="auth-user">
+              <div class="au-avatar">${escapeHtml(ini)}</div>
+              <div><div class="au-name">${escapeHtml(a.name || '同学')}</div><div class="au-mail">${escapeHtml(a.email || '')}</div></div>
+            </div>
+            <div style="font-size:12.5px;color:#8a90a6;line-height:1.7">学习进度、错题本、段位积分都保存在这台设备的浏览器里，换设备不会自动同步。</div>
+            <div style="display:flex;gap:10px;margin-top:16px">
+              <button class="btn btn-ghost" style="flex:1" onclick="logoutAccount()">退出登录</button>
+              <button class="btn btn-primary" style="flex:1" onclick="closeAuth()">完成</button>
+            </div>
+          </div>
+        </div>
+      </div>`;
+    return;
+  }
+  const isReg = authTab === 'register';
+  root.innerHTML = `
+    <div class="modal-mask" onclick="if(event.target===this)closeAuth()">
+      <div class="modal-box" style="max-width:420px">
+        <div class="modal-head" style="display:flex;align-items:center;justify-content:space-between">
+          <span>${isReg ? '注册账号' : '登录账号'}</span>
+          <button class="modal-x" onclick="closeAuth()" aria-label="关闭">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="auth-tabs">
+            <button class="auth-tab${isReg ? '' : ' on'}" onclick="switchAuth('login')">登录</button>
+            <button class="auth-tab${isReg ? ' on' : ''}" onclick="switchAuth('register')">注册</button>
+          </div>
+          <div class="auth-field">
+            <label>邮箱</label>
+            <input id="auEmail" type="email" inputmode="email" autocomplete="username" placeholder="用于接收验证码">
+          </div>
+          ${isReg ? `
+          <div class="auth-field">
+            <label>验证码</label>
+            <div class="auth-row">
+              <input id="auCode" type="text" inputmode="numeric" maxlength="6" placeholder="6 位数字">
+              <button class="auth-code-btn" id="auCodeBtn" onclick="sendAuthCode()">发送验证码</button>
+            </div>
+          </div>
+          <div class="auth-field">
+            <label>昵称</label>
+            <input id="auName" type="text" maxlength="12" placeholder="显示在侧边栏，可填真名">
+          </div>
+          <div class="auth-field">
+            <label>设置密码</label>
+            <input id="auPwd" type="password" autocomplete="new-password" placeholder="至少 6 位">
+          </div>` : `
+          <div class="auth-field">
+            <label>密码</label>
+            <input id="auPwd" type="password" autocomplete="current-password" placeholder="注册时设置的密码">
+          </div>`}
+          <div class="auth-msg" id="auMsg"></div>
+          <button class="btn btn-primary" style="width:100%" onclick="${isReg ? 'doRegister()' : 'doLogin()'}">${isReg ? '注册并登录' : '登录'}</button>
+          <div class="auth-tip">${isReg
+            ? '验证码由老师邮箱发出，10 分钟内有效；账号信息只保存在本机浏览器。'
+            : '账号保存在本机浏览器，学习进度、错题本、积分同在这个浏览器里。'}</div>
+        </div>
+      </div>
+    </div>`;
+  const first = document.getElementById('auEmail');
+  if(first) setTimeout(()=>{ try{ first.focus(); }catch(e){} }, 30);
+}
+async function sendAuthCode(){
+  const email = String((document.getElementById('auEmail') || {}).value || '').trim().toLowerCase();
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)){ authMsg('请先填写正确的邮箱地址', 'err'); return; }
+  const btn = document.getElementById('auCodeBtn');
+  if(btn){ btn.disabled = true; btn.textContent = '发送中…'; }
+  authMsg('');
+  try{
+    const r = await fetch('/api/auth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'send', email })
+    });
+    const d = await r.json().catch(()=>({}));
+    if(!r.ok) throw new Error(d.error || ('发送失败（' + r.status + '）'));
+    authToken = d.token || null;
+    authEmail = email;
+    authMsg('验证码已发到 ' + email + '，10 分钟内有效', 'ok');
+    startCodeCountdown(60);
+    const codeEl = document.getElementById('auCode');
+    if(codeEl) codeEl.focus();
+  }catch(e){
+    authMsg(e && e.message ? e.message : '发送失败，请稍后重试', 'err');
+    if(btn){ btn.disabled = false; btn.textContent = '发送验证码'; }
+  }
+}
+function startCodeCountdown(sec){
+  const btn = document.getElementById('auCodeBtn');
+  if(!btn) return;
+  let left = sec;
+  btn.disabled = true;
+  btn.textContent = left + 's 后重发';
+  if(authTimer) clearInterval(authTimer);
+  authTimer = setInterval(()=>{
+    left--;
+    const el = document.getElementById('auCodeBtn');
+    if(left <= 0){
+      clearInterval(authTimer); authTimer = null;
+      if(el){ el.disabled = false; el.textContent = '重新发送'; }
+      return;
+    }
+    if(el) el.textContent = left + 's 后重发';
+  }, 1000);
+}
+async function doLogin(){
+  const email = String((document.getElementById('auEmail') || {}).value || '').trim().toLowerCase();
+  const pwd = String((document.getElementById('auPwd') || {}).value || '');
+  if(!email || !pwd){ authMsg('请填写邮箱和密码', 'err'); return; }
+  const acc = loadAccounts()[email];
+  if(!acc){ authMsg('这个邮箱还没注册过，请先切到「注册」', 'err'); return; }
+  const h = await hashPassword(pwd, acc.salt);
+  if(h !== acc.hash){ authMsg('密码不正确', 'err'); return; }
+  setCurrentAccount({ email, name: acc.name || '', at: acc.at || Date.now() });
+  closeAuth();
+  toast('已登录：' + (acc.name || email));
+}
+async function doRegister(){
+  const email = String((document.getElementById('auEmail') || {}).value || '').trim().toLowerCase();
+  const code = String((document.getElementById('auCode') || {}).value || '').replace(/\D/g, '');
+  const name = String((document.getElementById('auName') || {}).value || '').trim();
+  const pwd = String((document.getElementById('auPwd') || {}).value || '');
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)){ authMsg('邮箱格式不正确', 'err'); return; }
+  if(code.length !== 6){ authMsg('请输入 6 位数字验证码', 'err'); return; }
+  if(pwd.length < 6){ authMsg('密码至少 6 位', 'err'); return; }
+  if(!authToken || authEmail !== email){ authMsg('请先点「发送验证码」获取验证码', 'err'); return; }
+  const btn = document.querySelector('.modal-box .btn-primary');
+  if(btn){ btn.disabled = true; btn.textContent = '验证中…'; }
+  try{
+    const r = await fetch('/api/auth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'verify', email, code, token: authToken })
+    });
+    const d = await r.json().catch(()=>({}));
+    if(!r.ok) throw new Error(d.error || ('验证失败（' + r.status + '）'));
+    const salt = randHex(8);
+    const hash = await hashPassword(pwd, salt);
+    const accs = loadAccounts();
+    accs[email] = { name: name || email.split('@')[0], salt, hash, at: Date.now() };
+    saveAccounts(accs);
+    setCurrentAccount({ email, name: accs[email].name, at: accs[email].at });
+    authToken = null; authEmail = '';
+    closeAuth();
+    toast('注册成功，已登录');
+  }catch(e){
+    authMsg(e && e.message ? e.message : '注册失败，请稍后重试', 'err');
+    if(btn){ btn.disabled = false; btn.textContent = '注册并登录'; }
+  }
+}
+function logoutAccount(){
+  if(!confirm('退出后本机账号仍会保留，学习进度不受影响。确定退出吗？')) return;
+  setCurrentAccount(null);
+  authTab = 'login';
+  renderAuthModal();
+  toast('已退出登录');
+}
+
 /* ================= 初始化 ================= */
 const boot = parseRoute();
 if(boot && typeof boot.group === 'number' && GROUPS[boot.group]) currentGroup = boot.group;
@@ -6286,6 +6781,7 @@ if(boot){
   }
 }
 renderAll();
+renderAccountUI();
 try{ history.replaceState(routeSnapshot(), '', routeHash()); }catch(e){}
 routeReady = true;
 

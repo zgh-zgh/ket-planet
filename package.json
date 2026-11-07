@@ -19,6 +19,7 @@
   },
   "homepage": "https://github.com/zgh-zgh/ket-planet#readme",
   "dependencies": {
-    "node-edge-tts": "^1.2.12"
+    "node-edge-tts": "^1.2.12",
+    "nodemailer": "^10.3.1"
   }
 }

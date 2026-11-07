@@ -261,6 +261,16 @@
   .pkd-divider{display:flex;align-items:center;justify-content:center;position:relative}
   .pkd-divider::before{content:"";position:absolute;top:6px;bottom:6px;width:1px;background:linear-gradient(#e9ecf7,#dfe4f6,#e9ecf7)}
   .pkd-divider span{position:relative;background:#fff;border:1px solid var(--border);color:#9aa0b6;font-size:10px;font-weight:800;border-radius:99px;padding:2px 6px;z-index:1}
+  /* 同设备双人：题干共用一块，选项区左右各一套，手机上也保持左右并排 */
+  .pkd-duel-q{background:#f8f9fd;border:1.5px solid var(--border);border-radius:16px;padding:12px 16px;margin-bottom:12px}
+  .pkd-duel-q .pkd-q-text{margin-bottom:0}
+  .pkd-side.p2{background:#fff8f2;border-color:#ffe3c9}
+  .pkd-side.p2 .pkd-score{color:#e07b39}
+  .pkd-panel.p2{background:#fffbf7;border-color:#ffe6cf}
+  .pkd-panel.p2 .pkd-ph{color:#c26a24}
+  .pkd-split.duel{grid-template-columns:1fr 26px 1fr}
+  .pkd-split.duel .pkd-divider{height:auto}
+  .pkd-split.duel .pkd-divider::before{display:block}
   @media (max-width:860px){
     .pkd-top{grid-template-columns:1fr 1fr;gap:8px}
     .pkd-mid{grid-column:1 / -1;order:-1}
@@ -269,6 +279,17 @@
     .pkd-divider::before{display:none}
     .pkd-q-text{font-size:21px}
     .pkd-panel.ai .pkd-q-text{font-size:18px}
+    .pkd-split.duel{grid-template-columns:1fr 16px 1fr;gap:0}
+    .pkd-split.duel .pkd-divider{height:auto}
+    .pkd-split.duel .pkd-divider::before{display:block}
+    .pkd-split.duel .pkd-divider span{font-size:8px;padding:1px 3px}
+    .pkd-split.duel .pkd-panel{padding:8px 7px;border-radius:12px}
+    .pkd-split.duel .pkd-ph{font-size:11px;gap:3px}
+    .pkd-split.duel .pkd-prog{font-size:9.5px}
+    .pkd-split.duel .pkd-opt{font-size:12px;padding:7px 3px;line-height:1.3}
+    .pkd-split.duel .pkd-fb{font-size:11px}
+    .pkd-duel-q{padding:10px 12px}
+    .pkd-duel-q .pkd-q-text{font-size:19px}
   }
 
   /* ===== 词汇发散：词根拆解 + 词族折叠卡 ===== */
@@ -373,6 +394,24 @@
 
   /* 翻译 */
   .trans-area textarea{width:100%;min-height:88px;border:1px solid var(--border);border-radius:12px;padding:12px;font-size:15px;font-family:inherit;resize:vertical}
+  .trans-area textarea:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(79,110,247,.12)}
+  .trans-tools{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:10px;font-size:12px;color:#8b91a6}
+  .mic-btn{border:1.5px solid #c9d2ff;background:#f4f6ff;color:var(--primary);border-radius:99px;padding:7px 15px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;transition:.15s;display:inline-flex;align-items:center;gap:6px}
+  .mic-btn:hover{background:#e9edff}
+  .mic-btn.on{background:linear-gradient(135deg,#ff6b6b,#ff8a5b);border-color:transparent;color:#fff;box-shadow:0 6px 16px rgba(255,107,107,.35);animation:micPulse 1.2s infinite}
+  .mic-btn.off{opacity:.6;border-style:dashed}
+  @keyframes micPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.04)}}
+  .trans-count{font-variant-numeric:tabular-nums}
+  .trans-clear{border:0;background:transparent;color:#9aa0b6;font-size:12px;cursor:pointer;font-family:inherit;text-decoration:underline;text-underline-offset:3px;padding:2px}
+  .trans-clear:hover{color:var(--primary)}
+  .trans-kbd{margin-left:auto;font-size:11px;color:#b0b6c8}
+  .mic-tip{display:none;margin-top:8px;font-size:12.5px;color:#6b7288;background:#f6f8ff;border:1px dashed #d6ddf5;border-radius:10px;padding:7px 12px}
+  .mic-tip.show{display:block}
+  .mic-tip.err{color:#b03a3a;background:#fff5f5;border-color:#f2cccc}
+  @media(max-width:720px){
+    .trans-kbd{display:none}
+    .mic-btn{padding:8px 14px;font-size:12.5px}
+  }
 
   /* 语篇 */
   .passage{font-size:16px;line-height:2.1;background:#fbfbfe;border-radius:14px;padding:20px;border:1px solid var(--border);margin-bottom:16px}
@@ -783,51 +822,61 @@
   .modal-x{border:none;background:none;font-size:15px;color:#b6bccd;cursor:pointer;line-height:1;padding:2px 4px}
   .modal-x:hover{color:#7a819a}
 
-  /* ===== 背景音乐悬浮控件（做题/游戏页出现） ===== */
-  .music-dock{position:fixed;right:18px;bottom:18px;z-index:280;display:flex;flex-direction:column;align-items:flex-end;gap:10px}
-  .music-fab{position:relative;width:46px;height:46px;border-radius:50%;border:none;cursor:pointer;background:#fff;color:#8a90a6;font-size:20px;box-shadow:0 8px 22px rgba(40,50,90,.18);transition:.16s;font-family:inherit}
-  .music-fab:hover{transform:translateY(-2px)}
-  .music-fab.on{background:linear-gradient(135deg,var(--primary),var(--primary2));color:#fff;box-shadow:0 8px 22px rgba(79,110,247,.38)}
-  .music-fab.on:after{content:"";position:absolute;right:3px;top:3px;width:9px;height:9px;border-radius:50%;background:#34d399;border:2px solid #fff}
-  .music-panel{display:none;width:272px;max-height:min(72vh,470px);overflow:auto;background:#fff;border-radius:16px;box-shadow:0 18px 44px rgba(30,40,80,.22);border:1px solid #e8ebf9;padding:12px 14px}
-  .music-dock.open .music-panel{display:block;animation:popIn .15s ease-out}
-  .mp-head{display:flex;align-items:center;justify-content:space-between;font-size:13px;font-weight:800;color:var(--text);margin-bottom:9px}
-  .mp-close{border:none;background:none;color:#b6bccd;cursor:pointer;font-size:13px;line-height:1}
-  .mp-row{margin-bottom:9px}
-  .mp-toggle{width:100%;border:1px solid var(--border);background:#f7f8fc;color:#6b7280;border-radius:10px;padding:7px 0;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit;transition:.15s}
-  .mp-toggle.on{background:#eef2ff;border-color:var(--primary);color:var(--primary)}
-  .mp-list{display:flex;flex-direction:column;gap:4px;max-height:min(332px,50vh);overflow:auto;margin-bottom:9px;padding-right:2px}
-  .mp-track{display:flex;align-items:center;gap:7px;border:1px solid transparent;background:#fafbff;border-radius:9px;padding:5px 8px;font-size:12.5px;color:#4a5169;cursor:pointer;font-family:inherit;text-align:left;width:100%}
-  .mp-track:hover{background:#eef2ff}
-  .mp-track.on{background:#e9eeff;border-color:var(--primary);color:var(--primary);font-weight:700}
-  .mp-emoji{font-size:14px;line-height:1}
-  .mp-name{flex:1}
-  .mp-bpm{font-size:10.5px;color:#a3a9bd;font-variant-numeric:tabular-nums}
-  .mp-vol{display:flex;align-items:center;gap:8px;font-size:12px;color:#7a819a}
-  .mp-vol input[type=range]{flex:1;accent-color:var(--primary)}
-  .mp-vol b{font-size:11.5px;color:var(--primary);min-width:34px;text-align:right}
-  .mp-tip{font-size:10.5px;color:#a3a9bd;line-height:1.55;margin-top:9px;padding-top:8px;border-top:1px dashed var(--border)}
-  @media(max-width:720px){
-    .music-dock{right:12px;bottom:12px}
-    .music-panel{width:min(80vw,268px)}
-    .music-fab{width:42px;height:42px;font-size:18px}
-  }
-
-  /* 猜词预热 */
-  .preheat{margin-bottom:12px}
-  .preheat-q{font-size:13px;color:var(--muted);margin-bottom:8px}
-  .preheat-q b{color:var(--primary);font-size:15px}
-  .preheat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
-  .ph-card{position:relative;border-radius:12px;overflow:hidden;aspect-ratio:4/3;background:#eef1ff;border:2px solid transparent;cursor:pointer;transition:.15s}
-  .ph-card img{width:100%;height:100%;object-fit:cover;display:block}
-  .ph-card:hover{border-color:var(--primary2)}
-  .ph-card.right{border-color:#22a06b;box-shadow:0 0 0 3px rgba(34,160,107,.15)}
-  .ph-card.wrong{border-color:#e5484d;animation:ph-shake .3s}
-  /* 预热未完成前，除了三张候选图，其它内容（单词/释义/例句/配图）一律模糊，
-     否则配图和例句里的中文会直接把答案说出来 */
-  .learn-main.masked > *:not(.preheat){filter:blur(7px);pointer-events:none;user-select:none}
-  .learn-side.masked{filter:blur(7px);pointer-events:none;user-select:none}
+  /* ===== 词汇认知 · 第 1 步「猜词义」 ===== */
+  .guess-stage{max-width:760px;margin:0 auto;padding:4px 2px 8px;animation:gsIn .28s ease}
+  @keyframes gsIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  .gs-top{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:12.5px;color:var(--muted)}
+  .gs-step{display:inline-flex;align-items:center;gap:7px;font-weight:700;color:#4a5070}
+  .gs-step b{font-size:11.5px;font-weight:800;color:#fff;background:linear-gradient(135deg,var(--primary),var(--primary2));border-radius:99px;padding:2px 9px;letter-spacing:.5px}
+  .gs-count{font-variant-numeric:tabular-nums}
+  .gs-progress{height:5px;border-radius:99px;background:#eef0f8;overflow:hidden;margin:9px 0 18px}
+  .gs-progress i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--primary),var(--primary2));transition:width .3s}
+  .gs-wordwrap{text-align:center;margin-bottom:18px}
+  .gs-word{font-size:46px;font-weight:800;letter-spacing:1px;line-height:1.15;word-break:break-word;background:linear-gradient(135deg,#2b3350,#4f6ef7);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+  .gs-word.long{font-size:32px}
+  .gs-tip{font-size:13.5px;color:#6b7288;margin-top:8px}
+  .gs-tip b{color:var(--primary)}
+  .gs-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  .gs-card{position:relative;border:2px solid #e6e9f5;border-radius:16px;background:#fff;padding:0;cursor:pointer;transition:.16s;font-family:inherit;overflow:hidden;min-height:150px;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 6px 18px rgba(70,80,130,.06)}
+  .gs-card:hover{transform:translateY(-3px);border-color:#b9c5ff;box-shadow:0 12px 26px rgba(79,110,247,.16)}
+  .gs-card img{width:100%;height:100%;object-fit:cover;display:block;position:absolute;inset:0}
+  .gs-card.text-mode{padding:16px 14px;font-size:15px;font-weight:700;color:#3c435c;line-height:1.55;min-height:132px}
+  .gs-card.text-mode .gc-pos{display:block;font-size:11px;color:#9aa0b6;font-weight:600;margin-bottom:6px}
+  .gs-card .gc-badge{position:absolute;left:10px;top:10px;z-index:2;font-size:11px;font-weight:800;color:#fff;background:rgba(30,40,80,.55);border-radius:99px;padding:2px 9px;backdrop-filter:blur(4px)}
+  .gs-card.loading:after{content:"";position:absolute;left:50%;top:50%;width:22px;height:22px;margin:-11px 0 0 -11px;border-radius:50%;border:2.5px solid #d7ddf2;border-top-color:#7c5cf0;animation:gsSpin .8s linear infinite;z-index:2}
+  @keyframes gsSpin{to{transform:rotate(360deg)}}
+  .gs-card.noimg{background:linear-gradient(135deg,#f2f4fb,#e9edf9)}
+  .gs-card.noimg:before{content:"图片加载失败";position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);text-align:center;font-size:12px;color:#9aa0b6}
+  .gs-card.right{border-color:#22a06b;box-shadow:0 0 0 4px rgba(34,160,107,.16);animation:gsPop .42s ease}
+  .gs-card.right:after{content:"✓";position:absolute;right:10px;top:10px;width:26px;height:26px;border-radius:50%;background:#22a06b;color:#fff;font-size:15px;font-weight:800;display:flex;align-items:center;justify-content:center;z-index:3;box-shadow:0 4px 10px rgba(34,160,107,.35)}
+  .gs-card.wrong{border-color:#e5484d;animation:ph-shake .32s;opacity:.55}
+  @keyframes gsPop{0%{transform:scale(1)}45%{transform:scale(1.04)}100%{transform:scale(1)}}
+  .gs-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:16px;font-size:12px;color:#9aa0b6;flex-wrap:wrap}
+  .gs-foot .gf-lock{display:inline-flex;align-items:center;gap:6px}
+  .gs-skip{border:0;background:transparent;color:#9aa0b6;font-size:12px;cursor:pointer;font-family:inherit;text-decoration:underline;text-underline-offset:3px;padding:4px}
+  .gs-skip:hover{color:var(--primary)}
+  .gs-unlock{margin-top:14px;text-align:center;font-size:13px;font-weight:700;color:#128a55;animation:gsIn .3s ease}
+  /* 第 2 步顶部条：明确「已解锁」，并允许再猜一次 */
+  .learn-crumb{display:flex;align-items:center;gap:10px;flex-wrap:wrap;max-width:1100px;margin:0 auto 12px;font-size:12.5px;color:#7b83a0}
+  .learn-crumb .lc-step{display:inline-flex;align-items:center;gap:7px;font-weight:800;color:#2f7d5d;background:#eefaf4;border:1px solid #c8ecd9;border-radius:99px;padding:4px 12px}
+  .learn-crumb .lc-hint{color:#9aa0b6}
+  .learn-crumb .lc-again{margin-left:auto;border:1px solid var(--border);background:#fff;color:#6b7288;border-radius:99px;padding:5px 12px;font-size:12px;cursor:pointer;font-family:inherit;transition:.15s}
+  .learn-crumb .lc-again:hover{border-color:var(--primary);color:var(--primary)}
   @keyframes ph-shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+  @media(max-width:720px){
+    .gs-word{font-size:36px}
+    .gs-word.long{font-size:26px}
+    .gs-cards{gap:8px}
+    .gs-cards.image{grid-template-columns:repeat(2,1fr)}
+    .gs-cards.image .gs-card{min-height:118px;border-radius:13px}
+    .gs-cards.image .gs-card:nth-child(3){grid-column:1 / -1;min-height:132px}
+    .gs-cards.text{grid-template-columns:1fr}
+    .gs-card.text-mode{min-height:0;font-size:14.5px;padding:14px 12px;line-height:1.5;flex-direction:row;align-items:center;justify-content:flex-start;text-align:left;gap:8px}
+    .gs-card.text-mode .gc-pos{display:inline-block;margin:0;flex-shrink:0}
+    .gs-foot{font-size:11.5px}
+    .learn-crumb{font-size:11.5px}
+    .learn-crumb .lc-hint{display:none}
+  }
 
   /* 矮屏（1366×768 这类）压缩字号与间距，保证仍是一屏 */
   @media (min-width:721px) and (max-height:820px){
@@ -931,6 +980,75 @@
   .bomb-done .bd-item b{display:block;font-size:22px;color:var(--primary2);font-weight:900}
   .bomb-done .bd-item span{font-size:12px;color:var(--muted)}
 
+  /* ===== 答题伴侣：侧边主题配图 + 情境微视频入口 ===== */
+  .q-art{float:right;width:134px;margin:0 0 8px 14px;border-radius:14px;overflow:hidden;border:1px solid #e6e9f5;background:#fff;box-shadow:0 6px 16px rgba(70,80,130,.08)}
+  .question:after{content:"";display:block;clear:both}
+  .q-art .qa-media{position:relative;width:100%;height:98px;background:var(--qa-grad,#eef1ff);display:flex;align-items:center;justify-content:center;overflow:hidden}
+  .q-art img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .5s}
+  .q-art:hover img{transform:scale(1.04)}
+  .q-art .qa-emoji{font-size:40px;line-height:1;filter:drop-shadow(0 8px 12px rgba(40,50,90,.18))}
+  .q-art .qa-tag{position:absolute;left:6px;top:6px;font-size:9.5px;font-weight:800;color:#fff;background:rgba(30,40,80,.46);border-radius:99px;padding:1px 7px;backdrop-filter:blur(4px)}
+  .q-art .qa-foot{display:flex;align-items:center;justify-content:space-between;gap:4px;padding:5px 7px}
+  .q-art .qa-word{font-size:11.5px;font-weight:800;color:#3c435c;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .qa-video{border:0;background:#eef1ff;border-radius:8px;padding:2px 7px;font-size:12px;cursor:pointer;line-height:1.6;font-family:inherit;transition:.15s;flex-shrink:0}
+  .qa-video:hover{background:#dfe5ff}
+  .q-art.wide{float:none;width:100%;height:64px;display:flex;align-items:center;margin:0 0 12px;box-shadow:none;background:var(--qa-grad);border-color:transparent}
+  .q-art.wide .qa-word{font-size:14px;color:#26304d;font-weight:800}
+  .q-art.wide .qa-hint{margin-left:auto;margin-right:8px;font-size:11px;color:#7b83a0;white-space:nowrap}
+  .q-art.wide .qa-media{width:64px;height:64px;flex:0 0 64px}
+  .q-art.wide .qa-emoji{font-size:26px}
+  .q-art.wide .qa-foot{flex:1;padding:0 10px}
+  .q-art.wide .qa-tag{display:none}
+  .qa-scene{width:84%;height:84%;display:block}
+  .q-art.themed .qa-media{height:112px}
+  .q-art.themed .qa-foot{justify-content:center}
+  .q-art.themed .qa-word{font-size:11px;color:#8b91a6;font-weight:600}
+  .q-art.wide .qa-scene{width:52px;height:52px}
+  .q-art.wide.themed .qa-media{width:64px;height:64px}
+  @media(max-width:720px){
+    .q-art{float:none;width:100%;height:58px;display:flex;align-items:center;margin:0 0 10px;box-shadow:none}
+    .q-art .qa-media{width:58px;height:58px;flex:0 0 58px}
+    .q-art .qa-emoji{font-size:24px}
+    .q-art .qa-tag{display:none}
+    .q-art .qa-foot{flex:1;padding:0 10px}
+    .q-art .qa-word{font-size:12.5px}
+    .q-art.wide{height:58px}
+  }
+
+  /* ===== 情境微视频弹层 ===== */
+  .clip-mask{position:fixed;inset:0;background:rgba(18,22,38,.62);z-index:400;display:flex;align-items:center;justify-content:center;padding:16px;animation:clipFade .2s ease}
+  @keyframes clipFade{from{opacity:0}to{opacity:1}}
+  .clip-box{width:min(720px,96vw);background:#fff;border-radius:18px;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.35);animation:clipIn .24s cubic-bezier(.2,.8,.3,1)}
+  @keyframes clipIn{from{opacity:0;transform:translateY(14px) scale(.97)}to{opacity:1;transform:none}}
+  .clip-head{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;font-size:13px;font-weight:800;color:#2f3550;border-bottom:1px solid #eef0f7}
+  .clip-head span{display:inline-flex;align-items:center;gap:7px}
+  .clip-head b{color:var(--primary)}
+  .clip-close{border:0;background:#f2f4fb;color:#8a90a6;width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:14px;line-height:1}
+  .clip-box canvas{display:block;width:100%;height:auto;background:#0e1222}
+  .clip-cap{padding:9px 14px 4px;font-size:13.5px;color:#3c435c;font-weight:700;text-align:center}
+  .clip-foot{padding:2px 14px 12px;font-size:11.5px;color:#9aa0b6;text-align:center}
+  /* ===== 消消乐 · 竞速进度条 ===== */
+  .race{max-width:540px;margin:8px auto 12px;display:flex;flex-direction:column;gap:8px}
+  .race-row{display:flex;align-items:center;gap:9px;font-size:12.5px}
+  .race-name{flex:0 0 96px;color:#5a6072;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .race-track{flex:1;height:12px;border-radius:99px;background:#eef0f8;overflow:hidden}
+  .race-track i{display:block;height:100%;border-radius:99px;transition:width .38s cubic-bezier(.4,0,.2,1)}
+  .race-row.me .race-track i{background:linear-gradient(90deg,#4f6ef7,#7c5cf0);box-shadow:0 0 10px rgba(79,110,247,.35)}
+  .race-row.rival .race-track i{background:linear-gradient(90deg,#ffb020,#ff8a5b)}
+  .race-num{flex:0 0 46px;text-align:right;font-variant-numeric:tabular-nums;color:#4a5070;font-size:12px}
+  .race-lead{font-size:12px;font-weight:800;color:#8b91a6;background:#f3f5fb;border-radius:99px;padding:2px 10px;white-space:nowrap}
+  .race-lead.ahead{color:#128a55;background:#eafaf1}
+  .race-lead.behind{color:#c0392b;background:#fff0f0}
+  .race-final{max-width:330px;margin:12px auto 4px;background:#f8f9ff;border:1px solid #e6e9f5;border-radius:14px;padding:10px 14px;text-align:left}
+  .rf-row{display:flex;justify-content:space-between;font-size:13px;padding:3px 0;color:#4a5070}
+  .rf-row.me b{color:var(--primary)}
+  .rf-row.rival b{color:#e08a2b}
+  .rf-gap{text-align:center;font-size:12px;color:#8b91a6;border-top:1px dashed #e3e6f2;margin-top:6px;padding-top:6px}
+  @media(max-width:720px){
+    .race-name{flex-basis:78px;font-size:11.5px}
+    .race-num{flex-basis:40px;font-size:11px}
+    .race-track{height:10px}
+  }
   /* ===== 翻译提示区 ===== */
   .trans-hint{background:#f7f9ff;border:1px dashed #cfd8f5;border-radius:12px;padding:10px 14px;margin:10px 0 0;font-size:13.5px;line-height:1.7;color:#4a5070}
   .trans-hint b{color:var(--primary2)}
@@ -1035,12 +1153,9 @@
   </main>
 </div>
 <div class="toast" id="toast"></div>
+<div id="clipRoot"></div>
 <div id="authRoot"></div>
 <div id="deckWordsRoot"></div>
-<div class="music-dock hidden" id="musicDock">
-  <div class="music-panel" id="musicPanel"></div>
-  <button class="music-fab" id="musicFab" onclick="toggleMusicPanel()" title="添加背景音乐">🎵</button>
-</div>
 
 <script src="words-data.js"></script>
 <!-- 教材同步词库（沪教版·牛津上海版 初中英语 7A/7B/8A/8B/9A，共 1340 条，独立于内置词库） -->
@@ -1228,57 +1343,123 @@ function taskExamplePool(w){
   });
   return pool;
 }
-function assignTaskExamples(w){
-  if (w._taskEx) return w._taskEx;
-  const pool = taskExamplePool(w);
+// 句式组配 / 双语转译：基础档与中等档用不同长度的句子池，避免"两档共用一套句子"
+const TASK_LEN_BY_DIFF = {
+  order:   { basic:[4, 8],  mid:[6, 11], hard:[9, 15] },
+  trans:   { basic:[5, 10], mid:[8, 14], hard:[11, 18] },
+  cloze:   { basic:[8, 14], mid:[11, 18], hard:[14, 22] },
+  meaning: { basic:[6, 13], mid:[9, 17], hard:[12, 20] },
+  passage: { basic:[8, 18], mid:[8, 22], hard:[8, 22] }
+};
+function exKey(p){
+  return String(p && p.en || '').replace(/<[^>]+>/g, '').toLowerCase().replace(/\s+/g, ' ').trim();
+}
+// 句子质量：残句、带符号的语料、以 But/And 开头的半截话都降权，避免出题不体面
+// 中文译文里至少要出现目标词的一个义项字，避免"英文说 staff、中文说记者"这种错配句被抽中
+function cnMentionsWord(cn, w){
+  const text = String(cn || '');
+  if(!text.trim()) return true;
+  const mean = [...String((w && w.cn) || '')].filter(ch => /[\u4e00-\u9fa5]/.test(ch));
+  if(!mean.length) return true;
+  for(const ch of mean) if(text.indexOf(ch) >= 0) return true;
+  return false;
+}
+function exQuality(p){
+  const s = String(p && p.en || '').replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
+  let pen = 0;
+  if(!/^[A-Z"“'(]/.test(s)) pen += 8;
+  if(!/[.!?]["”')]?$/.test(s)) pen += 8;
+  if(/[◆■●▪►★☆]/.test(s)) pen += 30;
+  if(/^(But|And|So|Because|Which|That|However|Also|Then|Oh well|Well,)\b/i.test(s)) pen += 6;
+  if(s.length < 12) pen += 4;
+  return pen;
+}
+function taskMetaFor(task, dk){
+  const base = TASK_META[task];
+  const r = (TASK_LEN_BY_DIFF[task] || {})[dk] || [base.min, base.max];
+  return Object.assign({}, base, { min:r[0], max:r[1] });
+}
+function taskExamplePoolCached(w){
+  if(!w._taskPool) w._taskPool = taskExamplePool(w);
+  return w._taskPool;
+}
+function buildTaskAssignment(w, dk, prev){
+  const pool = taskExamplePoolCached(w);
+  const level = w.level || currentLevelName();
   const assigned = {};
   const used = new Set();
   const pickFor = (task) => {
-    const m = TASK_META[task];
-    const cands = pool.filter(p => !used.has(p) && (!m.needCn || p.cn));
-    if (!cands.length) {
-      // 池子不够：退而求其次，允许复用（取长度最接近的）
+    const m = taskMetaFor(task, dk);
+    const banned = (prev && prev[task]) ? new Set(prev[task]) : null;
+    let cands = pool.filter(p => !used.has(p) && (!m.needCn || p.cn));
+    // 基础/中等优先"零超纲/最多一个超纲词"的句子；实在没有才放宽，宁短勿难
+    const cap = dk === 'basic' ? 0 : (dk === 'mid' ? 1 : 2);
+    const clean = cands.filter(p => oovOf(p.en, level) <= cap);
+    if(clean.length) cands = clean;
+    if(!cands.length){
+      // 池子不够：允许复用，但取长度最接近的（并且不再要求中文，避免完全无题）
       const alt = pool.slice().sort((a, b) => Math.abs(a.len - m.min) - Math.abs(b.len - m.min));
-      return alt[0] || null;
+      const pick = alt[0] || null;
+      if(pick) used.add(pick);
+      return pick;
     }
     let best = null, bestScore = 1e9;
-    for (const p of cands) {
-      let s = 0;
-      if (p.len < m.min) s += (m.min - p.len) * 2.5;      // 太短，语境不足
-      if (p.len > m.max) s += (p.len - m.max) * 1.8;      // 太长，认知负担大
-      if (m.needCn && !p.cn) s += 99;                     // 硬性要求中文
-      if (p.head && task === 'cloze') s += 2.5;            // 目标词在句首/句尾 => 两侧没有语境可猜，扣分
-      if (p.tail && task === 'cloze') s += 2.5;
-      if (p.kind === 'news') {                             // 报刊句语境完整：填空（要能猜词）和通读最需要
-        if (task === 'cloze' || task === 'passage') s -= 3;
-      } else if (p.kind === 'exam') {                       // 真题句优先用于语境类题型
-        if (task === 'cloze' || task === 'passage') s -= 3.5;
-      } else if (task === 'order' || task === 'trans') {
-        s -= 1.2;                                          // 双语句用于组配/翻译更稳
+    for(const p of cands){
+      const oov = oovOf(p.en, level);
+      let s = exQuality(p) + oov * (dk === 'basic' ? 6.5 : 4.2);
+      if(oov === 0) s -= 2.2;
+      if(p.len < m.min) s += (m.min - p.len) * 2.6;       // 太短，语境不足
+      if(p.len > m.max) s += (p.len - m.max) * 2.2;       // 太长，认知负担大
+      if(m.needCn && !p.cn) s += 99;                      // 硬性要求中文
+      if(p.head && task === 'cloze') s += 2.5;            // 目标词在句首/句尾 => 两侧没有语境可猜
+      if(p.tail && task === 'cloze') s += 2.5;
+      if(p.kind === 'news'){
+        if(task === 'cloze' || task === 'passage') s -= 3;
+      } else if(p.kind === 'exam'){
+        // 真题句最贴近中高考风格：语境题优先，组配/翻译也优先（句子规整）
+        s -= (task === 'cloze' || task === 'passage') ? 6 : 3.5;
+      } else if(task === 'order' || task === 'trans'){
+        s -= 1.2;
       }
-      s += p.idx * 0.01;                                   // 同分时保持稳定顺序
-      if (s < bestScore) { bestScore = s; best = p; }
+      if(banned && banned.has(exKey(p))) s += 45;         // 低一档已经用过这句，换一句
+      s += p.idx * 0.01;
+      if(s < bestScore){ bestScore = s; best = p; }
     }
     used.add(best);
     return best;
   };
-  // 分配顺序很关键：先满足「必须有中文」的组配/翻译（只能吃双语句），
-  // 再让「猜义/通读」优先拿报刊句，最后才轮到填空，避免报刊句被提前消耗
-  // 篇章研读先预占一条报刊句（有两条以上时），避免它的长句被填空抢走
   const news = pool.filter(p => p.kind === 'news');
   let reserved = null;
-  if (news.length >= 2) {
+  if(news.length >= 2){
     reserved = news.slice().sort((a, b) => Math.abs(a.len - 16) - Math.abs(b.len - 16))[0];
     used.add(reserved);
   }
   ['order', 'trans', 'cloze', 'meaning'].forEach(t => { assigned[t] = pickFor(t); });
   assigned.passage = reserved || pickFor('passage');
-  w._taskEx = assigned;
   return assigned;
 }
+// 每个难度档各自分配一套例句：基础档先选（最短最干净），中等档避开基础档已用的句子
+function assignTaskExamples(w, dKey){
+  const dk = dKey || curDiff().key;
+  if(!w._taskExMap) w._taskExMap = {};
+  if(w._taskExMap[dk]) return w._taskExMap[dk];
+  const order = ['basic', 'mid', 'hard'];
+  for(const k of order){
+    if(w._taskExMap[k]) continue;
+    const prev = {};
+    for(const pk of order){
+      if(pk === k) break;
+      const a = w._taskExMap[pk];
+      if(!a) continue;
+      for(const t in a){ if(a[t]) (prev[t] = prev[t] || []).push(exKey(a[t])); }
+    }
+    w._taskExMap[k] = buildTaskAssignment(w, k, prev);
+  }
+  return w._taskExMap[dk];
+}
 // 取某题型该用的例句；缺失时回落到第一条
-function taskExample(w, task){
-  const a = assignTaskExamples(w) || {};
+function taskExample(w, task, dKey){
+  const a = assignTaskExamples(w, dKey) || {};
   return a[task] || (w.examples && w.examples[0]) || { en: w.word, cn: '' };
 }
 
@@ -2273,6 +2454,8 @@ function applyBank(w){
   if(b.ox) w.oxford = b.ox;
   if(b.fr) w.frq = b.fr;
   w._taskEx = null;        // 例句变了，题型的例句分配要重算
+  w._taskExMap = null;
+  w._taskPool = null;
   return w;
 }
 
@@ -2314,7 +2497,7 @@ function scoreExample(en, level, cn){
   let s = Math.abs(toks.length - expect) * 1.2;
   const vocab = vocabFor(level);
   let oov = 0;
-  for(const t of toks) if(!vocab.has(t)) oov++;
+  for(const t of toks) if(t.length > 2 && !vocabHas(t, vocab)) oov++;
   s += oov * 1.0;
   // 句中最难的两个词，星级越低越难
   if(typeof ECDICT_DATA !== 'undefined' && ECDICT_DATA){
@@ -2343,7 +2526,25 @@ function pickLearnExamples(w, n){
   }));
   (w.extras || []).forEach((e, i) => pool.push({ en: e.en, cn: e.cn || '', src: e.src || '', srcType: '', _real: !!e.src, key: 'x' + i }));
   if(!pool.length) return [];
-  const scored = pool.map(p => {
+  // 去掉"只差一个词"的近似重复句（词典里常有两三个版本），否则三条例句看起来像复制粘贴
+  const normToks = s => (String(s || '').replace(/<[^>]+>/g, '').toLowerCase().match(/[a-z']+/g) || []);
+  const uniq = [], seen = [];
+  for(const p of pool){
+    const t = normToks(p.en);
+    if(t.length > 4){
+      let dup = false;
+      for(const s2 of seen){
+        const setA = new Set(t), setB = new Set(s2);
+        let inter = 0; setA.forEach(x => { if(setB.has(x)) inter++; });
+        const union = setA.size + setB.size - inter;
+        if(union && inter / union > 0.78){ dup = true; break; }
+      }
+      if(dup) continue;
+      seen.push(t);
+    }
+    uniq.push(p);
+  }
+  const scored = uniq.map(p => {
     let s = scoreExample(p.en, level, p.cn);
     // 人工补充句（管理页加的）排最前：那是有人专门挑过的句子
     if(p.srcType === 'manual') s -= 10.5;
@@ -2458,36 +2659,174 @@ function pickGuessDistractors(w, n){
   pack.splice(Math.floor(Math.random() * (pack.length + 1)), 0, { word: w.word, img: target, correct: true });
   return pack;
 }
-function preheatHtml(w, pack){
-  if(!pack) return '';
-  const cards = pack.map((c, i) => `<div class="ph-card" data-ok="${c.correct ? 1 : 0}" onclick="answerPreheat(${i},this)">
-    <img src="${c.img}" alt="" loading="lazy" onerror="this.style.visibility='hidden'"></div>`).join('');
-  return `<div class="preheat"><div class="preheat-q">先猜一猜：哪张图是 <b>${escapeHtml(w.word)}</b>？</div><div class="preheat-grid">${cards}</div></div>`;
+/* ---- 第 1 步：猜词义（只给 3 张图；没有配图时给 3 个释义，绝不提前露音标/词根/例句） ---- */
+const LS_REVEALED = 'lx_revealed_v1';
+function revealedMap(){
+  const m = loadStore(LS_REVEALED, {});
+  return (m && typeof m === 'object' && !Array.isArray(m)) ? m : {};
 }
-function answerPreheat(i, el){
-  const grid = el && el.parentElement;
-  if(!grid) return;
+function isRevealed(word){
+  if(!preheatEnabled()) return true;
+  const k = String(word || '').toLowerCase();
+  if(!k) return true;
+  if(preheatState.done.has(k)) return true;
+  return !!revealedMap()[k];
+}
+function markRevealed(word){
+  const k = String(word || '').toLowerCase();
+  if(!k) return;
+  preheatState.done.add(k);
+  try{
+    const m = revealedMap();
+    m[k] = Date.now();
+    const ks = Object.keys(m);
+    // 只记住最近 1600 个已解锁的词，避免 localStorage 无限膨胀
+    if(ks.length > 2200){
+      ks.sort((a, b) => m[a] - m[b]).slice(0, ks.length - 1600).forEach(x => { delete m[x]; });
+    }
+    saveStore(LS_REVEALED, m);
+  }catch(e){}
+}
+// 猜词选项：有配图就用 3 张图；没有配图退化成 3 个中文释义（同样是"猜词义"）
+let guessForceText = false;
+const guessTextWords = new Set();   // 图片加载慢/失败过的词，本次会话改用文字选项
+function guessBuildPack(w){
+  const useText = guessForceText || guessTextWords.has(String(w.word).toLowerCase());
+  const pack = useText ? null : pickGuessDistractors(w, 2);
+  if(pack && pack.length >= 3) return { mode:'image', cards: pack };
+  const opts = choiceOptions(w, 3);
+  return { mode:'text', cards: opts.map(o => {
+    const cc = coreCn(o.text, 3);
+    return { text: cc.senses.length ? cc.senses.join('；') : cc.text, pos: String(cc.pos || '').split('/')[0], correct: String(o.word).toLowerCase() === String(w.word).toLowerCase() };
+  }) };
+}
+function renderGuessStage(w){
+  const pack = guessBuildPack(w);
+  const total = words().length || 1;
+  const pct = Math.max(2, Math.min(100, (learnIndex + 1) / total * 100)).toFixed(2);
+  const cards = pack.cards.map((c, i) => {
+    if(pack.mode === 'image'){
+      return `<button class="gs-card loading" data-ok="${c.correct ? 1 : 0}" onclick="answerGuess(${i},this)" aria-label="选项 ${i + 1}">
+        <img src="${c.img}" alt="" onload="this.parentElement.classList.remove('loading')" onerror="this.style.display='none';this.parentElement.classList.remove('loading');this.parentElement.classList.add('noimg')"></button>`;
+    }
+    return `<button class="gs-card text-mode" data-ok="${c.correct ? 1 : 0}" onclick="answerGuess(${i},this)">
+      ${c.pos ? `<span class="gc-pos">${escapeHtml(c.pos)}</span>` : ''}${escapeHtml(c.text)}</button>`;
+  }).join('');
+  $("#learnPage").classList.remove("hidden");
+  $("#learnPage").innerHTML = `
+    <div class="guess-stage">
+      <div class="gs-top">
+        <span class="gs-step"><b>第 1 步</b>猜词义</span>
+        <span class="gs-count">第 ${learnIndex + 1} / ${total} 个</span>
+      </div>
+      <div class="gs-progress"><i style="width:${pct}%"></i></div>
+      <div class="gs-wordwrap">
+        <div class="gs-word${String(w.word).length >= 15 ? ' long' : ''}">${escapeHtml(w.word)}</div>
+        <div class="gs-tip">${pack.mode === 'image' ? '先凭印象猜一猜：哪张图是它的意思？' : '先凭印象猜一猜：下面哪个是它的意思？'}</div>
+      </div>
+      <div class="gs-cards ${pack.mode}" id="gsCards">${cards}</div>
+      <div class="gs-foot">
+        <span class="gf-lock">🔒 猜完才解锁：音标 · 音节朗读 · 词根词源 · 词族导图 · 例句</span>
+        <span style="display:inline-flex;gap:12px;align-items:center;flex-wrap:wrap;justify-content:flex-end">
+          <button class="gs-skip" onclick="switchGuessMode()">${pack.mode === 'image' ? '图看不清？换文字选项' : '换回看图猜'}</button>
+          <button class="gs-skip" onclick="revealCurrentWord(true)">不会，直接看答案 →</button>
+        </span>
+      </div>
+      <div id="gsMsg"></div>
+      <div class="nav-btns" style="margin-top:16px">
+        <button class="btn btn-ghost" onclick="prevWord()" ${learnIndex===0?'disabled':''}>← 上一个</button>
+        <span class="progress-info">第 ${learnIndex+1} / ${total} 个</span>
+        <button class="btn btn-ghost" onclick="nextWord()">下一个 →</button>
+      </div>
+    </div>`;
+  learnSig = learnSignature();
+  if(learnAudioTimer){ clearTimeout(learnAudioTimer); learnAudioTimer = null; }
+  validateGuessImages(pack, w);
+}
+// 三张图只要有一张加载失败，就自动换成三个中文释义，避免出现空白选项没法作答
+function validateGuessImages(pack, w){
+  if(!pack || pack.mode !== 'image') return;
+  const word = String(w && w.word || '').toLowerCase();
+  let left = pack.cards.length, bad = false, done = false;
+  const fallback = () => {
+    if(done) return;
+    done = true;
+    const cur = words()[learnIndex];
+    if(!cur || String(cur.word).toLowerCase() !== word) return;   // 已经翻到别的词，别打断
+    guessTextWords.add(word);
+    if(!document.querySelector('.guess-stage')) return;
+    learnSig = '';
+    renderLearn();
+  };
+  // 2.6 秒还没加载完就换文字选项：课堂网络下不能让学生盯着空白卡片
+  const timer = setTimeout(fallback, 2600);
+  pack.cards.forEach(c => {
+    const im = new Image();
+    im.onload = () => { if(--left === 0){ clearTimeout(timer); if(bad) fallback(); } };
+    im.onerror = () => { bad = true; if(--left === 0){ clearTimeout(timer); fallback(); } };
+    im.src = c.img;
+  });
+}
+function answerGuess(i, el){
+  const grid = document.getElementById('gsCards');
+  if(!grid || !el) return;
   if(el.dataset.ok === '1'){
     el.classList.add('right');
     Array.from(grid.children).forEach(c => { c.style.pointerEvents = 'none'; });
-    setTimeout(() => {
-      const main = document.querySelector('.learn-main');
-      if(main) main.classList.remove('masked');
-      const side = document.querySelector('.learn-side');
-      if(side) side.classList.remove('masked');
-      const box = document.querySelector('.preheat');
-      if(box) box.remove();
-      const w = words()[learnIndex];
-      if(w){
-        preheatState.done.add(String(w.word).toLowerCase());
-        learnSig = learnSignature();      // 避免返回本页时重复弹预热
-        playWordAudio(w.word);
-      }
-    }, 620);
-  }else{
-    el.classList.add('wrong');
-    setTimeout(() => el.classList.remove('wrong'), 500);
+    const msg = document.getElementById('gsMsg');
+    if(msg){ msg.className = 'gs-unlock'; msg.textContent = '🎉 猜对了！正在解锁音标、词根和例句…'; }
+    setTimeout(() => revealCurrentWord(false), 720);
+    return;
   }
+  el.classList.add('wrong');
+  el.style.pointerEvents = 'none';
+  preheatState.wrong = (preheatState.wrong || 0) + 1;
+  const msg = document.getElementById('gsMsg');
+  if(preheatState.wrong >= 2){
+    const right = grid.querySelector('[data-ok="1"]');
+    if(right) right.classList.add('right');
+    Array.from(grid.children).forEach(c => { c.style.pointerEvents = 'none'; });
+    if(msg){ msg.className = 'gs-unlock'; msg.textContent = '没关系，正确答案已标出，看一眼再继续。'; }
+    setTimeout(() => revealCurrentWord(true), 1500);
+  } else if(msg){
+    msg.innerHTML = '<span style="color:#c0392b;font-size:12.5px">不对，再想想另一个。</span>';
+  }
+}
+// 图片太抽象时，可以换成三个中文释义来猜
+function switchGuessMode(){
+  guessForceText = !guessForceText;
+  learnSig = '';
+  renderLearn();
+}
+
+// 猜完（或选择直接看答案）→ 解锁第 2 步完整认知页
+function revealCurrentWord(skipped){
+  const w = words()[learnIndex];
+  if(!w) return;
+  markRevealed(w.word);
+  preheatState.wrong = 0;
+  learnSig = '';
+  renderLearn();
+  setTimeout(() => {
+    if(appMode === 'learn' && currentStep === 0) playWordAudio(w.word);
+  }, 420);
+  if(skipped) toast('已解锁，先看一遍，课后再点「再猜一次」自测');
+}
+// 已解锁的词可以重新猜一次（自测）
+function reguessWord(){
+  const w = words()[learnIndex];
+  if(!w) return;
+  const k = String(w.word).toLowerCase();
+  try{
+    const m = revealedMap();
+    delete m[k];
+    saveStore(LS_REVEALED, m);
+  }catch(e){}
+  preheatState.done.delete(k);
+  preheatState.wrong = 0;
+  learnSig = '';
+  renderLearn();
+  window.scrollTo({ top:0, behavior:'smooth' });
 }
 // 例句朗读：用 data-say 传文本，避免例句重排后下标错位
 function speakDataSentence(el){
@@ -2624,9 +2963,11 @@ function renderAll(opts){
   ["miReview","miWrongbook","miDecks","miAchievement","miBattle"].forEach(id=>{ const el=$("#"+id); if(el) el.classList.remove("active"); });
   if(miMap[appMode]){ const el=$("#"+miMap[appMode]); if(el) el.classList.add("active"); }
   stopAudio();
-  // 离开题型页时兜底停掉倒计时与弹窗；背景音乐统一交给 syncMusic 处理
+  try{ stopSpeech(); }catch(e){}
+  try{ closeWordClip(); }catch(e){}
+  // 离开题型页时兜底停掉倒计时与弹窗
   stopCountdown(); clearFb();
-  syncMusic();
+  try{ stopMatchRival(); }catch(e){}
   updateBackBar();
   if(appMode==='review'){ renderReview(); window.scrollTo({top:0}); return; }
   if(appMode==='wrongbook'){ renderWrongbook(); window.scrollTo({top:0}); return; }
@@ -2728,7 +3069,7 @@ function playCurrentWord(){ const w = words()[learnIndex]; if(w) playWordAudio(w
 function speakExampleAt(i){ const w = words()[learnIndex]; const ex = w && w.examples && w.examples[i]; if(ex) speakSentence(String(ex.en).replace(/<[^>]+>/g,'')); }
 function markWrongFromBtn(el){ if(el && el.dataset) markWrong(el.dataset.word||'', el.dataset.cn||''); }
 function removeWrongFromBtn(el){ if(el && el.dataset && el.dataset.word) removeWrong(el.dataset.word); }
-function playSpellWord(){ const w = words()[spellState.idx]; if(w) playWordAudio(w.word); }
+function playSpellWord(){ const w = quizWordOf(spellState); if(w) playWordAudio(w.word); }
 function playReviewWord(){ const it = reviewQueue[reviewIdx]; if(it) playWordAudio(it.word); }
 function markWrong(word, cn){
   if(loadWrongbook()[word]){ toast("该词已在错题本中"); return; }
@@ -3874,7 +4215,7 @@ function importBackup(input){
 let learnSig = '';   // 当前学习页的渲染签名（同一词重复进入时可直接复用 DOM）
 function learnSignature(){
   const w = words()[learnIndex];
-  const pre = w && preheatState.done.has(String(w.word).toLowerCase()) ? '1' : '0';
+  const pre = w && isRevealed(w.word) ? '1' : '0';
   return [currentGroup, learnIndex, words().length, w ? w.word : '', currentBatch[0] ? currentBatch[0].word : '', pre].join('|');
 }
 function renderLearn(){
@@ -3891,6 +4232,9 @@ function renderLearn(){
   // 词库适配：命中 bank 时把真题例句/英美音标挂到词上，未命中则完全按原样渲染
   applyBank(w);
   const famPick = pickFamily(w);
+
+  // 第 1 步：猜词义。没猜过就只展示 3 个选项，音标/词根/例句一律不出现。
+  if(!isRevealed(w.word)){ renderGuessStage(w); return; }
 
   // 单词：默认只给完整词形；音节点「逐段朗读」才拆（拆分结果出现在单词下方）
   const wordFull = escapeHtml(w.word);
@@ -3947,11 +4291,6 @@ function renderLearn(){
       ${w.synonyms.length ? `<div class="word-syn">近义 · ${w.synonyms.slice(0,6).join('、')}</div>` : ''}
     </details>` : '';
 
-  // 猜词预热（三选一）
-  const preheatOn = preheatEnabled() && !preheatState.done.has(String(w.word).toLowerCase());
-  const guessPack = preheatOn ? pickGuessDistractors(w, 2) : null;
-  const preheatMarkup = guessPack ? preheatHtml(w, guessPack) : '';
-
   // 图片：有则显示，无则占位（异步加载）
   const imgHtml = w.imageUrl
     ? `<img src="${w.imageUrl}" alt="${escapeHtml(w.word)}" onerror="this.parentElement.innerHTML='<span class=&quot;emoji&quot;>🖼️</span>'">`
@@ -3961,13 +4300,17 @@ function renderLearn(){
   const cnCore = coreCn(w.cn, 3);
 
   $("#learnPage").innerHTML = `
+    <div class="learn-crumb">
+      <span class="lc-step">第 2 步 · 认识单词</span>
+      <span class="lc-hint">音标 · 音节朗读 · 词根词源 · 词族导图 · 例句 已解锁</span>
+      <button class="lc-again" onclick="reguessWord()" title="遮住答案，重新自测一次">🔁 再猜一次</button>
+    </div>
     <div class="learn-grid">
-      <aside class="learn-side${guessPack ? ' masked' : ''}">
+      <aside class="learn-side">
         <div class="word-img" id="wordImg">${imgHtml}</div>
         ${renderMindmap(w, famPick)}
       </aside>
-      <div class="learn-main${guessPack ? ' masked' : ''}">
-        ${preheatMarkup}
+      <div class="learn-main">
         <div class="word-hero">
           <div class="hero-top">
             <span id="sylCap" data-after="音节拆分 · <b>${sylN} 段</b>${sylN > 1 && stressAt >= 0 ? `　重音第 ${stressAt + 1} 段` : ''}">整词认读 · 点「逐段朗读」拆音节</span>
@@ -4002,14 +4345,12 @@ function renderLearn(){
     </div>
   `;
   learnSig = learnSignature();
-  // 自动播放读音：预热未完成时不播，否则等于把答案读出来
+  // 第 2 步已解锁，自动读一遍整词（第 1 步猜词阶段不播，否则等于报答案）
   if(learnAudioTimer) clearTimeout(learnAudioTimer);
-  if(!guessPack){
-    learnAudioTimer = setTimeout(()=>{
-      learnAudioTimer = null;
-      if(appMode === 'learn' && currentStep === 0) playWordAudio(w.word);
-    }, 320);
-  }
+  learnAudioTimer = setTimeout(()=>{
+    learnAudioTimer = null;
+    if(appMode === 'learn' && currentStep === 0) playWordAudio(w.word);
+  }, 320);
   // 异步加载音标和图片
   loadPhonetic(w);
   loadImage(w);
@@ -4164,7 +4505,6 @@ const DIFF = {
 };
 const DIFF_ORDER = ['basic','mid','hard'];
 const LS_DIFF = 'lx_diff';
-const LS_BGM = 'lx_bgm';
 function curDiff(){
   let k = 'mid';
   try{ k = loadStore(LS_DIFF, 'mid') || 'mid'; }catch(e){}
@@ -4299,15 +4639,18 @@ function resumeCountdown(){
   tick();
   if(!st.paused) qTimer = setInterval(tick, 100);
 }
-function timerBar(sec){
-  return `<div class="q-timer" id="qTimerBox">
-      <div class="q-timer-track"><i id="qTimerFill"></i></div>
-      <span class="q-timer-num" id="qTimerNum">${sec}s</span>
+function timerBar(sec, uid){
+  const u = uid || 'q';
+  return `<div class="q-timer" id="qTimerBox-${u}">
+      <div class="q-timer-track"><i id="qTimerFill-${u}"></i></div>
+      <span class="q-timer-num" id="qTimerNum-${u}">${sec}s</span>
     </div>`;
 }
 // 驱动题目上的计时条；到点回调 onEnd（按"超时=答错"处理）
-function runQTimer(sec, onEnd){
-  const fill = $("#qTimerFill"), num = $("#qTimerNum"), box = $("#qTimerBox");
+// 每个题型用独立 ID：页面上同时存在多个隐藏题型，共用 ID 会更新到错误的计时条
+function runQTimer(sec, onEnd, uid){
+  const u = uid || 'q';
+  const fill = $("#qTimerFill-" + u), num = $("#qTimerNum-" + u), box = $("#qTimerBox-" + u);
   startCountdown(sec, (left, ratio) => {
     if(!fill || !num) return;
     fill.style.width = Math.max(0, Math.min(1, ratio)) * 100 + '%';
@@ -4319,8 +4662,19 @@ function runQTimer(sec, onEnd){
 /* ---- 答题解析卡（全题型通用） ---- */
 let fbNext = null;
 function fbContinue(){ const f = fbNext; fbNext = null; if(f) f(); }
+// 每个题型页都有自己的 fb-box，必须找"当前可见"的那个，否则解析会写进隐藏页面
+function fbBoxEl(){
+  // 先找当前显示的题型 section（fb-box 本身默认 display:none，不能用 offsetParent 判断）
+  const sec = Array.from(document.querySelectorAll('main section')).find(el => !el.classList.contains('hidden'));
+  if(sec){ const b = sec.querySelector('.fb-box'); if(b) return b; }
+  return document.querySelector('.fb-box');
+}
+function fbClipBtn(w, kind){
+  if(!w || !w.word) return '';
+  return `<button class="btn btn-ghost" onclick="openWordClip(decodeURIComponent('${encodeURIComponent(w.word)}'),'${kind || 'choice'}')">🎬 情境微视频</button>`;
+}
 function clearFb(){
-  const b = $("#fbBox");
+  const b = fbBoxEl();
   if(b){ b.classList.remove("show"); b.innerHTML = ''; }
   fbNext = null;
 }
@@ -4329,7 +4683,7 @@ function fbRowsHtml(rows){
     `<div class="fb-row"><span class="fb-k">${escapeHtml(k)}</span><span class="fb-v">${v}</span></div>`).join('');
 }
 function showFb(opts){
-  const box = $("#fbBox");
+  const box = fbBoxEl();
   if(!box) return;
   const ok = !!opts.ok;
   box.innerHTML = `<div class="fb-card ${ok?'ok':'no'}">
@@ -4337,6 +4691,7 @@ function showFb(opts){
       ${fbRowsHtml(opts.rows)}
       <div class="fb-actions">
         <button class="btn btn-primary" onclick="fbContinue()">${escapeHtml(opts.btn || '继续 →')}</button>
+        ${opts.extra || ''}
         ${opts.tip ? `<span class="fb-tip">${escapeHtml(opts.tip)}</span>` : ''}
       </div>
     </div>`;
@@ -4392,309 +4747,7 @@ function fbWordAnswer(w, chosen, ok, head){
   };
 }
 
-/* ================= 背景音乐：Web Audio 实时合成，10 首可选、音量可调 ================= */
-// 不引入任何音频文件（避免版权与体积问题），全部用振荡器 + 噪声实时合成。
-// 结构：每首曲子 = 速度 + 音色 + 和弦进行 + 旋律型 + 鼓组；16 分音符为一步，每 16 步一小节。
-const LS_MUSIC = 'lx_music_v1';
-const MUSIC_ROOT = 261.63;                       // C4
-const _mf = semi => MUSIC_ROOT * Math.pow(2, semi / 12);
-
-const MUSIC_TRACKS = [
-  { id:'sunny',   name:'阳光午后', emoji:'🌤️', bpm:106, wave:'triangle', style:'arp',     drums:'pop',
-    chords:[[0,4,7],[7,11,14],[9,12,16],[5,9,12]] },
-  { id:'focus',   name:'专注模式', emoji:'🎧', bpm:84,  wave:'sine',     style:'sparse',  drums:'soft',
-    chords:[[0,3,7],[5,8,12],[7,10,14],[3,7,10]] },
-  { id:'piano',   name:'温柔钢琴', emoji:'🎹', bpm:72,  wave:'sine',     style:'arp',     drums:'none',
-    chords:[[0,4,7,11],[5,9,12,16],[7,11,14,17],[2,5,9,12]] },
-  { id:'electro', name:'电子律动', emoji:'🎛️', bpm:120, wave:'square',   style:'drive',   drums:'edm',
-    chords:[[0,3,7],[8,12,15],[5,8,12],[3,7,10]] },
-  { id:'jazz',    name:'爵士小调', emoji:'🎷', bpm:96,  wave:'triangle', style:'swing',   drums:'jazz',
-    chords:[[0,3,7,10],[5,8,12,15],[7,10,14,17],[2,7,11,14]] },
-  { id:'china',   name:'古风轻扬', emoji:'🏮', bpm:88,  wave:'sine',     style:'pluck',   drums:'soft',
-    chords:[[0,2,7],[5,7,12],[7,9,14],[2,7,9]] },
-  { id:'lofi',    name:'Lo-fi 夜读', emoji:'🌙', bpm:76, wave:'triangle', style:'lofi',   drums:'lofi',
-    chords:[[0,4,7,11],[9,12,16,19],[5,9,12,16],[7,11,14,17]] },
-  { id:'forest',  name:'森林晨光', emoji:'🌿', bpm:92,  wave:'sine',     style:'arp',     drums:'soft',
-    chords:[[0,4,9],[7,11,14],[5,9,12],[2,7,11]] },
-  { id:'star',    name:'星空漫游', emoji:'✨', bpm:80,  wave:'sine',     style:'sparkle', drums:'none',
-    chords:[[0,7,12],[3,10,15],[5,12,17],[7,14,19]] },
-  { id:'sprint',  name:'冲刺时刻', emoji:'⚡', bpm:132, wave:'sawtooth', style:'drive',   drums:'edm',
-    chords:[[0,3,7],[10,14,17],[8,12,15],[5,8,12]] }
-];
-
-const music = {
-  ac:null, master:null, noiseBuf:null,
-  on:false, want:false, timer:null, step:0, nextT:0,
-  trackId:'sunny', vol:0.55,
-
-  load(){
-    try{
-      const d = JSON.parse(localStorage.getItem(LS_MUSIC) || 'null') || {};
-      if(MUSIC_TRACKS.some(t => t.id === d.track)) this.trackId = d.track;
-      if(typeof d.vol === 'number') this.vol = Math.max(0, Math.min(1, d.vol));
-      this.want = !!d.on;
-    }catch(e){}
-  },
-  save(){
-    try{ localStorage.setItem(LS_MUSIC, JSON.stringify({ on:this.want, track:this.trackId, vol:this.vol })); }catch(e){}
-  },
-  track(){ return MUSIC_TRACKS.find(t => t.id === this.trackId) || MUSIC_TRACKS[0]; },
-
-  ensure(){
-    if(!this.ac){
-      const AC = window.AudioContext || window.webkitAudioContext;
-      if(!AC) return null;
-      try{
-        this.ac = new AC();
-        this.master = this.ac.createGain();
-        this.master.gain.value = this.vol * 0.5;
-        this.master.connect(this.ac.destination);
-        const len = Math.floor(this.ac.sampleRate * 0.4);
-        const buf = this.ac.createBuffer(1, len, this.ac.sampleRate);
-        const ch = buf.getChannelData(0);
-        for(let i = 0; i < len; i++) ch[i] = Math.random() * 2 - 1;
-        this.noiseBuf = buf;
-      }catch(e){ return null; }
-    }
-    if(this.ac.state === 'suspended'){ try{ this.ac.resume(); }catch(e){} }
-    return this.ac;
-  },
-
-  tone(freq, t, dur, type, gain){
-    const ac = this.ac;
-    if(!ac) return;
-    try{
-      const o = ac.createOscillator(), g = ac.createGain();
-      o.type = type || 'sine';
-      o.frequency.setValueAtTime(freq, t);
-      g.gain.setValueAtTime(0.0001, t);
-      g.gain.exponentialRampToValueAtTime(Math.max(0.0003, gain), t + 0.02);
-      g.gain.exponentialRampToValueAtTime(0.0001, t + Math.max(0.05, dur));
-      o.connect(g); g.connect(this.master);
-      o.start(t); o.stop(t + dur + 0.04);
-    }catch(e){}
-  },
-  hat(t, gain, hp){
-    const ac = this.ac;
-    if(!ac || !this.noiseBuf) return;
-    try{
-      const s = ac.createBufferSource(); s.buffer = this.noiseBuf;
-      const f = ac.createBiquadFilter(); f.type = 'highpass'; f.frequency.value = hp || 7000;
-      const g = ac.createGain();
-      g.gain.setValueAtTime(gain, t);
-      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.055);
-      s.connect(f); f.connect(g); g.connect(this.master);
-      s.start(t); s.stop(t + 0.07);
-    }catch(e){}
-  },
-  kick(t){
-    const ac = this.ac;
-    if(!ac) return;
-    try{
-      const o = ac.createOscillator(), g = ac.createGain();
-      o.frequency.setValueAtTime(150, t);
-      o.frequency.exponentialRampToValueAtTime(46, t + 0.13);
-      g.gain.setValueAtTime(0.16, t);
-      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.17);
-      o.connect(g); g.connect(this.master);
-      o.start(t); o.stop(t + 0.19);
-    }catch(e){}
-  },
-
-  // 一小节 = 16 步；step 为绝对步数
-  schedule(step, t){
-    const tr = this.track();
-    const s = step % 16;
-    const bar = Math.floor(step / 16);
-    const chord = tr.chords[bar % tr.chords.length];
-    const beat = 60 / tr.bpm;
-    const st = beat / 4;
-
-    if(s === 0){
-      // 铺底和弦（高八度，音量很轻）
-      chord.forEach(n => this.tone(_mf(n) * 2, t, beat * 3.7, tr.wave, 0.028));
-      // 低音：第 1 拍与第 3 拍
-      this.tone(_mf(chord[0] - 12), t, beat * 1.7, 'sine', 0.085);
-      this.tone(_mf(chord[0] - 12), t + beat * 2, beat * 1.6, 'sine', 0.065);
-    }
-
-    // 旋律型
-    const notes = chord.concat([chord[0] + 12]);
-    if(tr.style === 'arp'){
-      if(s % 2 === 0){
-        const n = notes[(s / 2) % notes.length] + 12;
-        this.tone(_mf(n), t, st * 1.8, tr.wave, s % 8 === 0 ? 0.07 : 0.045);
-      }
-    } else if(tr.style === 'sparse'){
-      if(s === 0 || s === 6 || s === 10){
-        this.tone(_mf(chord[s === 6 ? 1 : 0] + 12), t, beat * 1.1, tr.wave, 0.06);
-      }
-    } else if(tr.style === 'drive'){
-      if(s % 2 === 1){
-        this.tone(_mf(notes[(s >> 1) % notes.length] + 12), t, st * 1.2, tr.wave, 0.035);
-      }
-      if(s === 0 || s === 8){
-        this.tone(_mf(chord[2] + 12), t, st * 1.4, tr.wave, 0.05);
-      }
-    } else if(tr.style === 'swing'){
-      if([0, 3, 6, 10, 13].indexOf(s) >= 0){
-        const n = notes[(s / 3 | 0) % notes.length] + 12;
-        this.tone(_mf(n), t, st * 2.2, tr.wave, 0.055);
-      }
-    } else if(tr.style === 'pluck'){
-      if(s === 0 || s === 4 || s === 8 || s === 12){
-        this.tone(_mf(chord[(s / 4) % chord.length] + 12), t, beat * 0.9, tr.wave, 0.06);
-      }
-    } else if(tr.style === 'lofi'){
-      if(s === 0 || s === 6 || s === 8 || s === 14){
-        this.tone(_mf(chord[(s / 2 | 0) % chord.length] + 12), t, beat * 1.3, tr.wave, 0.05);
-      }
-    } else if(tr.style === 'sparkle'){
-      if(s % 4 === 2){
-        this.tone(_mf(chord[0] + 24), t, st * 2.5, 'sine', 0.04);
-        this.tone(_mf(chord[2] + 19), t + st, st * 2, 'sine', 0.025);
-      }
-    }
-
-    // 鼓组
-    const d = tr.drums;
-    if(d === 'pop'){
-      if(s === 0 || s === 8) this.kick(t);
-      if(s === 4 || s === 12) this.hat(t, 0.05, 5000);
-      if(s % 2 === 0) this.hat(t, 0.018, 9000);
-    } else if(d === 'edm'){
-      if(s % 4 === 0) this.kick(t);
-      if(s % 2 === 1) this.hat(t, 0.03, 9500);
-      if(s === 4 || s === 12) this.hat(t, 0.055, 4200);
-    } else if(d === 'soft'){
-      if(s === 0) this.kick(t);
-      if(s === 8) this.hat(t, 0.014, 9000);
-    } else if(d === 'jazz'){
-      if(s === 0 || s === 10) this.kick(t);
-      if(s % 2 === 0) this.hat(t, 0.022, 8000);
-    } else if(d === 'lofi'){
-      if(s === 0 || s === 8) this.kick(t);
-      if(s === 12) this.hat(t, 0.035, 5000);
-      if(s % 4 === 2) this.hat(t, 0.012, 9000);
-    }
-  },
-
-  tick(){
-    const ac = this.ac;
-    if(!ac || !this.on) return;
-    const st = (60 / this.track().bpm) / 4;
-    while(this.nextT < ac.currentTime + 0.5){
-      this.schedule(this.step, this.nextT);
-      this.step++;
-      this.nextT += st;
-    }
-  },
-  start(){
-    if(this.on) return;
-    if(!this.ensure()) return;
-    this.on = true;
-    this.step = 0;
-    this.nextT = this.ac.currentTime + 0.12;
-    if(this.timer) clearInterval(this.timer);
-    this.timer = setInterval(() => this.tick(), 120);
-    this.tick();
-    updateMusicDock();
-  },
-  stop(){
-    this.on = false;
-    if(this.timer){ clearInterval(this.timer); this.timer = null; }
-    updateMusicDock();
-  },
-  setWant(v){
-    this.want = !!v;
-    this.save();
-    if(this.want) this.start(); else this.stop();
-    updateMusicDock();
-  },
-  setTrack(id){
-    if(!MUSIC_TRACKS.some(t => t.id === id)) return;
-    this.trackId = id;
-    this.save();
-    if(this.on){ this.step = 0; this.nextT = this.ac.currentTime + 0.06; }
-    renderMusicPanel();
-  },
-  setVolume(v){
-    this.vol = Math.max(0, Math.min(1, v));
-    if(this.master) this.master.gain.value = this.vol * 0.5;
-    this.save();
-  },
-  toggle(){
-    this.setWant(!this.want);
-    return this.want;
-  }
-};
-music.load();
-
-/* ---- 悬浮音乐控件（只在做题/游戏页出现） ---- */
-function isGamePage(){
-  if(appMode === 'battle') return true;
-  if(appMode !== 'learn') return false;
-  return currentStep >= 1 && currentStep <= 7;
-}
-function updateMusicDock(){
-  const dock = document.getElementById('musicDock');
-  if(!dock) return;
-  const show = isGamePage();
-  dock.classList.toggle('hidden', !show);
-  const fab = document.getElementById('musicFab');
-  if(fab){
-    fab.classList.toggle('on', music.on);
-    fab.title = music.on ? '背景音乐播放中' : '添加背景音乐';
-  }
-  if(!show) dock.classList.remove('open');
-}
-function toggleMusicPanel(){
-  const dock = document.getElementById('musicDock');
-  if(!dock) return;
-  const open = dock.classList.toggle('open');
-  if(open) renderMusicPanel();
-}
-// 只在做题/游戏页播放；离开就静音，但记住"想开"的状态，回到游戏页自动续上
-function syncMusic(){
-  if(isGamePage()){
-    if(music.want && !music.on) music.start();
-  } else if(music.on){
-    music.stop();
-  }
-  updateMusicDock();
-}
-// 浏览器限制：首次交互后才允许出声，任意一次点击补一次 resume
-document.addEventListener('pointerdown', () => { if(music.want) music.ensure(); }, { passive:true });
-function musicToggleBtn(){
-  music.setWant(!music.want);
-  renderMusicPanel();
-  toast(music.want ? '🎵 背景音乐已开启' : '🔇 背景音乐已关闭');
-}
-function renderMusicPanel(){
-  const panel = document.getElementById('musicPanel');
-  if(!panel) return;
-  const cur = music.track();
-  panel.innerHTML = `
-    <div class="mp-head">
-      <span>🎵 背景音乐</span>
-      <button class="mp-close" onclick="toggleMusicPanel()" aria-label="关闭">✕</button>
-    </div>
-    <div class="mp-row">
-      <button class="mp-toggle${music.want ? ' on' : ''}" onclick="musicToggleBtn()">${music.want ? '播放中 · 点击关闭' : '已关闭 · 点击开启'}</button>
-    </div>
-    <div class="mp-list">
-      ${MUSIC_TRACKS.map(t => `<button class="mp-track${t.id === cur.id ? ' on' : ''}" onclick="music.setTrack('${t.id}')">
-        <span class="mp-emoji">${t.emoji}</span><span class="mp-name">${t.name}</span><span class="mp-bpm">${t.bpm}</span>
-      </button>`).join('')}
-    </div>
-    <div class="mp-vol">
-      <span>音量</span>
-      <input type="range" min="0" max="100" value="${Math.round(music.vol * 100)}" oninput="music.setVolume(this.value/100); document.getElementById('mpVolNum').textContent=this.value+'%'">
-      <b id="mpVolNum">${Math.round(music.vol * 100)}%</b>
-    </div>
-    <div class="mp-tip">音乐由浏览器实时合成，无版权素材；关掉后所有页面都不再播放</div>`;
-}
-function stopBgm(){ music.stop(); }
+/* 背景音乐已移除：做题时只保留单词/句子的朗读音，不再播放无关 BGM。 */
 
 
 /* ---- 意群切分：按「介词短语 / 从句 / 标点」成组，而不是拆成单个单词 ---- */
@@ -4860,6 +4913,13 @@ function chunkedExample(w, diffKey, exclude){
   const lo = d.chunk[0], hi = d.chunk[1];
   const skip = exclude || new Set();
   const pool = taskExamplePool(w);
+  // 本档专属的组配句（基础档最短、中等档稍长、优秀档最长），扫描时优先命中
+  let assignedKey = '';
+  try{
+    const a = taskExample(w, 'order', d.key);
+    assignedKey = String(a && a.en || '').replace(/<[^>]+>/g, '').toLowerCase().replace(/\s+/g, ' ').trim();
+  }catch(e){}
+  const lvName = w.level || currentLevelName();
   // 逐级放宽扫描，优先级从高到低：
   // ① 有中文译文 + 意群数落在本档区间（理想解）
   // ② 有中文译文（真题句多数没有译文，双语句常常只有一两块）
@@ -4883,11 +4943,19 @@ function chunkedExample(w, diffKey, exclude){
       const n = ch.length;
       if(n < 2) continue;                                // 只有一块就拼不出句子
       if(needRange && (n < lo || n > hi)) continue;
-      let s = 0;
+      let s = exQuality(p);
       if(n < lo) s += (lo - n) * 5;
       if(n > hi) s += (n - hi) * 5;
       if(!p.cn) s += 4;                                 // 连词成句需要中文参考
       s += Math.abs(n - (lo + Math.min(hi, 12)) / 2) * 0.4;
+      // 超纲词与句子长度：基础档宁短勿难，中等档放宽一点
+      const oov = oovOf(p.en, lvName);
+      const oovCap = d.key === 'basic' ? 0 : (d.key === 'mid' ? 1 : 2);
+      if(oov > oovCap) s += (oov - oovCap) * 7;
+      if(d.key === 'basic' && p.len > 12) s += (p.len - 12) * 2.5;
+      if(d.key === 'mid' && p.len > 17) s += (p.len - 17) * 2;
+      if(key === assignedKey) s -= 18;                  // 优先用本档专属句
+      if(p.cn && !cnMentionsWord(p.cn, w)) s += 5;       // 译文与目标词明显不对应，换一句
       s += p.idx * 0.02;
       // 常考句型加权：中高考高频句式（It is…to / not only…but also / 定语从句…）优先出题
       try{ if(!longest && typeof PATTERNS !== 'undefined' && PATTERNS.some(q => q.re.test(plain))) s -= 3; }catch(e){}
@@ -4971,13 +5039,217 @@ function skeletonOf(s){
   }).join(' ');
 }
 
-/* ================= 题型1：语义词联（开心消消乐玩法） ================= */
+/* ---- 答题伴侣：侧边配图 + 情境微视频（内置动画，不依赖外部视频，不打断做题） ---- */
+const QART = {
+  choice:  { label:'语境辨义', emoji:'🎯', g:'#eef1ff,#f4efff', ink:'#4f6ef7', tip:'先读句子，再辨词义' },
+  fill:    { label:'一词入句', emoji:'✍️', g:'#fff6e9,#ffeede', ink:'#e08a2b', tip:'看搭配，想词形' },
+  spell:   { label:'字母归位', emoji:'🔤', g:'#e9fbf3,#e5f6ef', ink:'#1f9d74', tip:'听音拼词' },
+  sentence:{ label:'缀词成句', emoji:'🧩', g:'#f3efff,#fdeeff', ink:'#7c5cf0', tip:'先找主干，再拼意群' },
+  trans:   { label:'汉英互译', emoji:'🌐', g:'#eaf4ff,#e8efff', ink:'#2f7bd6', tip:'先定句型，再填词' },
+  match:   { label:'词义配对', emoji:'🍬', g:'#fff0f6,#ffe9f3', ink:'#d4568a', tip:'音形义一起记' }
+};
+// 纯装饰插画：词义甄别/语境填空不能出现目标词的图或中文，否则等于送答案
+function qaSceneSvg(kind){
+  const m = QART[kind] || QART.choice;
+  const c = m.ink;
+  const shapes = {
+    choice: `<circle cx="50" cy="44" r="25" fill="none" stroke="${c}" stroke-width="3.5" opacity=".28"/>
+      <circle cx="50" cy="44" r="15" fill="none" stroke="${c}" stroke-width="3.5" opacity=".55"/>
+      <circle cx="50" cy="44" r="5.5" fill="${c}" opacity=".9"/>
+      <circle cx="86" cy="20" r="4" fill="${c}" opacity=".45"/>
+      <circle cx="24" cy="66" r="3" fill="${c}" opacity=".35"/>
+      <path d="M66 61 l17 15" stroke="${c}" stroke-width="5.5" stroke-linecap="round" opacity=".85"/>`,
+    fill: `<rect x="22" y="18" width="62" height="58" rx="8" fill="none" stroke="${c}" stroke-width="3" opacity=".35"/>
+      <path d="M32 36 h40 M32 48 h40 M32 60 h24" stroke="${c}" stroke-width="3.2" stroke-linecap="round" opacity=".55"/>
+      <path d="M74 70 l14-30 8 4-14 30-9 4z" fill="${c}" opacity=".85"/>
+      <path d="M88 40 l8 4" stroke="${c}" stroke-width="4" stroke-linecap="round" opacity=".9"/>`,
+    spell: `<rect x="20" y="26" width="22" height="26" rx="5" fill="none" stroke="${c}" stroke-width="3" opacity=".5"/>
+      <rect x="49" y="26" width="22" height="26" rx="5" fill="none" stroke="${c}" stroke-width="3" opacity=".7"/>
+      <rect x="78" y="26" width="22" height="26" rx="5" fill="none" stroke="${c}" stroke-width="3" opacity=".9"/>
+      <path d="M31 39 h1 M60 39 h1 M89 39 h1" stroke="${c}" stroke-width="3.5" stroke-linecap="round"/>
+      <path d="M26 62 h68" stroke="${c}" stroke-width="3" stroke-linecap="round" opacity=".3"/>`,
+    sentence: `<path d="M22 30 h28 v20 h-14 l-8 7 v-7 h-6z" fill="none" stroke="${c}" stroke-width="3" opacity=".55"/>
+      <path d="M66 44 h28 v20 h-6 v7 l-8-7 h-14z" fill="none" stroke="${c}" stroke-width="3" opacity=".85"/>
+      <circle cx="36" cy="40" r="1.8" fill="${c}" opacity=".6"/><circle cx="44" cy="40" r="1.8" fill="${c}" opacity=".6"/>
+      <circle cx="80" cy="54" r="1.8" fill="${c}" opacity=".8"/><circle cx="88" cy="54" r="1.8" fill="${c}" opacity=".8"/>`,
+    trans: `<circle cx="52" cy="46" r="26" fill="none" stroke="${c}" stroke-width="3" opacity=".55"/>
+      <ellipse cx="52" cy="46" rx="11" ry="26" fill="none" stroke="${c}" stroke-width="2.4" opacity=".4"/>
+      <path d="M27 38 h50 M27 54 h50" stroke="${c}" stroke-width="2.4" opacity=".4"/>
+      <path d="M80 20 h18 v14 h-6 v6 l-6-6 h-6z" fill="${c}" opacity=".85"/>`,
+    match: `<rect x="22" y="24" width="30" height="22" rx="6" fill="none" stroke="${c}" stroke-width="3" opacity=".6"/>
+      <rect x="68" y="24" width="30" height="22" rx="6" fill="none" stroke="${c}" stroke-width="3" opacity=".6"/>
+      <rect x="22" y="56" width="30" height="22" rx="6" fill="none" stroke="${c}" stroke-width="3" opacity=".35"/>
+      <rect x="68" y="56" width="30" height="22" rx="6" fill="none" stroke="${c}" stroke-width="3" opacity=".35"/>
+      <path d="M52 35 h16 M52 67 h16" stroke="${c}" stroke-width="2.6" stroke-dasharray="4 4" opacity=".6"/>`
+  };
+  return `<svg class="qa-scene" viewBox="0 0 120 90" fill="none" xmlns="http://www.w3.org/2000/svg">${shapes[kind] || shapes.choice}</svg>`;
+}
+function qArtHtml(w, kind, wide){
+  if(!w || !w.word) return '';
+  const m = QART[kind] || QART.choice;
+  const noSpoiler = (kind === 'choice' || kind === 'fill');
+  if(noSpoiler){
+    return `<div class="q-art themed${wide ? ' wide' : ''}" style="--qa-grad:linear-gradient(135deg,${m.g})">
+      <div class="qa-media">${qaSceneSvg(kind)}<span class="qa-tag">${m.label}</span></div>
+      <div class="qa-foot"><span class="qa-word">${m.tip}</span></div>
+    </div>`;
+  }
+  const img = w.imageUrl || wordImage(w.word);
+  const cc2 = coreCn(w.cn, 2);
+  const cn = String((cc2.senses || []).slice(0, 2).join('；') || cc2.text || '').slice(0, 14);
+  const arg = encodeURIComponent(w.word);
+  return `<div class="q-art${wide ? ' wide' : ''}" style="--qa-grad:linear-gradient(135deg,${m.g})">
+    <div class="qa-media">${img ? `<img src="${img}" alt="" loading="lazy" onerror="qArtImgFail(this,'${kind}')">` : qaSceneSvg(kind)}<span class="qa-tag">${m.label}</span></div>
+    <div class="qa-foot">
+      <span class="qa-word" title="${escapeHtml(w.word)}${cn ? ' · ' + escapeHtml(cn) : ''}">${escapeHtml(w.word)}${wide ? '' : (cn ? ' · ' + escapeHtml(cn) : '')}</span>
+      ${wide ? '<span class="qa-hint">看图回忆，再拼写</span>' : ''}
+      <button class="qa-video" onclick="openWordClip(decodeURIComponent('${arg}'),'${kind}')" title="看 12 秒情境微视频">🎬${wide ? ' 微视频' : ''}</button>
+    </div>
+  </div>`;
+}
+// 配图加载失败时换成本题的装饰插画，避免留一块空白
+function qArtImgFail(el, kind){
+  const box = el && el.parentElement;
+  if(!box) return;
+  try{ el.remove(); }catch(e){}
+  if(!box.querySelector('.qa-scene')) box.insertAdjacentHTML('afterbegin', qaSceneSvg(kind));
+}
+
+let clipRAF = null, clipPausedTimer = false;
+const CLIP_MS = 12000;
+function openWordClip(word, kind){
+  const root = document.getElementById('clipRoot');
+  if(!root) return;
+  const w = (words() || []).find(x => x && String(x.word).toLowerCase() === String(word).toLowerCase()) || {};
+  const info = findWordInfo(word) || {};
+  const cn = coreCn(w.cn || info.cn || '', 2).text;
+  const img = w.imageUrl || wordImage(word);
+  const m = QART[kind] || QART.choice;
+  const ipa = w.ukPhonetic || w.usPhonetic || '';
+  if(qTimerState && !qTimerState.paused){ clipPausedTimer = true; pauseCountdown(); }
+  stopSpeech();
+  root.innerHTML = `<div class="clip-mask" onclick="closeWordClip()">
+    <div class="clip-box" onclick="event.stopPropagation()">
+      <div class="clip-head"><span>🎬 情境微视频 · <b>${escapeHtml(word)}</b></span><button class="clip-close" onclick="closeWordClip()" aria-label="关闭">✕</button></div>
+      <canvas id="clipCanvas" width="720" height="405"></canvas>
+      <div class="clip-cap">跟读一遍：<b>${escapeHtml(word)}</b>${ipa ? ` <span style="color:#8b91a6;font-weight:400">${escapeHtml(normIpa(ipa))}</span>` : ''}</div>
+      <div class="clip-foot">${clipPausedTimer ? '计时已暂停，看完关掉继续答题' : '关掉后继续答题'}</div>
+    </div>
+  </div>`;
+  const cv = document.getElementById('clipCanvas');
+  if(!cv) return;
+  let image = null;
+  if(img){
+    image = new Image();
+    image.onload = () => {};
+    image.src = img;
+  }
+  const t0 = performance.now();
+  const letters = String(word || '').split('');
+  let lastFrame = 0;
+  const draw = (now) => {
+    if(now - lastFrame < 33){ clipRAF = requestAnimationFrame(draw); return; }   // 约 30fps，手机不发烫
+    lastFrame = now;
+    const ctx = cv.getContext('2d');
+    if(!ctx) return;
+    const W = cv.width, H = cv.height;
+    const t = ((now - t0) % CLIP_MS) / 1000;          // 0–12 秒循环
+    // 背景
+    const bg = ctx.createLinearGradient(0, 0, W, H);
+    bg.addColorStop(0, '#141a33'); bg.addColorStop(1, '#2a1f45');
+    ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
+    // 主图（缓慢推近 + 轻微平移）
+    if(image && image.complete && image.naturalWidth){
+      const ir = image.naturalWidth / image.naturalHeight, tr = W / H;
+      let sw, sh, sx, sy;
+      if(ir > tr){ sh = image.naturalHeight; sw = sh * tr; sx = (image.naturalWidth - sw) / 2; sy = 0; }
+      else { sw = image.naturalWidth; sh = sw / tr; sx = 0; sy = (image.naturalHeight - sh) / 2; }
+      const z = 1.07 + 0.07 * Math.sin(t / CLIP_MS * 1000 * 2 * Math.PI / 12);
+      const cw = sw / z, ch = sh / z;
+      sx += (sw - cw) / 2 + Math.sin(t * 0.5) * 10;
+      sy += (sh - ch) / 2;
+      ctx.drawImage(image, sx, sy, cw, ch, 0, 0, W, H);
+    } else {
+      const g2 = ctx.createRadialGradient(W * 0.5, H * 0.4, 20, W * 0.5, H * 0.4, W * 0.75);
+      g2.addColorStop(0, '#4f6ef7'); g2.addColorStop(1, '#1a2040');
+      ctx.fillStyle = g2; ctx.fillRect(0, 0, W, H);
+      ctx.font = '150px "Segoe UI Emoji","Apple Color Emoji",sans-serif';
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.globalAlpha = 0.85;
+      ctx.fillText(m.emoji, W / 2, H * 0.42);
+      ctx.globalAlpha = 1;
+    }
+    // 上下渐隐，保证文字可读
+    const shade = ctx.createLinearGradient(0, H * 0.35, 0, H);
+    shade.addColorStop(0, 'rgba(8,10,22,0)'); shade.addColorStop(1, 'rgba(8,10,22,.86)');
+    ctx.fillStyle = shade; ctx.fillRect(0, 0, W, H);
+    // 左上角标签
+    ctx.fillStyle = 'rgba(255,255,255,.18)';
+    ctx.beginPath();
+    if(ctx.roundRect) ctx.roundRect(24, 22, 116, 34, 17); else ctx.rect(24, 22, 116, 34);
+    ctx.fill();
+    ctx.fillStyle = '#fff'; ctx.font = '700 16px "Microsoft YaHei","PingFang SC",sans-serif';
+    ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+    ctx.fillText(m.emoji + ' ' + m.label, 38, 40);
+    // 单词逐字母弹出
+    const fontSize = Math.min(64, Math.floor(620 / Math.max(4, letters.length)));
+    ctx.font = '800 ' + fontSize + 'px "Segoe UI","PingFang SC",sans-serif';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+    const totalW = ctx.measureText(word).width;
+    let x = W / 2 - totalW / 2;
+    letters.forEach((ch, i) => {
+      const appear = 0.3 + i * 0.13;
+      const p = Math.min(1, Math.max(0, (t - appear) / 0.45));
+      const ease = 1 - Math.pow(1 - p, 3);
+      ctx.globalAlpha = ease;
+      ctx.fillStyle = '#ffffff';
+      ctx.shadowColor = 'rgba(0,0,0,.5)'; ctx.shadowBlur = 12;
+      const y = H - 92 - Math.sin(ease * Math.PI) * 26;
+      ctx.fillText(ch, x + ctx.measureText(ch).width / 2, y);
+      x += ctx.measureText(ch).width + 1;
+    });
+    ctx.globalAlpha = 1; ctx.shadowBlur = 0;
+    // 中文释义
+    const cp = Math.min(1, Math.max(0, (t - 1.9) / 0.7));
+    if(cn && cp > 0){
+      ctx.globalAlpha = cp;
+      ctx.fillStyle = 'rgba(255,255,255,.9)';
+      ctx.font = '600 21px "Microsoft YaHei","PingFang SC",sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(cn, W / 2, H - 46);
+      ctx.globalAlpha = 1;
+    }
+    // 顶部进度
+    ctx.fillStyle = 'rgba(255,255,255,.18)'; ctx.fillRect(0, 0, W, 4);
+    ctx.fillStyle = '#7c5cf0'; ctx.fillRect(0, 0, W * ((now - t0) % CLIP_MS) / CLIP_MS, 4);
+    clipRAF = requestAnimationFrame(draw);
+  };
+  clipRAF = requestAnimationFrame(draw);
+}
+function closeWordClip(){
+  if(clipRAF){ cancelAnimationFrame(clipRAF); clipRAF = null; }
+  const root = document.getElementById('clipRoot');
+  if(root) root.innerHTML = '';
+  if(clipPausedTimer){ clipPausedTimer = false; try{ resumeCountdown(); }catch(e){} }
+}
+document.addEventListener('keydown', e => { if(e.key === 'Escape') closeWordClip(); });
+
+
+/* ================= 题型1：语义词联（消消乐 · 与虚拟对手竞速） ================= */
 let matchState = { selected:null, cleared:0, total:0, cells:[], misses:0, best:0 };
-// 限时：每对约 4~6.5 秒（随难度收紧），再加 12 秒找牌缓冲
-function matchTimeLimit(n){
-  const k = curDiff().key;
-  const per = k === 'hard' ? 4.0 : (k === 'mid' ? 5.0 : 6.5);
-  return Math.round(n * per) + 12;
+// 虚拟对手：难度越高，对手消得越快（每对用时）；带 ±15% 抖动，避免机械感
+const MATCH_RIVALS = {
+  basic:{ name:'慢慢龟', icon:'🐢', gap:6400 },
+  mid:  { name:'跳跳兔', icon:'🐰', gap:5100 },
+  hard: { name:'闪电狐', icon:'🦊', gap:4000 }
+};
+function matchRivalCfg(){
+  return MATCH_RIVALS[curDiff().key] || MATCH_RIVALS.mid;
+}
+function stopMatchRival(){
+  const st = matchState;
+  if(st && st.rival && st.rival.timer){ clearTimeout(st.rival.timer); st.rival.timer = null; }
+  if(st && st.clockTimer){ clearInterval(st.clockTimer); st.clockTimer = null; }
 }
 // 释义极简：只留 2~3 个最高频核心义项 + 对应词性；短语/无词性不硬加词性
 function bombCn(cn){
@@ -4987,9 +5259,59 @@ function bombCn(cn){
   while(n > 2 && cc.senses.slice(0, n).join('；').length > 12) n--;
   return { pos: cc.pos, body: cc.senses.slice(0, Math.max(1, n)).join('；') };
 }
+function matchRaceHtml(){
+  const st = matchState;
+  const r = st.rival;
+  return `<div class="race" id="raceBox">
+    <div class="race-row me">
+      <span class="race-name">🙋 你</span>
+      <div class="race-track"><i id="raceMe" style="width:0%"></i></div>
+      <b class="race-num" id="raceMeN">0/${st.total}</b>
+    </div>
+    <div class="race-row rival">
+      <span class="race-name">${r.icon} ${escapeHtml(r.name)}</span>
+      <div class="race-track"><i id="raceRival" style="width:0%"></i></div>
+      <b class="race-num" id="raceRivalN">0/${st.total}</b>
+    </div>
+  </div>`;
+}
+function paintMatchRace(){
+  const st = matchState;
+  if(!st || !st.rival) return;
+  const r = st.rival;
+  const pct = n => Math.max(0, Math.min(100, n / (st.total || 1) * 100));
+  const me = document.getElementById('raceMe');
+  const rv = document.getElementById('raceRival');
+  const mn = document.getElementById('raceMeN');
+  const rn = document.getElementById('raceRivalN');
+  if(me) me.style.width = pct(st.cleared) + '%';
+  if(rv) rv.style.width = pct(r.cleared) + '%';
+  if(mn) mn.textContent = st.cleared + '/' + st.total;
+  if(rn) rn.textContent = r.cleared + '/' + st.total;
+  const lead = document.getElementById('raceLead');
+  if(lead){
+    const d = st.cleared - r.cleared;
+    lead.textContent = d > 0 ? `你领先 ${d} 对` : (d < 0 ? `对手领先 ${-d} 对` : '不相上下');
+    lead.className = 'race-lead' + (d > 0 ? ' ahead' : (d < 0 ? ' behind' : ''));
+  }
+}
+function scheduleMatchRival(){
+  const st = matchState;
+  if(!st || !st.rival || st.done || st.rival.paused) return;
+  const wait = Math.round(st.rival.gap * (0.85 + Math.random() * 0.3));
+  st.rival.timer = setTimeout(() => {
+    const cur = matchState;
+    if(cur !== st || st.done || st.rival.paused) return;
+    st.rival.cleared++;
+    paintMatchRace();
+    if(st.rival.cleared >= st.total){ matchFinish('rival'); return; }
+    scheduleMatchRival();
+  }, wait);
+}
 function renderMatch(){
   const list = words();
   stopCountdown();
+  stopMatchRival();
   const cells = [];
   list.forEach((x,i)=>{
     cells.push({ type:'en', text:x.word, pair:i });
@@ -4997,17 +5319,23 @@ function renderMatch(){
     const cc = bombCn(x.cn);
     cells.push({ type:'cn', text:cc.body, pair:i, pos:cc.pos, body:cc.body });
   });
-  const limit = matchTimeLimit(list.length);
-  matchState = { selected:null, cleared:0, total:list.length, cells:shuffle(cells), misses:0, best:0, limit, t0:Date.now(), pausedAt:0 };
+  const rc = matchRivalCfg();
+  matchState = {
+    selected:null, cleared:0, total:list.length, cells:shuffle(cells), misses:0, best:0,
+    t0:Date.now(), done:false,
+    rival:{ name:rc.name, icon:rc.icon, gap:rc.gap, cleared:0, paused:false, timer:null }
+  };
   $("#matchPage").classList.remove("hidden");
   $("#matchPage").innerHTML = `
-    <h2 class="page-title">🍬 语义词联 · 消消乐</h2>
-    <p class="page-sub">点英文卡即发音，找出对应释义，配对消除</p>
+    <h2 class="page-title">🍬 语义词联 · 消消乐竞速</h2>
+    <p class="page-sub">点英文卡即发音，找出对应释义；抢在 ${rc.icon} ${escapeHtml(rc.name)} 之前消完全部</p>
     ${diffBar()}
     <div class="bomb-top">
-      <span class="bomb-clock" id="bombClock">${limit}s</span>
+      <span class="bomb-clock" id="bombClock">0.0s</span>
       <span class="bomb-combo off" id="bombCombo"></span>
+      <span class="race-lead" id="raceLead">不相上下</span>
     </div>
+    ${matchRaceHtml()}
     <div class="bomb-hud">
       <span>已消除 <b id="bombCleared">0</b> / ${matchState.total}</span>
       <span>失误 <b id="bombMiss">0</b></span>
@@ -5019,29 +5347,42 @@ function renderMatch(){
           : escapeHtml(c.text)
       }</div>`).join("")}
     </div>
-    <div class="fb-box" id="fbBox"></div>
+    <div class="fb-box"></div>
     <div style="text-align:center;margin-top:14px"><button class="btn btn-skip" onclick="goStep(2)">跳过本题型 →</button></div>
   `;
   clearFb();
-  startCountdown(limit, (left)=>{
-    const el = $("#bombClock");
-    if(el){ el.textContent = Math.ceil(left) + 's'; el.classList.toggle('urgent', left <= 15); }
-  }, ()=>{ matchFinish('timeout'); });
+  // 计时（只用于结算展示，不再是失败条件）
+  matchState.clockTimer = setInterval(() => {
+    const st = matchState;
+    if(!st || st.done) return;
+    const el = document.getElementById('bombClock');
+    if(el) el.textContent = ((Date.now() - st.t0) / 1000).toFixed(1) + 's';
+  }, 100);
+  scheduleMatchRival();
 }
 function matchFinish(reason){
-  stopCountdown();
   const st = matchState;
+  if(!st || st.done) return;
+  st.done = true;
+  stopCountdown();
+  stopMatchRival();
   const used = Math.max(1, Math.round((Date.now() - st.t0) / 1000));
   const rate = st.total ? Math.round(st.cleared / st.total * 100) : 0;
-  const clear = reason === 'clear';
+  const win = reason === 'clear';
+  const gap = st.cleared - (st.rival ? st.rival.cleared : 0);
   let score = st.cleared * 12 + st.best * 8;
-  if(clear) score += Math.max(0, st.limit - used) * 2;
+  if(win) score += Math.max(0, 90 - used) * 2;
   $("#matchPage").innerHTML = `
-    <h2 class="page-title">🍬 语义词联 · 消消乐</h2>
+    <h2 class="page-title">🍬 语义词联 · 消消乐竞速</h2>
     ${diffBar()}
     <div class="bomb-done">
-      <div class="bd-emoji">${clear ? '🎉' : '⏰'}</div>
-      <div class="bd-title">${clear ? '全部消除，过关！' : '时间到，还差一点'}</div>
+      <div class="bd-emoji">${win ? '🏆' : '⏱️'}</div>
+      <div class="bd-title">${win ? '你先消完，赢下这一局！' : '对手抢先消完了'}</div>
+      <div class="race-final">
+        <div class="rf-row me"><span>🙋 你</span><b>${st.cleared} 对</b></div>
+        <div class="rf-row rival"><span>${st.rival.icon} ${escapeHtml(st.rival.name)}</span><b>${st.rival.cleared} 对</b></div>
+        <div class="rf-gap">${win ? `领先 ${Math.max(0, gap)} 对` : `落后 ${Math.max(0, -gap)} 对`}</div>
+      </div>
       <div class="bd-grid">
         <div class="bd-item"><b>${st.cleared}/${st.total}</b><span>已消除</span></div>
         <div class="bd-item"><b>${rate}%</b><span>完成度</span></div>
@@ -5054,15 +5395,13 @@ function matchFinish(reason){
       <button class="btn btn-ghost" onclick="renderMatch()">再挑战一次</button>
       <button class="btn btn-primary" onclick="goStep(2)">下一题型 →</button>
     </div>`;
-  if(clear && score > 0) addPoints(score, '消消乐过关', 'answer');
+  if(win && score > 0) addPoints(score, '消消乐竞速获胜', 'answer');
 }
 function bombClick(i){
   const cell = matchState.cells[i];
   const el = $("#bomb-"+i);
   if(!el || el.classList.contains("cleared") || el.classList.contains("right")) return;
-  if(matchState.locked) return;                 // 解析弹窗期间锁住棋盘，避免边看解析边点牌
-  // 浏览器自动播放限制：首次点击时补启动背景音乐
-  if(music.want && !music.on) music.start();
+  if(matchState.locked || matchState.done) return;   // 解析弹窗/结算期间锁住棋盘
   // 点英文牌即朗读该词；中文牌不发音（一发音就等于把答案报出来了）
   if(cell.type === 'en' && matchState.selected === null) playWordAudio(cell.text);
   if(matchState.selected === null){
@@ -5088,6 +5427,7 @@ function bombClick(i){
     $("#bombCleared").textContent = matchState.cleared;
     recordAnswer('match', true, 2, false);   // 对拼玩法不计入答题正确率
     matchState.selected = null;
+    paintMatchRace();
     // 配对成功再读一遍整词：音—形—义当场闭环
     const wOk = words()[a.pair];
     if(wOk) playWordAudio(wOk.word);
@@ -5108,10 +5448,14 @@ function bombClick(i){
     matchWrongFb(w, enCell, cnCell);
   }
 }
-// 消消乐答错：暂停计时 + 立刻给出正确配对与知识点解析
+// 消消乐答错：暂停对手 + 立刻给出正确配对与知识点解析
 function matchWrongFb(w, enCell, cnCell){
-  matchState.locked = true;
-  pauseCountdown();
+  const st = matchState;
+  st.locked = true;
+  if(st.rival){
+    st.rival.paused = true;
+    if(st.rival.timer){ clearTimeout(st.rival.timer); st.rival.timer = null; }
+  }
   const cc = w ? coreCn(w.cn, 2) : { text:'' };
   showFb({
     ok:false, head:'配对错了',
@@ -5120,20 +5464,28 @@ function matchWrongFb(w, enCell, cnCell){
       ['正确配对', `<b>${escapeHtml(enCell.text)}</b> = <b>${escapeHtml(cc.text)}</b>`]
     ].concat(w ? explainRows(w, '').slice(1) : []),
     btn:'我记住了，继续 →',
-    tip:'计时已暂停，看完再继续',
+    tip:'对手也暂停了，看完再继续',
     onNext:()=>{
       clearFb();
-      matchState.locked = false;
-      resumeCountdown();
+      st.locked = false;
+      if(st.rival){ st.rival.paused = false; scheduleMatchRival(); }
     }
   });
   if(w) playWordAudio(w.word);
 }
 
+// 每次生成题目都重新打乱单词次序：同一个词库两轮练习的题序不同，避免"记住第几题是哪个词"
+function quizOrder(){ return shuffle(words().slice()); }
+function quizWordOf(st){
+  if(st && !st.list) st.list = quizOrder();   // 切难度等场景直接重画时兜底
+  return (st && st.list && st.list[st.idx]) || words()[st.idx];
+}
+function quizLen(st){ return (st && st.list) ? st.list.length : words().length; }
+
 /* ================= 题型2：词义匹配选择 ================= */
 let choiceState = { idx:0 };
 function renderChoice(){
-  choiceState = { idx:0 };
+  choiceState = { idx:0, list:quizOrder() };
   renderChoiceQ();
 }
 // 释义相似度：词性相同 + 汉字重合 → 越像。优秀档挑"像的"当干扰项，基础档挑"不像的"
@@ -5185,7 +5537,7 @@ function choiceOptions(w, n){
   return shuffle(out);
 }
 function renderChoiceQ(){
-  const w = words()[choiceState.idx];
+  const w = quizWordOf(choiceState);
   applyBank(w);
   const d = curDiff();
   const opts = choiceOptions(w, d.optN);
@@ -5205,19 +5557,20 @@ function renderChoiceQ(){
     <p class="page-sub">语境之中，辨明加粗单词的真义</p>
     ${diffBar()}
     <div class="question">
-      <div class="q-index">第 ${choiceState.idx+1} / ${words().length} 题</div>
-      ${timerBar(sec)}
+      ${qArtHtml(w, 'choice')}
+      <div class="q-index">第 ${choiceState.idx+1} / ${quizLen(choiceState)} 题</div>
+      ${timerBar(sec, 'choice')}
       <div class="q-sentence">
         <button class="ex-speak" data-say="${escapeHtml(plain)}" onclick="speakDataSentence(this)" title="朗读题干">🔊</button>${enHtml}
       </div>
       ${ex.src ? `<div class="q-src">${escapeHtml(ex.src)}</div>` : ''}
     </div>
     <div class="options">${opts.map((o,i)=>`<div class="option" onclick="answerChoice(${i},this)">${escapeHtml(o.text)}</div>`).join("")}</div>
-    <div class="fb-box" id="fbBox"></div>
+    <div class="fb-box"></div>
     <div style="text-align:center;margin-top:18px"><button class="btn btn-skip" onclick="goStep(3)">跳过本题型 →</button></div>
   `;
   clearFb();
-  runQTimer(sec, ()=>choiceTimeout());
+  runQTimer(sec, ()=>choiceTimeout(), 'choice');
 }
 function choiceExplainRows(w, picked){
   const rows = [['正确答案', `<b>${escapeHtml(coreCn(w.cn, 2).text)}</b>`]];
@@ -5225,7 +5578,7 @@ function choiceExplainRows(w, picked){
 }
 function choiceNext(){
   clearFb();
-  if(choiceState.idx < words().length - 1){ choiceState.idx++; renderChoiceQ(); }
+  if(choiceState.idx < quizLen(choiceState) - 1){ choiceState.idx++; renderChoiceQ(); }
   else { goStep(3); }
 }
 function choiceTimeout(){
@@ -5237,7 +5590,7 @@ function choiceTimeout(){
     o.style.pointerEvents = "none";
     if(choiceState.opts[k] && choiceState.opts[k].text === choiceState.answer) o.classList.add("right");
   });
-  showFb({ ok:false, head:'超时了，没在时间内选出', rows:choiceExplainRows(w, ''), onNext:()=>choiceNext() });
+  showFb({ ok:false, head:'超时了，没在时间内选出', rows:choiceExplainRows(w, ''), extra:fbClipBtn(w,'choice'), onNext:()=>choiceNext() });
 }
 function answerChoice(i, el){
   stopCountdown();
@@ -5255,7 +5608,7 @@ function answerChoice(i, el){
     el.classList.add("wrong");
     addWrong(w.word, w.cn);
     opts.forEach((o,k)=>{ if(choiceState.opts[k] && choiceState.opts[k].text === choiceState.answer) o.classList.add("right"); });
-    showFb({ ok:false, head:'选错了', rows:choiceExplainRows(w, picked ? picked.word : ''), onNext:()=>choiceNext() });
+    showFb({ ok:false, head:'选错了', rows:choiceExplainRows(w, picked ? picked.word : ''), extra:fbClipBtn(w,'choice'), onNext:()=>choiceNext() });
   }
 }
 
@@ -5314,7 +5667,7 @@ function buildFillOptions(w, n){
 }
 let fillState = { idx:0 };
 function renderFill(){
-  fillState = { idx:0 };
+  fillState = { idx:0, list:quizOrder() };
   renderFillQ();
 }
 // 把句中的目标词整词挖空：优先用 <B></B> 标记定位，可连带挖掉变形（abandoned → ______）
@@ -5357,15 +5710,50 @@ function learnExampleKeys(w){
   }catch(e){}
   return set;
 }
-// 超纲词计数：判断一条例句对当前学段是不是太难
-function oovOf(en, level){
-  const plain = String(en || '').replace(/<[^>]+>/g, '');
-  const toks = plain.toLowerCase().match(/[a-z][a-z'’-]*/g) || [];
-  const vocab = vocabFor(level);
-  let n = 0;
-  for(const t of toks) if(!vocab.has(t)) n++;
-  return n;
+// 词形还原：判断例句超纲时，不能把 studies / studied / studying 当成三个生词
+function tokenBaseForms(t){
+  const out = [t];
+  const add = x => { if(x && x.length > 1 && out.indexOf(x) < 0) out.push(x); };
+  if(/ies$/.test(t)) add(t.slice(0, -3) + 'y');
+  if(/ied$/.test(t)) add(t.slice(0, -3) + 'y');
+  if(/es$/.test(t)) add(t.slice(0, -2));
+  if(/s$/.test(t) && !/ss$/.test(t)) add(t.slice(0, -1));
+  if(/'s$/.test(t)) add(t.slice(0, -2));
+  if(/ed$/.test(t)){ add(t.slice(0, -2)); add(t.slice(0, -1)); }
+  if(/ing$/.test(t)){ add(t.slice(0, -3)); add(t.slice(0, -3) + 'e'); }
+  if(/ly$/.test(t)) add(t.slice(0, -2));
+  if(/er$/.test(t)){ add(t.slice(0, -2)); add(t.slice(0, -1)); }
+  if(/est$/.test(t)) add(t.slice(0, -3));
+  if(/(.)\1(ed|ing|er|est)$/.test(t)) add(t.replace(/(.)\1(ed|ing|er|est)$/, '$1'));
+  // 不规则动词的常见形态（够用即可，避免把 went / bought 判成超纲）
+  const IRR = { went:'go', gone:'go', did:'do', done:'do', had:'have', has:'have', was:'be', were:'be', been:'be', is:'be', are:'be',
+    made:'make', took:'take', taken:'take', got:'get', gotten:'get', said:'say', saw:'see', seen:'see', came:'come', thought:'think',
+    bought:'buy', brought:'bring', found:'find', gave:'give', given:'give', knew:'know', known:'know', wrote:'write', written:'write',
+    spoke:'speak', spoken:'speak', ran:'run', ate:'eat', eaten:'eat', drank:'drink', fell:'fall', felt:'feel', left:'leave', lost:'lose' };
+  if(IRR[t]) add(IRR[t]);
+  return out;
 }
+function vocabHas(t, vocab){
+  if(vocab.has(t)) return true;
+  for(const f of tokenBaseForms(t)) if(vocab.has(f)) return true;
+  return false;
+}
+// 超纲词清单：判断一条例句对当前学段是不是太难
+function oovList(en, level){
+  const plain = String(en || '').replace(/<[^>]+>/g, '');
+  const raw = plain.match(/[A-Za-z][A-Za-z'’-]*/g) || [];
+  const vocab = vocabFor(level);
+  const out = [];
+  for(const token of raw){
+    const t = token.toLowerCase().replace(/^['’-]+|['’-]+$/g, '');
+    if(!t || t.length <= 2) continue;                 // a / is / of 这类不计
+    if(vocabHas(t, vocab)) continue;
+    if(/^[A-Z]/.test(token) && !vocabHas(t, vocab)) continue;   // 人名/地名等专有名词不算超纲
+    out.push(t);
+  }
+  return out;
+}
+function oovOf(en, level){ return oovList(en, level).length; }
 // 挑一条"没学过"的句子：长度贴合难度，超纲词越少越好
 function fillExample(w, d){
   const skip = learnExampleKeys(w);
@@ -5376,17 +5764,23 @@ function fillExample(w, d){
   }catch(e){}
   const level = currentLevelName();
   const wantLen = d.key === 'hard' ? 20 : (d.key === 'mid' ? 16 : 12);
+  const cap = d.key === 'basic' ? 0 : (d.key === 'mid' ? 1 : 2);
   const rank = (blocked) => {
     let best = null, bestScore = 1e9;
-    for(const p of taskExamplePool(w)){
+    const all = taskExamplePool(w).filter(p => {
       const plain = p.en.replace(/<[^>]+>/g, '');
       const key = plain.toLowerCase().replace(/\s+/g, ' ').trim();
-      if(blocked.has(key)) continue;
-      if(!containsWordForm(plain, w.word)) continue;  // 句子里得有目标词才能挖空
-      // 超纲词重罚：宁可句子短一点，也不要出现读不懂的难词；真题句给额外优先
-      const examBonus = isExamType(p.srcType) ? -6 : 0;
+      if(blocked.has(key)) return false;
+      return containsWordForm(plain, w.word);       // 句子里得有目标词才能挖空
+    });
+    // 先只在「不超纲」的句子里挑；一条都没有才放宽，保证题目不会因数据缺失而消失
+    const clean = all.filter(p => oovOf(p.en, level) <= cap);
+    const pool = clean.length ? clean : all;
+    for(const p of pool){
+      // 超纲词重罚：宁可句子短一点，也不要出现读不懂的难词；真题句最贴中高考风格
+      const examBonus = isExamType(p.srcType) ? -12 : 0;
       const oov = oovOf(p.en, level);
-      const s = scoreExample(p.en, level, 'x') + oov * 4 + (oov === 0 ? -3.5 : 0) + Math.abs(p.len - wantLen) * 2.0 + examBonus;
+      const s = exQuality(p) + scoreExample(p.en, level, 'x') + oov * 6 + (oov === 0 ? -4 : 0) + Math.abs(p.len - wantLen) * 2.0 + examBonus;
       if(s < bestScore){ bestScore = s; best = p; }
     }
     return best;
@@ -5405,7 +5799,7 @@ function fillExample(w, d){
   return best || taskExample(w, 'cloze');
 }
 function renderFillQ(){
-  const w = words()[fillState.idx];
+  const w = quizWordOf(fillState);
   applyBank(w);
   const d = curDiff();
   // 挖空：取「语境填空」专属且未在词汇认知页出现过的例句
@@ -5423,23 +5817,24 @@ function renderFillQ(){
     <p class="page-sub">一词入句，选择恰如其分的单词</p>
     ${diffBar()}
     <div class="question">
-      <div class="q-index">第 ${fillState.idx+1} / ${words().length} 题</div>
-      ${timerBar(sec)}
+      ${qArtHtml(w, 'fill')}
+      <div class="q-index">第 ${fillState.idx+1} / ${quizLen(fillState)} 题</div>
+      ${timerBar(sec, 'fill')}
       <div class="q-sentence">
         <button class="ex-speak" data-say="${escapeHtml(plain)}" onclick="speakDataSentence(this)" title="朗读整句">🔊</button>${sentenceHtml}
       </div>
       ${ex.src ? `<div class="q-src">${escapeHtml(ex.src)}</div>` : ''}
     </div>
     <div class="options">${opts.map((o,i)=>`<div class="option" onclick="answerFill(${i},this)">${escapeHtml(o)}</div>`).join("")}</div>
-    <div class="fb-box" id="fbBox"></div>
+    <div class="fb-box"></div>
     <div style="text-align:center;margin-top:18px"><button class="btn btn-skip" onclick="goStep(4)">跳过本题型 →</button></div>
   `;
   clearFb();
-  runQTimer(sec, ()=>fillTimeout());
+  runQTimer(sec, ()=>fillTimeout(), 'fill');
 }
 function fillNext(){
   clearFb();
-  if(fillState.idx < words().length - 1){ fillState.idx++; renderFillQ(); }
+  if(fillState.idx < quizLen(fillState) - 1){ fillState.idx++; renderFillQ(); }
   else { goStep(4); }
 }
 function fillExplainRows(w, picked){
@@ -5460,7 +5855,7 @@ function fillTimeout(){
     o.style.pointerEvents = "none";
     if(o.textContent.trim() === fillState.answer) o.classList.add("right");
   });
-  showFb({ ok:false, head:'超时了，没在时间内选出', rows:fillExplainRows(w, ''), onNext:()=>fillNext() });
+  showFb({ ok:false, head:'超时了，没在时间内选出', rows:fillExplainRows(w, ''), extra:fbClipBtn(w,'fill'), onNext:()=>fillNext() });
 }
 function answerFill(i, el){
   stopCountdown();
@@ -5478,18 +5873,18 @@ function answerFill(i, el){
     el.classList.add("wrong");
     addWrong(w.word, w.cn);
     opts.forEach(o=>{ if(o.textContent.trim() === fillState.answer) o.classList.add("right"); });
-    showFb({ ok:false, head:'选错了', rows:fillExplainRows(w, picked), onNext:()=>fillNext() });
+    showFb({ ok:false, head:'选错了', rows:fillExplainRows(w, picked), extra:fbClipBtn(w,'fill'), onNext:()=>fillNext() });
   }
 }
 
 /* ================= 题型4：单词拼写（修复bug） ================= */
 let spellState = { idx:0, slots:[], letters:[], used:new Set(), letterIndex:[] };
 function renderSpell(){
-  spellState = { idx:0 };
+  spellState = { idx:0, list:quizOrder() };
   renderSpellWord();
 }
 function renderSpellWord(){
-  const w = words()[spellState.idx];
+  const w = quizWordOf(spellState);
   if(!w){ goStep(5); return; }
   applyBank(w);
   const chars = w.word.split("");
@@ -5504,6 +5899,7 @@ function renderSpellWord(){
   $("#spellPage").innerHTML = `
     <h2 class="page-title">🔤 拼写重构</h2>
     <p class="page-sub">乱序字母归位，重现原词（点击已填字母可修改）</p>
+    ${qArtHtml(w, 'spell', true)}
     <div style="text-align:center">
       <div class="spell-cn">释义：${escapeHtml(coreCn(w.cn, 3).text)}</div>
       <button class="btn btn-ghost" style="padding:8px 20px;font-size:14px;margin-bottom:14px" onclick="playSpellWord()">🔊 听发音</button>
@@ -5514,18 +5910,18 @@ function renderSpellWord(){
       <button class="btn btn-primary" onclick="checkSpell()">提交答案</button>
       <button class="btn btn-ghost" onclick="clearSpell()">清空重来</button>
     </div>
-    <div class="fb-box" id="fbBox"></div>
+    <div class="fb-box"></div>
     <div style="text-align:center;margin-top:20px"><button class="btn btn-skip" onclick="goStep(5)">跳过本题型 →</button></div>
   `;
   clearFb();
 }
 function spellNext(){
   clearFb();
-  if(spellState.idx < words().length - 1){ spellState.idx++; renderSpellWord(); }
+  if(spellState.idx < quizLen(spellState) - 1){ spellState.idx++; renderSpellWord(); }
   else { goStep(5); }
 }
 function addLetter(i){
-  const w = words()[spellState.idx];
+  const w = quizWordOf(spellState);
   if(!w || !spellState.slots) return;
   if(spellState.letterIndex.includes(i)) return;      // 同一字母块不能重复使用
   const slot = spellState.slots.findIndex((ch, idx) => spellState.fixed[idx] === null && !ch);
@@ -5556,7 +5952,7 @@ function removeLetter(slotIdx){
   renderSlots();
 }
 function renderSlots(){
-  const w = words()[spellState.idx];
+  const w = quizWordOf(spellState);
   if(!w || !spellState.slots || !spellState.fixed) return;
   for(let i=0;i<spellState.slots.length;i++){
     const s = $("#slot-"+i);
@@ -5569,7 +5965,7 @@ function renderSlots(){
   }
 }
 function checkSpell(){
-  const w = words()[spellState.idx];
+  const w = quizWordOf(spellState);
   if(!w || !spellState.slots) return;
   const missing = spellState.slots.some((ch,i)=> spellState.fixed[i] === null && !ch);
   if(missing){ toast("还没拼完哦"); return; }
@@ -5604,11 +6000,11 @@ function checkSpell(){
 /* ================= 题型5：连词成句（意群组配） ================= */
 let sentenceState = { idx:0, frags:[], built:[] };
 function renderSentence(){
-  sentenceState = { idx:0 };
+  sentenceState = { idx:0, list:quizOrder() };
   renderSentenceQ();
 }
 function renderSentenceQ(){
-  const w = words()[sentenceState.idx];
+  const w = quizWordOf(sentenceState);
   if(!w){ goStep(6); return; }
   applyBank(w);
   const d = curDiff();
@@ -5632,8 +6028,9 @@ function renderSentenceQ(){
     <p class="page-sub">按意群拼句 · 每块是一个短语，不是单个单词（点已选块可撤回）</p>
     ${diffBar()}
     <div class="question">
-      <div class="q-index">第 ${sentenceState.idx+1} / ${words().length} 题 · 共 ${pick.chunks.length} 个意群</div>
-      ${timerBar(sec)}
+      ${qArtHtml(w, 'sentence')}
+      <div class="q-index">第 ${sentenceState.idx+1} / ${quizLen(sentenceState)} 题 · 共 ${pick.chunks.length} 个意群</div>
+      ${timerBar(sec, 'sentence')}
       <div class="q-sentence" style="color:var(--muted);font-size:15px">${pick.cn
         ? '参考中文：' + escapeHtml(pick.cn)
         : '拼句提示：句中要用到「' + escapeHtml(w.word) + '（' + escapeHtml(String(w.cn || '').replace(/^[a-z]+\.\s*/i, '').split(/[；;，,]/)[0]) + '）」'}</div>
@@ -5641,15 +6038,15 @@ function renderSentenceQ(){
     <div class="sentence-build" id="buildArea"></div>
     <div class="sentence-frag" id="fragArea">${sentenceState.frags.map((f,i)=>`<span class="frag" id="fr-${i}" onclick="pickFrag(${i})">${escapeHtml(f.text)}</span>`).join("")}</div>
     <div style="text-align:center;margin-top:16px"><button class="btn btn-primary" onclick="checkSentence()">提交答案</button></div>
-    <div class="fb-box" id="fbBox"></div>
+    <div class="fb-box"></div>
     <div style="text-align:center;margin-top:14px"><button class="btn btn-skip" onclick="goStep(6)">跳过本题型 →（基础薄弱可跳过）</button></div>
   `;
   clearFb();
-  runQTimer(sec, ()=>sentenceTimeout());
+  runQTimer(sec, ()=>sentenceTimeout(), 'sentence');
 }
 function sentenceNext(){
   clearFb();
-  if(sentenceState.idx < words().length - 1){ sentenceState.idx++; renderSentenceQ(); }
+  if(sentenceState.idx < quizLen(sentenceState) - 1){ sentenceState.idx++; renderSentenceQ(); }
   else { goStep(6); }
 }
 function pickFrag(i){
@@ -5722,26 +6119,60 @@ function sentenceTimeout(){
   });
 }
 
-/* ================= 题型6：句子翻译（三级提示） ================= */
+/* ================= 题型6：句子翻译（双语转译 · 语音作答） ================= */
 let transState = { idx:0 };
 function renderTrans(){
-  transState = { idx:0 };
+  transState = { idx:0, list:quizOrder() };
   renderTransQ();
 }
+// 挑一条适合"汉译英"的句子：必须完整、有中文、无超纲词，且真的含目标词
+function transExample(w, d){
+  const level = w.level || currentLevelName();
+  const cap = d.key === 'basic' ? 0 : (d.key === 'mid' ? 1 : 2);
+  const pool = taskExamplePool(w).filter(p => p && String(p.cn || '').trim());
+  const complete = p => {
+    const plain = String(p.en || '').replace(/<[^>]+>/g, '').trim();
+    if(!/^[A-Z"“'']/.test(plain)) return false;
+    if(!/[.!?]["”']?$/.test(plain)) return false;
+    if(/^(But|And|So|Because|Which|That|However|Also|Then)\b/i.test(plain)) return false;
+    return containsWordForm(plain, w.word);
+  };
+  const good = pool.filter(complete);
+  const base = good.length ? good : pool.filter(p => containsWordForm(String(p.en || ''), w.word));
+  const use = base.length ? base : pool;
+  const clean = use.filter(p => oovOf(p.en, level) <= cap);
+  const finalPool = clean.length ? clean : use;
+  let assigned = null;
+  try{ assigned = taskExample(w, 'trans', d.key); }catch(e){}
+  const akey = assigned ? String(assigned.en || '').replace(/<[^>]+>/g, '').toLowerCase().replace(/\s+/g, ' ').trim() : '';
+  const want = d.key === 'basic' ? 7 : (d.key === 'mid' ? 10 : 13);
+  let best = null, bestScore = 1e9;
+  for(const p of finalPool){
+    const oov = oovOf(p.en, level);
+    let s = exQuality(p) + Math.abs((p.len || 0) - want) * 1.8 + oov * 5;
+    if(oov === 0) s -= 2;
+    if(isExamType(p.srcType)) s -= 2.5;                 // 真题句更贴中高考风格
+    const key = String(p.en || '').replace(/<[^>]+>/g, '').toLowerCase().replace(/\s+/g, ' ').trim();
+    if(key && key === akey) s -= 16;                     // 本档专属句优先
+    if(p.cn && !cnMentionsWord(p.cn, w)) s += 6;          // 中文译文与单词义项不对应，优先换句
+    if(d.key === 'basic' && (p.len || 0) > 12) s += ((p.len || 0) - 12) * 2;
+    if(s < bestScore){ bestScore = s; best = p; }
+  }
+  return best || assigned || finalPool[0] || pool[0] || { en: w.word, cn: '' };
+}
+
 function renderTransQ(){
-  const w = words()[transState.idx];
+  const w = quizWordOf(transState);
   if(!w){ goStep(7); return; }
   applyBank(w);
+  stopSpeech();
   const d = curDiff();
-  // 双语转译专属例句（需带中文，且与填空/组配所用句子不同）
-  let ex = taskExample(w, 'trans');
-  if(!ex || !ex.cn){
-    const alt = (pickLearnExamples(w, 3) || []).find(e => e.cn);
-    if(alt) ex = alt;
-  }
+  const ex = transExample(w, d);
   const ref = String(ex.en || '').replace(/<[^>]+>/g, '');
   transState.answer = ref;
   transState.word = w;
+  transState.tries = 0;
+  transState.recorded = false;
   const label = detectPattern(ref);
   const ph = w.ukPhonetic || w.usPhonetic || '';
   const cc = coreCn(w.cn, 2);
@@ -5768,35 +6199,49 @@ function renderTransQ(){
     </div>`;
   }
   const sec = d.time.trans;
+  const micOk = transSpeechSupported();
   $("#transPage").classList.remove("hidden");
   $("#transPage").innerHTML = `
     <h2 class="page-title">🌐 双语转译</h2>
-    <p class="page-sub">汉译英，用上本节课学到的词</p>
+    <p class="page-sub">看中文写英文，用上本节课学到的词；也可以点麦克风直接说</p>
     ${diffBar()}
     <div class="question">
-      <div class="q-index">第 ${transState.idx+1} / ${words().length} 题 · 提示单词：${escapeHtml(w.word)}</div>
-      ${timerBar(sec)}
+      ${qArtHtml(w, 'trans')}
+      <div class="q-index">第 ${transState.idx+1} / ${quizLen(transState)} 题 · 提示单词：${escapeHtml(w.word)}</div>
+      ${timerBar(sec, 'trans')}
       <div class="q-sentence">${escapeHtml(ex.cn || '（该句暂无中文，请看下方提示作答）')}</div>
     </div>
     ${hint}
-    <div class="trans-area" style="margin-top:14px"><textarea id="transInput" placeholder="在此输入英文翻译..."></textarea></div>
+    <div class="trans-area" style="margin-top:14px">
+      <textarea id="transInput" rows="3" placeholder="在此输入英文翻译，或点下方「语音作答」说出来…"
+        inputmode="text" autocapitalize="off" autocomplete="off" autocorrect="off" spellcheck="false"
+        oninput="onTransInput()" onkeydown="transKeydown(event)"></textarea>
+    </div>
+    <div class="trans-tools">
+      <button class="mic-btn${micOk ? '' : ' off'}" id="micBtn" onclick="toggleSpeechInput()" title="${micOk ? '点一下开始说话，再点一下结束' : '当前浏览器不支持语音识别'}">🎤 语音作答</button>
+      <span class="trans-count" id="transCount">0 词</span>
+      <button class="trans-clear" onclick="clearTransInput()">清空</button>
+      <span class="trans-kbd">Ctrl + Enter 提交</span>
+    </div>
+    <div class="mic-tip" id="micTip"></div>
     <div style="text-align:center;margin-top:16px"><button class="btn btn-primary" onclick="checkTrans()">提交并查看答案</button></div>
-    <div class="fb-box" id="fbBox"></div>
+    <div class="fb-box"></div>
     <div style="text-align:center;margin-top:14px"><button class="btn btn-skip" onclick="goStep(7)">跳过本题型 →（基础薄弱可跳过）</button></div>
   `;
   clearFb();
-  runQTimer(sec, ()=>transTimeout());
+  runQTimer(sec, ()=>transTimeout(), 'trans');
 }
 function transNext(){
+  stopSpeech();
   clearFb();
-  if(transState.idx < words().length - 1){ transState.idx++; renderTransQ(); }
+  if(transState.idx < quizLen(transState) - 1){ transState.idx++; renderTransQ(); }
   else { goStep(7); }
 }
 function transExplainRows(input){
   const w = transState.word;
   const d = curDiff();
   const res = transScore(input || '', transState.answer, w.word);
-  const need = d.key === 'hard' ? 0.78 : (d.key === 'mid' ? 0.70 : 0.62);
+  const need = d.key === 'hard' ? 0.70 : (d.key === 'mid' ? 0.62 : 0.55);
   const rows = [['参考答案', `<b>${escapeHtml(transState.answer)}</b>`]];
   const hit = res.hit.map(t => `<span style="color:#128a55">${escapeHtml(t)}</span>`).join(' ');
   const miss = res.miss.map(t => `<span style="color:#c0392b">${escapeHtml(t)}</span>`).join(' ');
@@ -5804,39 +6249,83 @@ function transExplainRows(input){
   if(!res.hasTarget) rows.push(['提醒', `句中必须用上 <b>${escapeHtml(w.word)}</b>`]);
   return { rows, res, need };
 }
+function onTransInput(){
+  const ta = $("#transInput"), n = $("#transCount");
+  if(!ta || !n) return;
+  const words = ta.value.trim() ? ta.value.trim().split(/\s+/).length : 0;
+  n.textContent = words + ' 词';
+}
+function transKeydown(e){
+  if(e && (e.ctrlKey || e.metaKey) && e.key === 'Enter'){ e.preventDefault(); checkTrans(); }
+}
+function clearTransInput(){
+  const ta = $("#transInput");
+  if(!ta) return;
+  ta.value = '';
+  onTransInput();
+  ta.focus();
+}
 function checkTrans(){
   stopCountdown();
   const input = (($("#transInput") && $("#transInput").value) || '').trim();
-  if(!input){ toast("请先输入你的翻译"); return; }
+  if(!input){ toast("请先输入或说出你的翻译"); const ta = $("#transInput"); if(ta) ta.focus(); return; }
   const w = transState.word;
   const { rows, res, need } = transExplainRows(input);
   const pass = res.hasTarget && res.recall >= need;
-  const r = recordAnswer('trans', pass, 2);
-  const ta = $("#transInput"); if(ta) ta.disabled = true;
+  if(!transState.recorded){ recordAnswer('trans', pass, 2); transState.recorded = true; }
+  const ta = $("#transInput");
   if(pass){
-    toast("✅ 通过！ +" + r.gain);
+    if(ta) ta.disabled = true;
+    stopSpeech();
+    toast("✅ 通过！");
     showFb({
       ok:true, rows,
       btn:'下一题 →',
-      tip:`覆盖率 ${Math.round(res.recall*100)}%`,
+      tip:`关键词覆盖 ${Math.round(res.recall*100)}%`,
       onNext:()=>transNext()
     });
-  } else {
-    addWrong(w.word, w.cn);
+    return;
+  }
+  addWrong(w.word, w.cn);
+  if(transState.tries < 1){
+    // 第一次没过：给一次修改机会，不直接公布答案
+    transState.tries++;
     if(!res.hasTarget) toast("⚠️ 句中还没用上目标单词");
     showFb({
-      ok:false, head: res.hasTarget ? '句子还差一些关键词' : '没用上目标单词',
+      ok:false, head: res.hasTarget ? '还差一些关键词，改一改再试' : '没用上目标单词',
       rows,
-      btn:'对照答案，下一题 →',
-      tip:`覆盖率 ${Math.round(res.recall*100)}% / 需 ${Math.round(need*100)}%`,
-      onNext:()=>transNext()
+      btn:'看答案，下一题 →',
+      extra:`<button class="btn btn-ghost" onclick="retryTrans()">再改一次</button>`,
+      tip:`关键词覆盖 ${Math.round(res.recall*100)}% / 需 ${Math.round(need*100)}%`,
+      onNext:()=>transGiveUp()
     });
+  } else {
+    transGiveUp();
   }
+}
+function retryTrans(){
+  clearFb();
+  const ta = $("#transInput");
+  if(ta){ ta.disabled = false; ta.value = ta.value; ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); }
+  const tip = $("#micTip");
+  if(tip){ tip.textContent = '把红色的关键词补上，再提交一次'; tip.className = 'mic-tip show'; }
+}
+function transGiveUp(){
+  stopSpeech();
+  const w = transState.word;
+  const ta = $("#transInput"); if(ta) ta.disabled = true;
+  showFb({
+    ok:false, head:'对照参考答案读一遍',
+    rows:[['参考答案', `<b>${escapeHtml(transState.answer)}</b>`], ...explainRows(w, '')],
+    btn:'下一题 →',
+    onNext:()=>transNext()
+  });
 }
 function transTimeout(){
   const w = transState.word;
   if(!w) return;
-  recordAnswer('trans', false, 2);
+  stopSpeech();
+  if(!transState.recorded){ recordAnswer('trans', false, 2); transState.recorded = true; }
   addWrong(w.word, w.cn);
   const ta = $("#transInput"); if(ta) ta.disabled = true;
   showFb({
@@ -5845,6 +6334,64 @@ function transTimeout(){
     btn:'下一题 →',
     onNext:()=>transNext()
   });
+}
+
+/* ---- 语音作答：Web Speech API（Chrome / Edge / 部分安卓浏览器支持） ---- */
+let transRec = null, transListening = false, transSpeechBase = '';
+function transSpeechSupported(){
+  return !!(window.SpeechRecognition || window.webkitSpeechRecognition);
+}
+function stopSpeech(){
+  transListening = false;
+  if(transRec){
+    try{ transRec.onresult = null; transRec.onend = null; transRec.onerror = null; transRec.stop(); }catch(e){}
+    transRec = null;
+  }
+  const btn = document.getElementById('micBtn');
+  if(btn){ btn.classList.remove('on'); btn.textContent = '🎤 语音作答'; }
+  const tip = document.getElementById('micTip');
+  if(tip) tip.className = 'mic-tip';
+}
+function toggleSpeechInput(){
+  if(!transSpeechSupported()){
+    toast('当前浏览器不支持语音识别，请用 Chrome / Edge，或直接打字');
+    return;
+  }
+  if(transListening){ stopSpeech(); return; }
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  try{
+    transRec = new SR();
+    transRec.lang = 'en-US';
+    transRec.interimResults = true;
+    transRec.continuous = false;
+    transRec.maxAlternatives = 1;
+    const ta = document.getElementById('transInput');
+    transSpeechBase = ta ? ta.value.trim() : '';
+    transRec.onstart = () => {
+      transListening = true;
+      const btn = document.getElementById('micBtn');
+      if(btn){ btn.classList.add('on'); btn.textContent = '🔴 正在听…（点击结束）'; }
+      const tip = document.getElementById('micTip');
+      if(tip){ tip.textContent = '请用英文说出整句，说完停一下会自动结束'; tip.className = 'mic-tip show'; }
+    };
+    transRec.onresult = (ev) => {
+      let text = '';
+      for(let i = 0; i < ev.results.length; i++) text += ev.results[i][0].transcript;
+      const box = document.getElementById('transInput');
+      if(box){ box.value = (transSpeechBase ? transSpeechBase + ' ' : '') + String(text).trim(); onTransInput(); }
+    };
+    transRec.onerror = (ev) => {
+      const map = { 'not-allowed':'没有麦克风权限，请在浏览器地址栏允许麦克风', 'service-not-allowed':'浏览器禁止了语音识别', 'no-speech':'没听到声音，再试一次', 'network':'语音服务需要联网，请检查网络' };
+      const tip = document.getElementById('micTip');
+      if(tip){ tip.textContent = map[ev.error] || ('语音识别出错：' + ev.error); tip.className = 'mic-tip show err'; }
+      stopSpeech();
+    };
+    transRec.onend = () => { stopSpeech(); };
+    transRec.start();
+  }catch(e){
+    stopSpeech();
+    toast('语音识别启动失败：' + ((e && e.message) || '请改用 Chrome / Edge'));
+  }
 }
 
 /* ================= 题型7：语篇短文 ================= */
@@ -5857,7 +6404,7 @@ function simpleHash(str){
 }
 function passageKey(){
   const ws = words().map(x=>x.word.toLowerCase()).sort().join(',');
-  return 'lx_passage_' + simpleHash(ws + '#' + currentGroup);
+  return 'lx_passage_v2_' + simpleHash(ws + '#' + currentGroup + '#short');
 }
 // 屈折变化（与服务端 lib/passage-core.js 保持一致）
 function wordVariantsClient(word){
@@ -5942,14 +6489,14 @@ function paintPassage(){
 
   if(st.loading){
     page.innerHTML = `${head}
-      <p class="page-sub">正在围绕本批 ${words().length} 个词汇撰写短文…</p>
+      <p class="page-sub">正在挑 8 个重点词，写一篇百词小故事…</p>
       <div class="passage passage-skeleton">
         ${'<div class="sk-line"></div>'.repeat(3)}
         ${'<div class="sk-line short"></div>'.repeat(2)}
         ${'<div class="sk-line"></div>'.repeat(3)}
         ${'<div class="sk-line short"></div>'.repeat(2)}
       </div>
-      <div class="ps-tip">生成一篇 200–350 词的完整短文通常需要 10–20 秒，请稍候</div>`;
+      <div class="ps-tip">生成一篇 90–120 词的小故事通常需要 8–15 秒，请稍候</div>`;
     return;
   }
 
@@ -5983,23 +6530,24 @@ function paintPassage(){
 
   const used = st.used || [], missed = st.missed || [];
   const all = words().map(x=>x.word);
+  const focus = (Array.isArray(st.focus) && st.focus.length) ? st.focus : all;
   const pct = Math.round((st.coverage || 0) * 100);
   const paras = String(st.text).split(/\n+/).filter(s=>s.trim()).map(p=>`<p style="margin-bottom:14px">${highlightPassage(p, all)}</p>`).join("");
-  const chips = all.map(w=>{
+  const chips = focus.map(w=>{
     const ok = used.some(u=>u.toLowerCase()===w.toLowerCase());
     return `<span class="ps-chip ${ok?'ok':'miss'}" title="${ok?'已嵌入本篇':'本篇未用到'}">${w}</span>`;
   }).join("");
 
   page.innerHTML = `${head}
-    <p class="page-sub">AI 围绕本批 ${all.length} 个词汇撰写 · 目标词已标黄</p>
+    <p class="page-sub">AI 用本批 ${focus.length} 个重点词写了百词小故事 · 标黄词为已用</p>
     <div class="ps-head">
       <div class="ps-title">${escapeHtml(st.title || 'Untitled')}</div>
-      <div class="ps-meta">${st.wordCount || 0} 词 · 词汇覆盖 <b>${pct}%</b>（${used.length}/${all.length}）</div>
+      <div class="ps-meta">${st.wordCount || 0} 词 · 重点词覆盖 <b>${pct}%</b>（${used.length}/${focus.length}）</div>
     </div>
     <div class="passage" id="psBody">${paras}</div>
     <div class="passage-cn hidden" id="psCn">${st.translation ? escapeHtml(st.translation).replace(/\n+/g,'<br>') : ''}</div>
     <div class="ps-chips">${chips}</div>
-    <div class="ps-tip">黄色为目标词汇；点击「中英对照」可查看全文翻译</div>
+    <div class="ps-tip">黄色为本篇重点词；点击「中英对照」可查看全文翻译</div>
     <div class="passage-actions">
       <button class="btn btn-ghost" onclick="togglePassageCn(this)">中英对照</button>
       <button class="btn btn-ghost" onclick="speakPassage()">🔊 朗读短文</button>
@@ -6242,7 +6790,7 @@ function renderBattleHome(){
       <div class="pk-mode-card" onclick="renderPkDuelSetup()">
         <div class="pk-mode-icon">👥</div>
         <div class="pk-mode-name">双人对战</div>
-        <div class="pk-mode-desc">同一台设备轮流作答，你追我赶</div>
+        <div class="pk-mode-desc">同一台设备左右分屏，两人同时抢答竞速</div>
         <div class="pk-mode-tag">最高连胜 ${best.duel || 0} 场</div>
       </div>
       <div class="pk-mode-card" onclick="renderPkOnlineSetup()">
@@ -6288,13 +6836,13 @@ function renderPkAiSetup(){
 function renderPkDuelSetup(){
   $("#battlePage").innerHTML = `
     <h2 class="page-title">👥 双人对战</h2>
-    <p class="page-sub">同一台设备，两位选手轮流答同一组题</p>
+    <p class="page-sub">同一台设备左右分屏，两位选手同时答同一组题，谁快谁赢</p>
     <div class="pk-duel-form">
       <input id="pkName1" maxlength="8" placeholder="选手一昵称" value="选手一">
       <input id="pkName2" maxlength="8" placeholder="选手二昵称" value="选手二">
       <button class="btn btn-primary" onclick="startPk('duel')">开始对战</button>
     </div>
-    <div class="pk-rules">两人依次作答，各自计时；答对越快得分越高。共 ${PK_CONF.QN} 题。</div>
+    <div class="pk-rules">${PK_CONF.QN} 题同屏竞速：每题 ${PK_CONF.TIME} 秒，两人同时作答、各自计分；答对越快得分越高，总分高者获胜。</div>
     <div style="text-align:center;margin-top:18px"><button class="btn btn-ghost" onclick="renderBattleHome()">← 返回</button></div>`;
 }
 
@@ -6382,42 +6930,83 @@ function pkRenderAi(){
   pkStartTimer();
 }
 
+// 双人同屏竞速：左右两个答题面板，同一组题、同一块表，两个人同时抢答
 function pkRenderDuel(){
   const st = pk;
   const q = st.qs[st.idx];
-  const p0 = st.players[0], p1 = st.players[1];
-  const cur = st.turn;
+  const [p0, p1] = st.players;
+  const tag = q.en2cn ? '选出正确的中文释义' : '选出对应的英文单词';
+  const opts = (who) => q.options.map((o, i) =>
+    `<button class="pkd-opt" id="pkD${who}-${i}" onclick="pkAnswerDuel(${who},${i},this)">${escapeHtml(String(o).slice(0, 30))}</button>`).join('');
+  const accOf = p => p.total ? Math.round(p.right / p.total * 100) + '%' : '—';
   $("#battlePage").innerHTML = `
-    <div class="pk-wrap">
-      <div class="pk-top">
-        <div class="pk-side ${cur === 0 ? 'active' : ''}">
-          <div class="pk-pname">${p0.name}</div>
-          <div class="pk-pscore" id="pkS0">${p0.score}</div>
+    <div class="pkd">
+      <div class="pkd-top">
+        <div class="pkd-side me">
+          <div class="pkd-name">${escapeHtml(p0.name)}</div>
+          <div class="pkd-score" id="pkS0">${p0.score}</div>
+          <div class="pkd-meta">正确率 <b id="pkA0">${accOf(p0)}</b> · 均速 <b id="pkV0">—</b></div>
         </div>
-        <div class="pk-mid">
-          <div class="pk-progress">第 <b>${st.idx+1}</b> / ${st.qs.length} 题</div>
-          <div class="pk-clock" id="pkClock">${PK_CONF.TIME}</div>
+        <div class="pkd-mid">
+          <div class="pkd-idx">第 <b id="pkIdx">${st.idx + 1}</b> / ${st.qs.length} 题</div>
+          <div class="pkd-clock" id="pkClock">${PK_CONF.TIME}</div>
+          <div class="pkd-lead" id="pkLead">同时开答</div>
         </div>
-        <div class="pk-side right ${cur === 1 ? 'active' : ''}">
-          <div class="pk-pname">${p1.name}</div>
-          <div class="pk-pscore" id="pkS1">${p1.score}</div>
+        <div class="pkd-side p2">
+          <div class="pkd-name">${escapeHtml(p1.name)}</div>
+          <div class="pkd-score" id="pkS1">${p1.score}</div>
+          <div class="pkd-meta">正确率 <b id="pkA1">${accOf(p1)}</b> · 均速 <b id="pkV1">—</b></div>
         </div>
       </div>
-      <div class="pk-bar"><div class="pk-bar-fill" id="pkBar"></div></div>
-
-      <div class="pk-question">
-        <div class="pk-q-tag">${q.en2cn ? '选出正确的中文释义' : '选出对应的英文单词'}</div>
-        <div class="pk-q-text">${escapeHtml(q.prompt)}</div>
-        ${q.promptSub ? `<div class="pk-q-sub">${q.promptSub}</div>` : ''}
-        <div class="pk-turn-tip">轮到 <b>${st.players[st.turn].name}</b> 作答</div>
+      <div class="pkd-bar"><i id="pkBar"></i></div>
+      <div class="pkd-duel-q">
+        <div class="pkd-q-tag">${tag}</div>
+        <div class="pkd-q-text">${escapeHtml(q.prompt)}</div>
       </div>
-
-      <div class="pk-options" id="pkOptions">
-        ${q.options.map((o,i)=>`<button class="pk-option" onclick="pkAnswer(${i},this)">${escapeHtml(String(o).slice(0,26))}</button>`).join("")}
+      <div class="pkd-split duel">
+        <section class="pkd-panel me">
+          <div class="pkd-ph"><span>${escapeHtml(p0.name)}</span><span class="pkd-prog" id="pkProg0">进度 ${p0.total}/${st.qs.length}</span></div>
+          <div class="pkd-opts" id="pkOptsD0">${opts(0)}</div>
+          <div class="pkd-fb" id="pkFbD0"></div>
+        </section>
+        <div class="pkd-divider"><span>VS</span></div>
+        <section class="pkd-panel p2">
+          <div class="pkd-ph"><span>${escapeHtml(p1.name)}</span><span class="pkd-prog" id="pkProg1">进度 ${p1.total}/${st.qs.length}</span></div>
+          <div class="pkd-opts" id="pkOptsD1">${opts(1)}</div>
+          <div class="pkd-fb" id="pkFbD1"></div>
+        </section>
       </div>
-      <div class="pk-feedback" id="pkFeedback"></div>
     </div>`;
   pkStartTimer();
+}
+
+function pkAnswerDuel(who, idx, el){
+  const st = pk;
+  if(!st || st.phase !== 'q') return;
+  const p = st.players[who];
+  if(!p || p.answered) return;
+  const q = st.qs[st.idx];
+  const chosen = q.options[idx];
+  const correct = chosen === q.answer;
+  const msLeft = Math.max(0, st.deadline - Date.now());
+  p.answered = true; p.chosen = idx; p.total++;
+  if(correct) p.right++;
+  const gain = pkScore(msLeft, correct);
+  p.score += gain;
+  p.ms += (PK_CONF.TIME * 1000 - msLeft);
+  document.querySelectorAll(`#pkOptsD${who} .pkd-opt`).forEach(b => b.classList.add('locked'));
+  if(el) el.classList.add(correct ? 'right' : 'wrong');
+  const rightIdx = q.options.findIndex(o => o === q.answer);
+  if(!correct){
+    const rEl = document.getElementById(`pkD${who}-${rightIdx}`);
+    if(rEl) rEl.classList.add('right');
+  }
+  const fb = document.getElementById('pkFbD' + who);
+  if(fb) fb.innerHTML = correct
+    ? `<span class="ok">✅ 答对 +${gain}</span>`
+    : `<span class="no">❌ 答错</span>`;
+  pkPaintHud();
+  pkMaybeAdvance();
 }
 
 function pkStartTimer(){
@@ -6426,12 +7015,10 @@ function pkStartTimer(){
   if(!st) return;
   st.qStart = Date.now();
   st.deadline = st.qStart + PK_CONF.TIME * 1000;
-  if(st.mode === 'ai'){
-    // 双方各自重置本回合状态，然后 AI 按自己的反应速度独立答题（不等学生）
-    st.players.forEach(p => { p.answered = false; p.chosen = null; });
-    st.phase = 'q';
-    pkScheduleAi();
-  }
+  // 双方各自重置本回合状态，然后 AI / 双人各自独立答题（互不等待）
+  st.players.forEach(p => { p.answered = false; p.chosen = null; });
+  st.phase = 'q';
+  if(st.mode === 'ai') pkScheduleAi();
   pkTick = setInterval(() => {
     if(!pk || pk.phase !== 'q') return;
     const left = Math.max(0, pk.deadline - Date.now());
@@ -6573,45 +7160,7 @@ function pkAnswer(idx, el){
   const st = pk;
   if(!st || st.phase !== 'q') return;
   if(st.mode === 'ai'){ pkAnswerMe(idx, el); return; }
-  const q = st.qs[st.idx];
-  const chosen = q.options[idx];
-  const correct = chosen === q.answer;
-  const msLeft = Math.max(0, st.deadline - Date.now());
-  const who = st.turn;
-
-  document.querySelectorAll(".pk-option").forEach(b=>b.classList.add("locked"));
-  if(el){ el.classList.add(correct ? "right" : "wrong"); }
-  if(!correct){
-    document.querySelectorAll(".pk-option").forEach(b=>{ if(b.textContent.trim() === String(q.answer).slice(0,26)) b.classList.add("right"); });
-  }
-  st.phase = 'reveal';
-  stopPkTimer();
-  const gain = pkScore(msLeft, correct);
-  const p = st.players[who];
-  p.score += gain; p.total++; if(correct) p.right++;
-  p.ms += (PK_CONF.TIME*1000 - msLeft);
-  $("#pkS"+who).textContent = p.score;
-  pkFeedback(correct
-    ? `<span class="ok">✅ 正确 +${gain}</span>`
-    : `<span class="no">❌ 答错，正确答案：${escapeHtml(String(q.answer).slice(0,30))}</span>`);
-
-  st.answered[who] = true;
-  if(who === 0){
-    setTimeout(()=>{ st.turn = 1; pkNextTurn(); }, 900);
-  } else {
-    setTimeout(pkNextQuestion, 1100);
-  }
-}
-function pkNextTurn(){
-  stopPkTimer();
-  const st = pk;
-  $("#pkFeedback").innerHTML = `<span class="turn">换人！轮到 <b>${st.players[1].name}</b></span>`;
-  document.querySelectorAll(".pk-option").forEach(b=>{ b.classList.remove("right","wrong","locked"); });
-  const tip = document.querySelector(".pk-turn-tip");
-  if(tip) tip.innerHTML = `轮到 <b>${st.players[1].name}</b> 作答`;
-  document.querySelectorAll(".pk-side").forEach((e,i)=>e.classList.toggle("active", i===1));
-  st.phase = 'q';
-  pkStartTimer();
+  // 双人模式由各自的按钮直接调用 pkAnswerDuel(who,...)，这里不做事
 }
 function pkTimeout(){
   const st = pk;
@@ -6643,14 +7192,23 @@ function pkTimeout(){
     setTimeout(() => { if(pk === st) pkNextQuestion(); }, 1000);
     return;
   }
-  document.querySelectorAll(".pk-option").forEach(b=>{
-    b.classList.add("locked");
-    if(b.textContent.trim() === String(q.answer).slice(0,26)) b.classList.add("right");
+  // 双人同屏：两边一起结算，各自锁住自己的面板
+  st.players.forEach((p, i) => {
+    if(p.answered) return;
+    p.answered = true; p.total++; p.chosen = -1;
+    const fb = document.getElementById('pkFbD' + i);
+    if(fb) fb.innerHTML = '<span class="no">⏰ 超时</span>';
   });
-  pkFeedback(`<span class="no">⏰ ${st.players[st.turn].name} 超时</span>`);
-  st.players[st.turn].total++;
-  if(st.turn === 0){ setTimeout(()=>{ st.turn = 1; pkNextTurn(); }, 800); }
-  else setTimeout(pkNextQuestion, 900);
+  [0, 1].forEach(w => {
+    document.querySelectorAll(`#pkOptsD${w} .pkd-opt`).forEach(b => b.classList.add('locked'));
+  });
+  // 正确选项在两边都标绿
+  [0, 1].forEach(w => {
+    const r = document.getElementById('pkD' + w + '-' + rightIdx);
+    if(r) r.classList.add('right');
+  });
+  pkPaintHud();
+  setTimeout(() => { if(pk === st) pkNextQuestion(); }, 1200);
 }
 function pkFeedback(html){
   const el = $("#pkFeedback");

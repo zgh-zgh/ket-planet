@@ -436,6 +436,41 @@
   .wi-actions{display:flex;gap:6px}
   .di-name{font-weight:600}
   .di-count{color:#999;font-size:13px;margin-left:auto}
+
+  /* ===== 词库卡片 + 单词浏览弹窗 ===== */
+  .di-main{flex:1;min-width:0;cursor:pointer}
+  .di-sub{color:#999;font-size:12.5px;margin-top:2px;line-height:1.5}
+  .deck-item .wi-actions{flex:0 0 auto;flex-wrap:wrap;justify-content:flex-end}
+  /* 弹窗基础宽度是 540px，单词列表要更宽才摆得下四列（提高选择器优先级压过 .modal-box） */
+  .modal-box.dw-box{max-width:760px;width:min(760px,94vw);max-height:86vh}
+  .dw-sub{font-size:11.5px;font-weight:400;color:#9aa0b6;margin-left:8px;white-space:nowrap}
+  .dw-tools{padding:11px 16px 9px;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:9px}
+  .dw-search{width:100%;border:1.5px solid var(--border);border-radius:10px;padding:8px 12px;font-size:13.5px;font-family:inherit;outline:none;background:#fff;color:var(--text)}
+  .dw-search:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(79,110,247,.10)}
+  .dw-filters{display:flex;gap:6px;flex-wrap:wrap}
+  .dw-filter{border:1px solid var(--border);background:#fff;color:#6b7280;border-radius:99px;padding:4px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;transition:.15s}
+  .dw-filter:hover{border-color:var(--primary);color:var(--primary)}
+  .dw-filter.on{background:var(--primary);border-color:var(--primary);color:#fff}
+  .dw-list{flex:1;overflow:auto;padding:6px 10px;min-height:180px}
+  .dw-row{display:flex;align-items:center;gap:9px;padding:6px 8px;border-radius:8px;cursor:pointer;font-size:13px;border:1px solid transparent}
+  .dw-row:hover{background:#f6f8ff}
+  .dw-row.on{background:#eef2ff;border-color:#dbe3ff}
+  .dw-row input{width:15px;height:15px;accent-color:var(--primary);flex:0 0 auto;cursor:pointer}
+  .dw-w{font-weight:700;color:var(--text);min-width:92px;overflow-wrap:anywhere}
+  .dw-cn{color:#6b7280;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .dw-tag{font-size:10.5px;padding:1px 7px;border-radius:99px;background:#f1f2f7;color:#9aa0b6;flex:0 0 auto}
+  .dw-tag.done{background:#e6f7ef;color:#1f8a5f;font-weight:700}
+  .dw-empty{padding:34px;text-align:center;color:#9aa0b6;font-size:13px}
+  .dw-more{padding:2px 16px 8px;font-size:11.5px;color:#9aa0b6}
+  .dw-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+  .dw-sel{font-size:12.5px;color:#6b7280}
+  .dw-sel b{color:var(--primary);font-size:15px;margin:0 2px}
+  .dw-foot-btns{display:flex;gap:8px;flex-wrap:wrap}
+  @media(max-width:720px){
+    .dw-w{min-width:74px}
+    .dw-cn{white-space:normal;line-height:1.4}
+    .dw-box{max-height:90vh}
+  }
   .deck-create{margin-top:18px;text-align:center}
   #deckName,#deckWords{width:100%;box-sizing:border-box;padding:10px 12px;border:1px solid var(--border);border-radius:10px;font-size:14px;margin-bottom:10px;font-family:inherit}
   #deckWords{resize:vertical}
@@ -714,6 +749,36 @@
   .modal-x{border:none;background:none;font-size:15px;color:#b6bccd;cursor:pointer;line-height:1;padding:2px 4px}
   .modal-x:hover{color:#7a819a}
 
+  /* ===== 背景音乐悬浮控件（做题/游戏页出现） ===== */
+  .music-dock{position:fixed;right:18px;bottom:18px;z-index:280;display:flex;flex-direction:column;align-items:flex-end;gap:10px}
+  .music-fab{position:relative;width:46px;height:46px;border-radius:50%;border:none;cursor:pointer;background:#fff;color:#8a90a6;font-size:20px;box-shadow:0 8px 22px rgba(40,50,90,.18);transition:.16s;font-family:inherit}
+  .music-fab:hover{transform:translateY(-2px)}
+  .music-fab.on{background:linear-gradient(135deg,var(--primary),var(--primary2));color:#fff;box-shadow:0 8px 22px rgba(79,110,247,.38)}
+  .music-fab.on:after{content:"";position:absolute;right:3px;top:3px;width:9px;height:9px;border-radius:50%;background:#34d399;border:2px solid #fff}
+  .music-panel{display:none;width:272px;max-height:min(72vh,470px);overflow:auto;background:#fff;border-radius:16px;box-shadow:0 18px 44px rgba(30,40,80,.22);border:1px solid #e8ebf9;padding:12px 14px}
+  .music-dock.open .music-panel{display:block;animation:popIn .15s ease-out}
+  .mp-head{display:flex;align-items:center;justify-content:space-between;font-size:13px;font-weight:800;color:var(--text);margin-bottom:9px}
+  .mp-close{border:none;background:none;color:#b6bccd;cursor:pointer;font-size:13px;line-height:1}
+  .mp-row{margin-bottom:9px}
+  .mp-toggle{width:100%;border:1px solid var(--border);background:#f7f8fc;color:#6b7280;border-radius:10px;padding:7px 0;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit;transition:.15s}
+  .mp-toggle.on{background:#eef2ff;border-color:var(--primary);color:var(--primary)}
+  .mp-list{display:flex;flex-direction:column;gap:4px;max-height:min(332px,50vh);overflow:auto;margin-bottom:9px;padding-right:2px}
+  .mp-track{display:flex;align-items:center;gap:7px;border:1px solid transparent;background:#fafbff;border-radius:9px;padding:5px 8px;font-size:12.5px;color:#4a5169;cursor:pointer;font-family:inherit;text-align:left;width:100%}
+  .mp-track:hover{background:#eef2ff}
+  .mp-track.on{background:#e9eeff;border-color:var(--primary);color:var(--primary);font-weight:700}
+  .mp-emoji{font-size:14px;line-height:1}
+  .mp-name{flex:1}
+  .mp-bpm{font-size:10.5px;color:#a3a9bd;font-variant-numeric:tabular-nums}
+  .mp-vol{display:flex;align-items:center;gap:8px;font-size:12px;color:#7a819a}
+  .mp-vol input[type=range]{flex:1;accent-color:var(--primary)}
+  .mp-vol b{font-size:11.5px;color:var(--primary);min-width:34px;text-align:right}
+  .mp-tip{font-size:10.5px;color:#a3a9bd;line-height:1.55;margin-top:9px;padding-top:8px;border-top:1px dashed var(--border)}
+  @media(max-width:720px){
+    .music-dock{right:12px;bottom:12px}
+    .music-panel{width:min(80vw,268px)}
+    .music-fab{width:42px;height:42px;font-size:18px}
+  }
+
   /* 猜词预热 */
   .preheat{margin-bottom:12px}
   .preheat-q{font-size:13px;color:var(--muted);margin-bottom:8px}
@@ -937,6 +1002,11 @@
 </div>
 <div class="toast" id="toast"></div>
 <div id="authRoot"></div>
+<div id="deckWordsRoot"></div>
+<div class="music-dock hidden" id="musicDock">
+  <div class="music-panel" id="musicPanel"></div>
+  <button class="music-fab" id="musicFab" onclick="toggleMusicPanel()" title="添加背景音乐">🎵</button>
+</div>
 
 <script src="words-data.js"></script>
 <script src="examples_data.js"></script>
@@ -1396,6 +1466,7 @@ function newBatch(){
   const n = Math.min(BATCH_SIZE, pool.length);
   currentBatch = shuffle(pool).slice(0, n);
   learnIndex = 0;
+  lastDeckPick = null;
   resetBatchState();
 }
 // 典雅书院风命名（标题 / 菜单名 / 图标 / 副标题）
@@ -2487,8 +2558,9 @@ function renderAll(opts){
   ["miReview","miWrongbook","miDecks","miAchievement","miBattle"].forEach(id=>{ const el=$("#"+id); if(el) el.classList.remove("active"); });
   if(miMap[appMode]){ const el=$("#"+miMap[appMode]); if(el) el.classList.add("active"); }
   stopAudio();
-  // 离开题型页时兜底停掉倒计时与背景节奏，避免"人走了还在扣时间/还在响"
-  stopCountdown(); stopBgm(); clearFb();
+  // 离开题型页时兜底停掉倒计时与弹窗；背景音乐统一交给 syncMusic 处理
+  stopCountdown(); clearFb();
+  syncMusic();
   updateBackBar();
   if(appMode==='review'){ renderReview(); window.scrollTo({top:0}); return; }
   if(appMode==='wrongbook'){ renderWrongbook(); window.scrollTo({top:0}); return; }
@@ -3018,21 +3090,40 @@ function startWrongReview(){
 function renderDecks(){
   const decks = loadDecks();
   const activeId = getActiveDeckId();
-  const builtinCount = Object.keys(WORD_DB).reduce((a,k)=>a+WORD_DB[k].length,0);
   const dueMap = dueCountByDeck();
+  const studied = studiedSet();
+  const lvIcon = { '初中':'🌱', '高中':'🌿', '四级':'🎓', '六级':'🏆' };
   $("#decksPage").classList.remove("hidden");
-  $("#decksPage").innerHTML = `<h2 class="page-title">📚 我的词库</h2><p class="page-sub">内置词库 + 自主导入，多套独立管理</p>
+  $("#decksPage").innerHTML = `<h2 class="page-title">📚 词库总览</h2><p class="page-sub">点词库可查看全部单词，勾选后自由组成一组来学习或游戏</p>
     <div class="deck-list">
-      <div class="deck-item ${activeId===null?'active':''}" onclick="activateDeck(null)">
-        <div class="di-name">🌱 内置词库（初中/高中/四级/六级）</div>
-        <div class="di-count">${builtinCount} 词</div>
-      </div>
+      ${LEVELS.map((lv, i)=>{
+        const list = WORD_DB[lv] || [];
+        const done = list.reduce((a, it)=> a + (studied.has(String(it[0]).toLowerCase()) ? 1 : 0), 0);
+        const active = activeId === null && currentGroup === i;
+        return `<div class="deck-item ${active ? 'active' : ''}">
+          <div class="di-main" onclick="openDeckWords('builtin:${lv}')">
+            <div class="di-name">${lvIcon[lv] || '📘'} ${lv}词库</div>
+            <div class="di-sub">${list.length} 词 · 已学 ${done} · 未学 ${list.length - done}</div>
+          </div>
+          <div class="wi-actions">
+            <button class="btn btn-mini btn-ghost" onclick="openDeckWords('builtin:${lv}')">查看单词</button>
+            <button class="btn btn-mini btn-primary" onclick="switchGroup(${i})">用这个词库</button>
+          </div>
+        </div>`;
+      }).join("")}
       ${decks.map(d=>{
         const n = (d.words||[]).length, due = dueMap[d.id]||0;
-        return `<div class="deck-item ${activeId===d.id?'active':''}" onclick="activateDeck('${d.id}')">
-          <div class="di-name">📖 ${escapeHtml(d.name)}</div>
-          <div class="di-count">${n} 词${due?`　<b style="color:var(--red)">待复习 ${due}</b>`:''}</div>
-          <div class="wi-actions"><button class="btn btn-mini btn-danger" onclick="event.stopPropagation();deleteDeck('${d.id}')">删除</button></div>
+        const done = (d.words||[]).reduce((a, it)=> a + (studied.has(String(it[0]).toLowerCase()) ? 1 : 0), 0);
+        return `<div class="deck-item ${activeId===d.id?'active':''}">
+          <div class="di-main" onclick="openDeckWords('custom:${d.id}')">
+            <div class="di-name">📖 ${escapeHtml(d.name)}</div>
+            <div class="di-sub">${n} 词 · 已学 ${done}${due?`　<b style="color:var(--red)">待复习 ${due}</b>`:''}</div>
+          </div>
+          <div class="wi-actions">
+            <button class="btn btn-mini btn-ghost" onclick="openDeckWords('custom:${d.id}')">查看单词</button>
+            <button class="btn btn-mini btn-primary" onclick="activateDeck('${d.id}')">用这个词库</button>
+            <button class="btn btn-mini btn-danger" onclick="deleteDeck('${d.id}')">删除</button>
+          </div>
         </div>`;
       }).join("")}
     </div>
@@ -3060,6 +3151,183 @@ function renderDecks(){
       <span class="backup-note">词库、错题本、复习进度都存在本机浏览器；换设备或清缓存前请先导出备份（当前占用 ${storageUsageKB()} KB）</span>
     </div>`;
 }
+/* ================= 词库浏览：看全部单词 + 自由勾选成组 ================= */
+let deckView = null;
+// 一组词的上限：20 词 = 消消乐 40 张牌，正好一屏摆得下；再多棋盘就要滚动，找牌会很难受
+const DECK_PICK_MAX = 20;
+// 记住这批词是从哪个词库手选出来的：学完之后给「回词库再选」而不是「换一批」
+let lastDeckPick = null;
+function studiedSet(){
+  const log = loadStudylog(), s = new Set();
+  for(const k in log) s.add(String(k).toLowerCase());
+  return s;
+}
+function openDeckWords(key){
+  let title = '', items = [];
+  if(key.indexOf('builtin:') === 0){
+    const lv = key.slice(8);
+    if(!WORD_DB[lv]) return;
+    title = lv + '词库';
+    items = (WORD_DB[lv] || []).map(([w, cn]) => ({ w, cn: cn || '', lv }));
+  } else if(key.indexOf('custom:') === 0){
+    const id = key.slice(7);
+    const d = loadDecks().find(x => x.id === id);
+    if(!d) return;
+    title = d.name;
+    items = (d.words || []).map(([w, cn]) => ({ w, cn: cn || '', lv: '自定义', deckId: id }));
+  } else return;
+  deckView = { key, title, items, sel: new Set(), filter: 'all', q: '', studied: studiedSet() };
+  renderDeckWords();
+}
+function closeDeckWords(){
+  const root = document.getElementById('deckWordsRoot');
+  if(root) root.innerHTML = '';
+  deckView = null;
+}
+function deckWordsFiltered(){
+  if(!deckView) return [];
+  const q = deckView.q.trim().toLowerCase();
+  return deckView.items.filter(it => {
+    const done = deckView.studied.has(it.w.toLowerCase());
+    if(deckView.filter === 'new' && done) return false;
+    if(deckView.filter === 'done' && !done) return false;
+    if(!q) return true;
+    return it.w.toLowerCase().indexOf(q) >= 0 || String(it.cn).toLowerCase().indexOf(q) >= 0;
+  });
+}
+function renderDeckWords(){
+  const root = document.getElementById('deckWordsRoot');
+  if(!root || !deckView) return;
+  const all = deckView.items;
+  const learned = all.reduce((a, it) => a + (deckView.studied.has(it.w.toLowerCase()) ? 1 : 0), 0);
+  const list = deckWordsFiltered();
+  const CAP = 260;
+  const shown = list.slice(0, CAP);
+  root.innerHTML = `
+    <div class="modal-mask" onclick="if(event.target===this)closeDeckWords()">
+      <div class="modal-box dw-box">
+        <div class="modal-head" style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+          <span>📖 ${escapeHtml(deckView.title)}<span class="dw-sub">共 ${all.length} 词 · 已学 ${learned} · 未学 ${all.length - learned}</span></span>
+          <button class="modal-x" onclick="closeDeckWords()" aria-label="关闭">✕</button>
+        </div>
+        <div class="dw-tools">
+          <input class="dw-search" id="dwSearch" placeholder="搜索单词或释义…" value="${escapeHtml(deckView.q)}" oninput="deckWordsSearch(this.value)">
+          <div class="dw-filters">
+            <button class="dw-filter${deckView.filter === 'all' ? ' on' : ''}" onclick="deckWordsFilter('all')">全部 ${all.length}</button>
+            <button class="dw-filter${deckView.filter === 'new' ? ' on' : ''}" onclick="deckWordsFilter('new')">未学 ${all.length - learned}</button>
+            <button class="dw-filter${deckView.filter === 'done' ? ' on' : ''}" onclick="deckWordsFilter('done')">已学 ${learned}</button>
+          </div>
+        </div>
+        <div class="dw-list">
+          ${shown.length ? shown.map(it => {
+            const lw = it.w.toLowerCase();
+            const done = deckView.studied.has(lw);
+            const on = deckView.sel.has(lw);
+            return `<label class="dw-row${on ? ' on' : ''}">
+              <input type="checkbox"${on ? ' checked' : ''} data-w="${escapeHtml(lw)}" onchange="deckWordsToggle(this)">
+              <span class="dw-w">${escapeHtml(it.w)}</span>
+              <span class="dw-cn">${escapeHtml(String(it.cn).slice(0, 36))}</span>
+              <span class="dw-tag${done ? ' done' : ''}">${done ? '已学' : '未学'}</span>
+            </label>`;
+          }).join('') : `<div class="dw-empty">没有符合条件的单词</div>`}
+        </div>
+        ${list.length > CAP ? `<div class="dw-more">只显示前 ${CAP} 个，用搜索或筛选缩小范围</div>` : ''}
+        <div class="modal-foot dw-foot">
+          <span class="dw-sel">已选 <b id="dwSelNum">${deckView.sel.size}</b> / ${DECK_PICK_MAX} 个</span>
+          <div class="dw-foot-btns">
+            <button class="btn btn-ghost btn-mini" onclick="deckWordsSelectAll(true)">全选当前</button>
+            <button class="btn btn-ghost btn-mini" onclick="deckWordsSelectAll(false)">清空</button>
+            <button class="btn btn-ghost btn-mini" onclick="saveDeckSelection()">💾 存为词库</button>
+            <button class="btn btn-primary btn-mini" onclick="startDeckWords()">开始学习 →</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+function deckWordsSearch(v){
+  if(!deckView) return;
+  deckView.q = String(v || '');
+  renderDeckWords();
+  const el = document.getElementById('dwSearch');
+  if(el){ try{ el.focus(); el.setSelectionRange(el.value.length, el.value.length); }catch(e){} }
+}
+function deckWordsFilter(f){
+  if(!deckView) return;
+  deckView.filter = f;
+  renderDeckWords();
+}
+function deckWordsToggle(el){
+  if(!deckView) return;
+  const lw = el.dataset.w;
+  if(el.checked){
+    if(deckView.sel.size >= DECK_PICK_MAX){
+      el.checked = false;
+      toast(`一组最多 ${DECK_PICK_MAX} 个词，点「开始学习」先练这一组吧`);
+      return;
+    }
+    deckView.sel.add(lw);
+  } else deckView.sel.delete(lw);
+  const row = el.closest('.dw-row');
+  if(row) row.classList.toggle('on', el.checked);
+  const num = document.getElementById('dwSelNum');
+  if(num) num.textContent = deckView.sel.size;
+}
+function deckWordsSelectAll(on){
+  if(!deckView) return;
+  const list = deckWordsFiltered();
+  if(!on){
+    list.forEach(it => deckView.sel.delete(it.w.toLowerCase()));
+    renderDeckWords();
+    toast('已清空选择');
+    return;
+  }
+  let capped = false;
+  for(const it of list){
+    if(deckView.sel.size >= DECK_PICK_MAX){ capped = true; break; }
+    deckView.sel.add(it.w.toLowerCase());
+  }
+  renderDeckWords();
+  toast(capped ? `一次最多带 ${DECK_PICK_MAX} 个词，已选 ${deckView.sel.size} 个` : `已选中 ${deckView.sel.size} 个`);
+}
+// 把勾选的词存成一个新的自建词库，下次不用重选
+function saveDeckSelection(){
+  if(!deckView) return;
+  const picked = deckView.items.filter(it => deckView.sel.has(it.w.toLowerCase()));
+  if(!picked.length){ toast('先勾选几个单词'); return; }
+  const base = deckView.title.replace(/词库$/, '').trim() + ' · 精选';
+  let name = `${base} ${picked.length} 词`, n = 2;
+  const decks = loadDecks();
+  while(decks.some(d => d.name === name)) name = `${base} ${picked.length} 词(${n++})`;
+  const deck = addDeck(name, picked.map(it => [it.w, it.cn]));
+  if(!deck) return;
+  toast(`已存为「${name}」，可在词库列表里直接用`);
+}
+// 把勾选的词组成当前学习批次：学习、消消乐、各类题型、PK 全部走 words()，自动通用
+function startDeckWords(){
+  if(!deckView) return;
+  const picked = deckView.items.filter(it => deckView.sel.has(it.w.toLowerCase())).slice(0, DECK_PICK_MAX);
+  if(!picked.length){ toast('先勾选几个单词'); return; }
+  // 自定义词库没有学段，按当前学段归一，避免难度判定/例句匹配拿不到 level
+  const fallbackLv = (GROUPS[currentGroup] && GROUPS[currentGroup].level) || '初中';
+  const ws = picked.map(it => buildWord(it.w, it.cn, LEVELS.indexOf(it.lv) >= 0 ? it.lv : fallbackLv, it.deckId));
+  const fromBuiltin = deckView.key.indexOf('builtin:') === 0;
+  if(fromBuiltin){
+    const lvIdx = LEVELS.indexOf(deckView.title.replace('词库', ''));
+    if(lvIdx >= 0){ currentGroup = lvIdx; setActiveDeckId(null); activeCustomWords = null; }
+  }
+  currentBatch = ws;
+  learnIndex = 0;
+  currentStep = 0;
+  appMode = 'learn';
+  lastStudyStep = 0;
+  lastDeckPick = { key: deckView.key, title: deckView.title };
+  resetBatchState();
+  closeDeckWords();
+  renderAll();
+  pushRoute();
+  toast(`已载入 ${ws.length} 个单词，可开始学习或游戏`);
+}
+
 function escapeHtml(s){ return String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 // 每个词库的待复习数量（依据艾宾浩斯记录里的 deck 标记）
 function dueCountByDeck(){
@@ -3756,7 +4024,7 @@ function curDiff(){
 function setDiff(k){
   if(!DIFF[k] || k === curDiff().key) return;
   saveStore(LS_DIFF, k);
-  stopCountdown(); stopBgm();
+  stopCountdown();
   toast(`${DIFF[k].icon} 难度已切换为「${DIFF[k].name}」`);
   rerenderStep();
 }
@@ -3975,63 +4243,310 @@ function fbWordAnswer(w, chosen, ok, head){
   };
 }
 
-/* ---- 背景节奏（Web Audio 合成，无外部音频文件；可在 HUD 里一键关闭） ---- */
-const bgm = {
-  ac:null, timer:null, on:false, urgent:false, step:0, muted:false,
+/* ================= 背景音乐：Web Audio 实时合成，10 首可选、音量可调 ================= */
+// 不引入任何音频文件（避免版权与体积问题），全部用振荡器 + 噪声实时合成。
+// 结构：每首曲子 = 速度 + 音色 + 和弦进行 + 旋律型 + 鼓组；16 分音符为一步，每 16 步一小节。
+const LS_MUSIC = 'lx_music_v1';
+const MUSIC_ROOT = 261.63;                       // C4
+const _mf = semi => MUSIC_ROOT * Math.pow(2, semi / 12);
+
+const MUSIC_TRACKS = [
+  { id:'sunny',   name:'阳光午后', emoji:'🌤️', bpm:106, wave:'triangle', style:'arp',     drums:'pop',
+    chords:[[0,4,7],[7,11,14],[9,12,16],[5,9,12]] },
+  { id:'focus',   name:'专注模式', emoji:'🎧', bpm:84,  wave:'sine',     style:'sparse',  drums:'soft',
+    chords:[[0,3,7],[5,8,12],[7,10,14],[3,7,10]] },
+  { id:'piano',   name:'温柔钢琴', emoji:'🎹', bpm:72,  wave:'sine',     style:'arp',     drums:'none',
+    chords:[[0,4,7,11],[5,9,12,16],[7,11,14,17],[2,5,9,12]] },
+  { id:'electro', name:'电子律动', emoji:'🎛️', bpm:120, wave:'square',   style:'drive',   drums:'edm',
+    chords:[[0,3,7],[8,12,15],[5,8,12],[3,7,10]] },
+  { id:'jazz',    name:'爵士小调', emoji:'🎷', bpm:96,  wave:'triangle', style:'swing',   drums:'jazz',
+    chords:[[0,3,7,10],[5,8,12,15],[7,10,14,17],[2,7,11,14]] },
+  { id:'china',   name:'古风轻扬', emoji:'🏮', bpm:88,  wave:'sine',     style:'pluck',   drums:'soft',
+    chords:[[0,2,7],[5,7,12],[7,9,14],[2,7,9]] },
+  { id:'lofi',    name:'Lo-fi 夜读', emoji:'🌙', bpm:76, wave:'triangle', style:'lofi',   drums:'lofi',
+    chords:[[0,4,7,11],[9,12,16,19],[5,9,12,16],[7,11,14,17]] },
+  { id:'forest',  name:'森林晨光', emoji:'🌿', bpm:92,  wave:'sine',     style:'arp',     drums:'soft',
+    chords:[[0,4,9],[7,11,14],[5,9,12],[2,7,11]] },
+  { id:'star',    name:'星空漫游', emoji:'✨', bpm:80,  wave:'sine',     style:'sparkle', drums:'none',
+    chords:[[0,7,12],[3,10,15],[5,12,17],[7,14,19]] },
+  { id:'sprint',  name:'冲刺时刻', emoji:'⚡', bpm:132, wave:'sawtooth', style:'drive',   drums:'edm',
+    chords:[[0,3,7],[10,14,17],[8,12,15],[5,8,12]] }
+];
+
+const music = {
+  ac:null, master:null, noiseBuf:null,
+  on:false, want:false, timer:null, step:0, nextT:0,
+  trackId:'sunny', vol:0.55,
+
+  load(){
+    try{
+      const d = JSON.parse(localStorage.getItem(LS_MUSIC) || 'null') || {};
+      if(MUSIC_TRACKS.some(t => t.id === d.track)) this.trackId = d.track;
+      if(typeof d.vol === 'number') this.vol = Math.max(0, Math.min(1, d.vol));
+      this.want = !!d.on;
+    }catch(e){}
+  },
+  save(){
+    try{ localStorage.setItem(LS_MUSIC, JSON.stringify({ on:this.want, track:this.trackId, vol:this.vol })); }catch(e){}
+  },
+  track(){ return MUSIC_TRACKS.find(t => t.id === this.trackId) || MUSIC_TRACKS[0]; },
+
   ensure(){
-    if(this.muted) return null;
-    const AC = window.AudioContext || window.webkitAudioContext;
-    if(!AC) return null;
     if(!this.ac){
-      try{ this.ac = new AC(); }catch(e){ return null; }
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if(!AC) return null;
+      try{
+        this.ac = new AC();
+        this.master = this.ac.createGain();
+        this.master.gain.value = this.vol * 0.5;
+        this.master.connect(this.ac.destination);
+        const len = Math.floor(this.ac.sampleRate * 0.4);
+        const buf = this.ac.createBuffer(1, len, this.ac.sampleRate);
+        const ch = buf.getChannelData(0);
+        for(let i = 0; i < len; i++) ch[i] = Math.random() * 2 - 1;
+        this.noiseBuf = buf;
+      }catch(e){ return null; }
     }
     if(this.ac.state === 'suspended'){ try{ this.ac.resume(); }catch(e){} }
     return this.ac;
   },
-  blip(freq, dur, type, vol){
+
+  tone(freq, t, dur, type, gain){
     const ac = this.ac;
     if(!ac) return;
     try{
-      const t = ac.currentTime;
       const o = ac.createOscillator(), g = ac.createGain();
       o.type = type || 'sine';
       o.frequency.setValueAtTime(freq, t);
       g.gain.setValueAtTime(0.0001, t);
-      g.gain.linearRampToValueAtTime(vol, t + 0.006);
-      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-      o.connect(g); g.connect(ac.destination);
-      o.start(t); o.stop(t + dur + 0.02);
+      g.gain.exponentialRampToValueAtTime(Math.max(0.0003, gain), t + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + Math.max(0.05, dur));
+      o.connect(g); g.connect(this.master);
+      o.start(t); o.stop(t + dur + 0.04);
     }catch(e){}
   },
-  beat(){
-    this.step++;
-    if(this.step % 4 === 1){ this.blip(104, 0.16, 'sine', 0.09); this.blip(208, 0.09, 'triangle', 0.03); }
-    else this.blip(150, 0.055, 'square', 0.022);
-    if(this.urgent) this.blip(880, 0.03, 'square', 0.018);
+  hat(t, gain, hp){
+    const ac = this.ac;
+    if(!ac || !this.noiseBuf) return;
+    try{
+      const s = ac.createBufferSource(); s.buffer = this.noiseBuf;
+      const f = ac.createBiquadFilter(); f.type = 'highpass'; f.frequency.value = hp || 7000;
+      const g = ac.createGain();
+      g.gain.setValueAtTime(gain, t);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.055);
+      s.connect(f); f.connect(g); g.connect(this.master);
+      s.start(t); s.stop(t + 0.07);
+    }catch(e){}
+  },
+  kick(t){
+    const ac = this.ac;
+    if(!ac) return;
+    try{
+      const o = ac.createOscillator(), g = ac.createGain();
+      o.frequency.setValueAtTime(150, t);
+      o.frequency.exponentialRampToValueAtTime(46, t + 0.13);
+      g.gain.setValueAtTime(0.16, t);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.17);
+      o.connect(g); g.connect(this.master);
+      o.start(t); o.stop(t + 0.19);
+    }catch(e){}
+  },
+
+  // 一小节 = 16 步；step 为绝对步数
+  schedule(step, t){
+    const tr = this.track();
+    const s = step % 16;
+    const bar = Math.floor(step / 16);
+    const chord = tr.chords[bar % tr.chords.length];
+    const beat = 60 / tr.bpm;
+    const st = beat / 4;
+
+    if(s === 0){
+      // 铺底和弦（高八度，音量很轻）
+      chord.forEach(n => this.tone(_mf(n) * 2, t, beat * 3.7, tr.wave, 0.028));
+      // 低音：第 1 拍与第 3 拍
+      this.tone(_mf(chord[0] - 12), t, beat * 1.7, 'sine', 0.085);
+      this.tone(_mf(chord[0] - 12), t + beat * 2, beat * 1.6, 'sine', 0.065);
+    }
+
+    // 旋律型
+    const notes = chord.concat([chord[0] + 12]);
+    if(tr.style === 'arp'){
+      if(s % 2 === 0){
+        const n = notes[(s / 2) % notes.length] + 12;
+        this.tone(_mf(n), t, st * 1.8, tr.wave, s % 8 === 0 ? 0.07 : 0.045);
+      }
+    } else if(tr.style === 'sparse'){
+      if(s === 0 || s === 6 || s === 10){
+        this.tone(_mf(chord[s === 6 ? 1 : 0] + 12), t, beat * 1.1, tr.wave, 0.06);
+      }
+    } else if(tr.style === 'drive'){
+      if(s % 2 === 1){
+        this.tone(_mf(notes[(s >> 1) % notes.length] + 12), t, st * 1.2, tr.wave, 0.035);
+      }
+      if(s === 0 || s === 8){
+        this.tone(_mf(chord[2] + 12), t, st * 1.4, tr.wave, 0.05);
+      }
+    } else if(tr.style === 'swing'){
+      if([0, 3, 6, 10, 13].indexOf(s) >= 0){
+        const n = notes[(s / 3 | 0) % notes.length] + 12;
+        this.tone(_mf(n), t, st * 2.2, tr.wave, 0.055);
+      }
+    } else if(tr.style === 'pluck'){
+      if(s === 0 || s === 4 || s === 8 || s === 12){
+        this.tone(_mf(chord[(s / 4) % chord.length] + 12), t, beat * 0.9, tr.wave, 0.06);
+      }
+    } else if(tr.style === 'lofi'){
+      if(s === 0 || s === 6 || s === 8 || s === 14){
+        this.tone(_mf(chord[(s / 2 | 0) % chord.length] + 12), t, beat * 1.3, tr.wave, 0.05);
+      }
+    } else if(tr.style === 'sparkle'){
+      if(s % 4 === 2){
+        this.tone(_mf(chord[0] + 24), t, st * 2.5, 'sine', 0.04);
+        this.tone(_mf(chord[2] + 19), t + st, st * 2, 'sine', 0.025);
+      }
+    }
+
+    // 鼓组
+    const d = tr.drums;
+    if(d === 'pop'){
+      if(s === 0 || s === 8) this.kick(t);
+      if(s === 4 || s === 12) this.hat(t, 0.05, 5000);
+      if(s % 2 === 0) this.hat(t, 0.018, 9000);
+    } else if(d === 'edm'){
+      if(s % 4 === 0) this.kick(t);
+      if(s % 2 === 1) this.hat(t, 0.03, 9500);
+      if(s === 4 || s === 12) this.hat(t, 0.055, 4200);
+    } else if(d === 'soft'){
+      if(s === 0) this.kick(t);
+      if(s === 8) this.hat(t, 0.014, 9000);
+    } else if(d === 'jazz'){
+      if(s === 0 || s === 10) this.kick(t);
+      if(s % 2 === 0) this.hat(t, 0.022, 8000);
+    } else if(d === 'lofi'){
+      if(s === 0 || s === 8) this.kick(t);
+      if(s === 12) this.hat(t, 0.035, 5000);
+      if(s % 4 === 2) this.hat(t, 0.012, 9000);
+    }
+  },
+
+  tick(){
+    const ac = this.ac;
+    if(!ac || !this.on) return;
+    const st = (60 / this.track().bpm) / 4;
+    while(this.nextT < ac.currentTime + 0.5){
+      this.schedule(this.step, this.nextT);
+      this.step++;
+      this.nextT += st;
+    }
   },
   start(){
+    if(this.on) return;
     if(!this.ensure()) return;
-    if(this.timer) return;
-    this.on = true; this.step = 0;
-    const loop = () => {
-      if(!this.on) return;
-      this.beat();
-      this.timer = setTimeout(loop, this.urgent ? 300 : 420);
-    };
-    this.timer = setTimeout(loop, 80);
+    this.on = true;
+    this.step = 0;
+    this.nextT = this.ac.currentTime + 0.12;
+    if(this.timer) clearInterval(this.timer);
+    this.timer = setInterval(() => this.tick(), 120);
+    this.tick();
+    updateMusicDock();
   },
-  stop(){ this.on = false; if(this.timer){ clearTimeout(this.timer); this.timer = null; } this.urgent = false; },
-  setUrgent(v){ this.urgent = !!v; },
+  stop(){
+    this.on = false;
+    if(this.timer){ clearInterval(this.timer); this.timer = null; }
+    updateMusicDock();
+  },
+  setWant(v){
+    this.want = !!v;
+    this.save();
+    if(this.want) this.start(); else this.stop();
+    updateMusicDock();
+  },
+  setTrack(id){
+    if(!MUSIC_TRACKS.some(t => t.id === id)) return;
+    this.trackId = id;
+    this.save();
+    if(this.on){ this.step = 0; this.nextT = this.ac.currentTime + 0.06; }
+    renderMusicPanel();
+  },
+  setVolume(v){
+    this.vol = Math.max(0, Math.min(1, v));
+    if(this.master) this.master.gain.value = this.vol * 0.5;
+    this.save();
+  },
   toggle(){
-    const next = !loadStore(LS_BGM, true);
-    saveStore(LS_BGM, next);
-    this.muted = !next;
-    if(next){ this.start(); } else { this.stop(); }
-    return next;
-  },
-  enabled(){ return !!loadStore(LS_BGM, true); }
+    this.setWant(!this.want);
+    return this.want;
+  }
 };
-function stopBgm(){ bgm.stop(); }
+music.load();
+
+/* ---- 悬浮音乐控件（只在做题/游戏页出现） ---- */
+function isGamePage(){
+  if(appMode === 'battle') return true;
+  if(appMode !== 'learn') return false;
+  return currentStep >= 1 && currentStep <= 7;
+}
+function updateMusicDock(){
+  const dock = document.getElementById('musicDock');
+  if(!dock) return;
+  const show = isGamePage();
+  dock.classList.toggle('hidden', !show);
+  const fab = document.getElementById('musicFab');
+  if(fab){
+    fab.classList.toggle('on', music.on);
+    fab.title = music.on ? '背景音乐播放中' : '添加背景音乐';
+  }
+  if(!show) dock.classList.remove('open');
+}
+function toggleMusicPanel(){
+  const dock = document.getElementById('musicDock');
+  if(!dock) return;
+  const open = dock.classList.toggle('open');
+  if(open) renderMusicPanel();
+}
+// 只在做题/游戏页播放；离开就静音，但记住"想开"的状态，回到游戏页自动续上
+function syncMusic(){
+  if(isGamePage()){
+    if(music.want && !music.on) music.start();
+  } else if(music.on){
+    music.stop();
+  }
+  updateMusicDock();
+}
+// 浏览器限制：首次交互后才允许出声，任意一次点击补一次 resume
+document.addEventListener('pointerdown', () => { if(music.want) music.ensure(); }, { passive:true });
+function musicToggleBtn(){
+  music.setWant(!music.want);
+  renderMusicPanel();
+  toast(music.want ? '🎵 背景音乐已开启' : '🔇 背景音乐已关闭');
+}
+function renderMusicPanel(){
+  const panel = document.getElementById('musicPanel');
+  if(!panel) return;
+  const cur = music.track();
+  panel.innerHTML = `
+    <div class="mp-head">
+      <span>🎵 背景音乐</span>
+      <button class="mp-close" onclick="toggleMusicPanel()" aria-label="关闭">✕</button>
+    </div>
+    <div class="mp-row">
+      <button class="mp-toggle${music.want ? ' on' : ''}" onclick="musicToggleBtn()">${music.want ? '播放中 · 点击关闭' : '已关闭 · 点击开启'}</button>
+    </div>
+    <div class="mp-list">
+      ${MUSIC_TRACKS.map(t => `<button class="mp-track${t.id === cur.id ? ' on' : ''}" onclick="music.setTrack('${t.id}')">
+        <span class="mp-emoji">${t.emoji}</span><span class="mp-name">${t.name}</span><span class="mp-bpm">${t.bpm}</span>
+      </button>`).join('')}
+    </div>
+    <div class="mp-vol">
+      <span>音量</span>
+      <input type="range" min="0" max="100" value="${Math.round(music.vol * 100)}" oninput="music.setVolume(this.value/100); document.getElementById('mpVolNum').textContent=this.value+'%'">
+      <b id="mpVolNum">${Math.round(music.vol * 100)}%</b>
+    </div>
+    <div class="mp-tip">音乐由浏览器实时合成，无版权素材；关掉后所有页面都不再播放</div>`;
+}
+function stopBgm(){ music.stop(); }
+
 
 /* ---- 意群切分：按「介词短语 / 从句 / 标点」成组，而不是拆成单个单词 ---- */
 const PREP_SET = new Set(('about above across after against along among around as at before behind below beneath beside besides between beyond by despite down during except for from in inside into like near of off on onto out outside over past since through throughout till to toward towards under until up upon with within without').split(' '));
@@ -4325,7 +4840,7 @@ function bombCn(cn){
 }
 function renderMatch(){
   const list = words();
-  stopCountdown(); stopBgm();
+  stopCountdown();
   const cells = [];
   list.forEach((x,i)=>{
     cells.push({ type:'en', text:x.word, pair:i });
@@ -4343,7 +4858,6 @@ function renderMatch(){
     <div class="bomb-top">
       <span class="bomb-clock" id="bombClock">${limit}s</span>
       <span class="bomb-combo off" id="bombCombo"></span>
-      <button class="bomb-tool${bgm.enabled()?' on':''}" id="bombBgm" onclick="toggleMatchBgm()">🎵 背景音</button>
     </div>
     <div class="bomb-hud">
       <span>已消除 <b id="bombCleared">0</b> / ${matchState.total}</span>
@@ -4360,25 +4874,13 @@ function renderMatch(){
     <div style="text-align:center;margin-top:14px"><button class="btn btn-skip" onclick="goStep(2)">跳过本题型 →</button></div>
   `;
   clearFb();
-  bgm.muted = !bgm.enabled();
-  if(bgm.enabled()) bgm.start();
   startCountdown(limit, (left)=>{
     const el = $("#bombClock");
     if(el){ el.textContent = Math.ceil(left) + 's'; el.classList.toggle('urgent', left <= 15); }
-    bgm.setUrgent(left <= 15);
   }, ()=>{ matchFinish('timeout'); });
 }
-function toggleMatchBgm(){
-  const on = bgm.toggle();
-  const btn = $("#bombBgm");
-  if(btn) btn.classList.toggle('on', on);
-  toast(on ? '🎵 背景音已开启' : '🔇 背景音已关闭');
-  if(on && matchState.t0 && matchState.limit){
-    bgm.setUrgent((matchState.limit * 1000 - (Date.now() - matchState.t0)) / 1000 <= 15);
-  }
-}
 function matchFinish(reason){
-  stopCountdown(); stopBgm();
+  stopCountdown();
   const st = matchState;
   const used = Math.max(1, Math.round((Date.now() - st.t0) / 1000));
   const rate = st.total ? Math.round(st.cleared / st.total * 100) : 0;
@@ -4410,8 +4912,8 @@ function bombClick(i){
   const el = $("#bomb-"+i);
   if(!el || el.classList.contains("cleared") || el.classList.contains("right")) return;
   if(matchState.locked) return;                 // 解析弹窗期间锁住棋盘，避免边看解析边点牌
-  // 浏览器自动播放限制：首次点击时补启动背景节奏
-  if(bgm.enabled() && !bgm.on) bgm.start();
+  // 浏览器自动播放限制：首次点击时补启动背景音乐
+  if(music.want && !music.on) music.start();
   // 点英文牌即朗读该词；中文牌不发音（一发音就等于把答案报出来了）
   if(cell.type === 'en' && matchState.selected === null) playWordAudio(cell.text);
   if(matchState.selected === null){
@@ -4461,7 +4963,6 @@ function bombClick(i){
 function matchWrongFb(w, enCell, cnCell){
   matchState.locked = true;
   pauseCountdown();
-  bgm.setUrgent(false);
   const cc = w ? coreCn(w.cn, 2) : { text:'' };
   showFb({
     ok:false, head:'配对错了',
@@ -4475,7 +4976,6 @@ function matchWrongFb(w, enCell, cnCell){
       clearFb();
       matchState.locked = false;
       resumeCountdown();
-      if(w) bgm.setUrgent((matchState.limit * 1000 - (Date.now() - matchState.t0)) / 1000 <= 15);
     }
   });
   if(w) playWordAudio(w.word);
@@ -5444,7 +5944,9 @@ function renderResult(){
         <span style="color:var(--amber);font-weight:700;font-size:15px">🏆 通关奖励 +20 分 · 当前 ${RANKS[r].icon} ${RANKS[r].name} · 累计 ${p.total} 分</span></div>
       <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap">
         <button class="btn btn-ghost" onclick="againBatch()">🔁 再学一遍</button>
-        <button class="btn btn-primary" onclick="nextBatch()">换一批词 →</button>
+        ${lastDeckPick
+          ? `<button class="btn btn-primary" onclick="backToDeckPick()">📚 回词库再选一批 →</button>`
+          : `<button class="btn btn-primary" onclick="nextBatch()">换一批词 →</button>`}
       </div>
     </div>
   `;
@@ -5463,6 +5965,13 @@ function nextBatch(){
   lastResult = null;
   newBatch();
   renderAll();
+}
+// 手选词库学完之后：回到同一个词库，接着勾下一组
+function backToDeckPick(){
+  const pick = lastDeckPick;
+  lastDeckPick = null;
+  openMode('decks');
+  if(pick && pick.key) setTimeout(() => openDeckWords(pick.key), 60);
 }
 
 /* ================= ⚔️ 单词对战（PK） ================= */

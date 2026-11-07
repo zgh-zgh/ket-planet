@@ -1489,10 +1489,15 @@ function cnFallback(word){
 }
 // 音标字符归一：ECDICT 用西里尔字母 ә(U+04D9)、ASCII 撇号与冒号，统一成标准 IPA 字符
 function normIpa(s){
-  return String(s || '')
+  const raw = String(s == null ? '' : s).trim();
+  // 少数词条塞了两个变体（/ˈeɪʒə; ˈeɪʃə/），只留第一个；切完记得把收尾斜杠补回来
+  const head = raw.split(';')[0].trim();
+  const first = (raw.charAt(0) === '/' && head.charAt(head.length - 1) !== '/') ? head + '/' : head;
+  return first
     .replace(/\u04D9/g, 'ə')
     .replace(/\u04D8/g, 'Ə')
     .replace(/\u0454/g, 'e')          // ECDICT 里混进了西里尔字母 є（/ˈєəpɒːt/），不是 IPA
+    .replace(/\^/g, 'ɡ')              // "^" 是 ɡ 的乱码（/ˈ^ræni/ → /ˈɡræni/）
     .replace(/'/g, 'ˈ')
     .replace(/:/g, 'ː')
     // ECDICT 把长音写成 ɒː / əː（/ʃɒːt/、/bəːd/），教材和英美对照都用 ɔː / ɜː，统一过来

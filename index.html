@@ -85,6 +85,9 @@
   .word-img{width:100%;max-width:420px;aspect-ratio:4/3;border-radius:18px;overflow:hidden;margin-bottom:18px;background:linear-gradient(135deg,#eef1ff,#f7f0ff);display:flex;align-items:center;justify-content:center}
   .word-img img{width:100%;height:100%;object-fit:cover}
   .word-img .emoji{font-size:120px;line-height:1}
+  /* 配图加载失败：收成一条矮提示，别留一块 4:3 的大空框 */
+  .word-img.noimg{aspect-ratio:auto;height:56px;max-width:248px;background:#f4f5fa;border:1px dashed var(--border)}
+  .word-img .ni-tip{font-size:12.5px;color:#9aa0b6;letter-spacing:.5px}
   .word-info{max-width:720px;margin:0 auto;width:100%}
   .word-text{font-size:44px;font-weight:800;letter-spacing:.5px}
   .word-text .syl{cursor:pointer;border-radius:4px;padding:0 2px;transition:.15s}
@@ -972,7 +975,8 @@
   @media(max-width:720px){
     .bomb-grid{grid-template-columns:repeat(3,1fr);gap:8px}
     .bomb-grid.dense{grid-template-columns:repeat(3,1fr)}
-    .bomb-cell{font-size:13px;padding:10px 6px}
+    /* 手机上词性单独占一行；flex 默认横排会把释义挤成一条竖列 */
+    .bomb-cell{font-size:13px;padding:10px 6px;flex-direction:column;align-items:stretch}
     .bomb-cell .cn-pos{display:block;margin:0 0 2px}
   }
   .bomb-tool{background:#fff;border:1.5px solid var(--border);border-radius:99px;padding:5px 12px;font-size:12.5px;font-weight:700;color:#6b7280;cursor:pointer;font-family:inherit;transition:.15s}
@@ -1369,12 +1373,17 @@ function cnMentionsWord(cn, w){
   for(const ch of mean) if(text.indexOf(ch) >= 0) return true;
   return false;
 }
+// 题库里有一批把破折号/连字符抓成了 "---"（super --- easy），显示前统一还原，别让学生看见一串连字符
+function fixDashes(s){
+  return String(s == null ? '' : s).replace(/\s*-{3,}\s*/g, '—').replace(/—{2,}/g, '—');
+}
 function exQuality(p){
   const s = String(p && p.en || '').replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
   let pen = 0;
   if(!/^[A-Z"“'(]/.test(s)) pen += 8;
   if(!/[.!?]["”')]?$/.test(s)) pen += 8;
   if(/[◆■●▪►★☆]/.test(s)) pen += 30;
+  if(/(^|\s)-{3,}(\s|$)/.test(s)) pen += 12;         // 破折号残缺的句子，能不用就不用
   if(/^(But|And|So|Because|Which|That|However|Also|Then|Oh well|Well,)\b/i.test(s)) pen += 6;
   if(s.length < 12) pen += 4;
   return pen;
@@ -1483,8 +1492,21 @@ function normIpa(s){
   return String(s || '')
     .replace(/\u04D9/g, 'ə')
     .replace(/\u04D8/g, 'Ə')
+    .replace(/\u0454/g, 'e')          // ECDICT 里混进了西里尔字母 є（/ˈєəpɒːt/），不是 IPA
     .replace(/'/g, 'ˈ')
     .replace(/:/g, 'ː')
+    // ECDICT 把长音写成 ɒː / əː（/ʃɒːt/、/bəːd/），教材和英美对照都用 ɔː / ɜː，统一过来
+    .replace(/ɒː/g, 'ɔː')
+    .replace(/əː/g, 'ɜː')
+    // 老式音标（ei / ai / au / əu / iə / uə）换成人教版教材在用的现代 IPA
+    .replace(/əu/g, 'əʊ')
+    .replace(/ou/g, 'əʊ')
+    .replace(/ai/g, 'aɪ')
+    .replace(/au/g, 'aʊ')
+    .replace(/ei/g, 'eɪ')
+    .replace(/ɔi/g, 'ɔɪ')
+    .replace(/iə/g, 'ɪə')
+    .replace(/uə/g, 'ʊə')
     // ECDICT 用 "." 标次重音（.dɒkju'mentəri），直接显示会变成奇怪的句点
     .replace(/\.(?=[^\s.])/g, 'ˌ');
 }
@@ -2447,8 +2469,8 @@ function applyBank(w){
   }
   // ② 英美音标 + 来源
   if(Array.isArray(b.ph)){
-    if(b.ph[0]) w.ukPhonetic = b.ph[0];
-    if(b.ph[1]) w.usPhonetic = b.ph[1];
+    if(b.ph[0]) w.ukPhonetic = normIpa(b.ph[0]);
+    if(b.ph[1]) w.usPhonetic = normIpa(b.ph[1]);
     if(b.ph[0] || b.ph[1]){
       w._phFromBank = true;
       w._phSrc = Array.isArray(b.phs) ? b.phs : [];
@@ -4298,7 +4320,7 @@ function renderLearn(){
 
   // 图片：有则显示，无则占位（异步加载）
   const imgHtml = w.imageUrl
-    ? `<img src="${w.imageUrl}" alt="${escapeHtml(w.word)}" onerror="this.parentElement.innerHTML='<span class=&quot;emoji&quot;>🖼️</span>'">`
+    ? `<img src="${w.imageUrl}" alt="${escapeHtml(w.word)}" onerror="this.parentElement.classList.add('noimg');this.parentElement.innerHTML='<span class=&quot;ni-tip&quot;>暂无配图</span>'">`
     : `<span class="emoji" id="imgPlaceholder">🖼️</span>`;
 
   // 释义：主视觉只放最高频的 3 个义项，完整释义留在 title 里（拒绝无效信息堆砌）
@@ -4380,7 +4402,7 @@ async function loadPhonetic(w){
     if(!resp.ok) throw new Error('http '+resp.status);
     const data = await resp.json();
     let uk = data.uk || "", us = data.us || "";
-    if(uk) uk = "/"+uk+"/"; if(us) us = "/"+us+"/";
+    if(uk) uk = "/"+normIpa(uk)+"/"; if(us) us = "/"+normIpa(us)+"/";
     if(uk || us){
       w.ukPhonetic = uk; w.usPhonetic = us;
       box.innerHTML = `英 ${uk} &nbsp; 美 ${us}`;
@@ -4546,8 +4568,11 @@ function diffBar(){
 }
 
 /* ---- 释义精简：只取最常用的 N 个义项并标词性；短语（无词性前缀）不标词性 ---- */
-const CN_POS_RE = /^((?:(?:n|v|vt|vi|adj|adv|prep|conj|pron|num|art|int|aux|modal|abbr)\s*\.\s*&?\s*)+)/i;
-const CN_BRACKET_RE = /^[\[【][^\]】]*[\]】]\s*/;
+// 多词性常写成 adj./pron./adv.，斜杠必须一起吃掉，否则第二次精简会切出「adj. /pron./adv.」这种断头
+const CN_POS_ABBR = '(?:n|v|vt|vi|adj|adv|prep|conj|pron|num|art|int|aux|modal|abbr)';
+const CN_POS_RE = new RegExp('^((?:(?:' + CN_POS_ABBR + ')\\s*\\.\\s*(?:[\\/、]\\s*(?=' + CN_POS_ABBR + '\\s*\\.))?&?\\s*)+)', 'i');
+// 领域/变形标签可能连着写两个（"[遗][农学] 子代"），要一次全剥掉
+const CN_BRACKET_RE = /^(?:[\[【][^\]】]*[\]】]\s*)+/;
 // 释义清洗：去掉 ECDICT 自带的人文噪音（"n. (Able)人名；(英)埃布尔"）与领域标签（"[经管]"）
 function cleanCnText(cn){
   const raw = String(cn == null ? '' : cn).trim();
@@ -4580,14 +4605,15 @@ function coreCn(cn, n){
   };
   const m0 = raw.match(CN_POS_RE);
   let body = raw;
-  if(m0){ pushPos(m0[1]); body = body.slice(m0[0].length); }
+  // 词性后面往往紧跟领域标签（"n. [医] 救护车"），切完词性要再洗一次，否则标签会留在释义里
+  if(m0){ pushPos(m0[1]); body = body.slice(m0[0].length).replace(CN_BRACKET_RE, ''); }
   let parts = body.split(/[；;]/).map(s => s.trim()).filter(Boolean);
   if(!parts.length) parts = [body];
   const all = [];
   for(const part of parts){
     let t = part.replace(CN_BRACKET_RE, '');
     const m = t.match(CN_POS_RE);
-    if(m){ pushPos(m[1]); t = t.slice(m[0].length); }   // 义项自带的词性挪到统一标签里
+    if(m){ pushPos(m[1]); t = t.slice(m[0].length).replace(CN_BRACKET_RE, ''); }   // 义项自带的词性挪到统一标签里
     // 义项内部的逗号是近义并列，只留前半，避免"放弃，抛弃，遗弃，纵情"这类堆砌
     t = t.split(/[，,]/)[0].trim();
     if(!t || all.includes(t)) continue;
@@ -4804,7 +4830,7 @@ function looksAdj(w){
   return /(al|ive|ous|ic|ical|able|ible|ful|less|ary|ent|ant|ish)$/.test(String(w || '').toLowerCase().replace(/[,.;:!?]$/, ''));
 }
 function chunkSentence(text){
-  const raw = String(text || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+  const raw = fixDashes(String(text || '')).replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
   if(!raw) return [];
   const toks = raw.match(/[A-Za-z0-9'’\-]+[,.;:!?]?/g) || [];
   if(!toks.length) return [];
@@ -5560,8 +5586,8 @@ function renderChoiceQ(){
   let ex = null;
   try{ ex = (pickLearnExamples(w, 1) || [])[0] || null; }catch(e){}
   if(!ex) ex = taskExample(w, 'meaning');
-  const plain = String(ex.en || '').replace(/<[^>]+>/g, '');
-  const enHtml = String(ex.en || '').replace(/<B>(.*?)<\/B>/gi, (m,p1)=>`<b>${p1}</b>`).replace(/<(?!\/?b>)[^>]+>/g, '');
+  const plain = fixDashes(String(ex.en || '')).replace(/<[^>]+>/g, '');
+  const enHtml = fixDashes(String(ex.en || '')).replace(/<B>(.*?)<\/B>/gi, (m,p1)=>`<b>${p1}</b>`).replace(/<(?!\/?b>)[^>]+>/g, '');
   const sec = d.time.choice;
   $("#choicePage").classList.remove("hidden");
   $("#choicePage").innerHTML = `
@@ -5684,6 +5710,7 @@ function renderFill(){
 }
 // 把句中的目标词整词挖空：优先用 <B></B> 标记定位，可连带挖掉变形（abandoned → ______）
 function blankTarget(en, word){
+  en = fixDashes(en);
   const w = String(word || '').toLowerCase();
   const key = w.slice(0, Math.min(4, w.length));
   const re = /<B>(.*?)<\/B>/gi;
@@ -5792,7 +5819,9 @@ function fillExample(w, d){
       // 超纲词重罚：宁可句子短一点，也不要出现读不懂的难词；真题句最贴中高考风格
       const examBonus = isExamType(p.srcType) ? -12 : 0;
       const oov = oovOf(p.en, level);
-      const s = exQuality(p) + scoreExample(p.en, level, 'x') + oov * 6 + (oov === 0 ? -4 : 0) + Math.abs(p.len - wantLen) * 2.0 + examBonus;
+      // 填空要的是陈述句；阅读理解的问句（"Why is a pig used as a symbol of saving?"）挖空后没法做
+      const questionPen = /\?\s*["”')]*\s*$/.test(String(p.en).replace(/<[^>]+>/g, '')) ? 9 : 0;
+      const s = exQuality(p) + scoreExample(p.en, level, 'x') + oov * 6 + (oov === 0 ? -4 : 0) + Math.abs(p.len - wantLen) * 2.0 + examBonus + questionPen;
       if(s < bestScore){ bestScore = s; best = p; }
     }
     return best;
@@ -5817,7 +5846,7 @@ function renderFillQ(){
   // 挖空：取「语境填空」专属且未在词汇认知页出现过的例句
   const ex = fillExample(w, d);
   const sentenceHtml = blankTarget(ex.en, w.word);
-  const plain = String(ex.en).replace(/<[^>]+>/g, '');
+  const plain = fixDashes(String(ex.en).replace(/<[^>]+>/g, ''));
   const opts = buildFillOptions(w, d.optN);
   fillState.answer = w.word;
   fillState.word = w;

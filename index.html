@@ -437,6 +437,23 @@
   .di-name{font-weight:600}
   .di-count{color:#999;font-size:13px;margin-left:auto}
 
+  /* ===== 教材同步词库 ===== */
+  .tb-block{margin-top:6px;padding:14px 16px 12px;border:1px solid #dfe6ff;border-radius:16px;background:linear-gradient(180deg,#f6f8ff,#fbfcff)}
+  .tb-title{font-weight:700;font-size:15.5px;color:#2f3a63;display:flex;align-items:center;flex-wrap:wrap;gap:6px}
+  .tb-title::before{content:"";width:4px;height:15px;border-radius:2px;background:linear-gradient(180deg,var(--primary),var(--primary2))}
+  .tb-sub{font-weight:400;font-size:12.5px;color:#8b93ad}
+  .tb-block .deck-list{margin-top:10px}
+  .tb-block .deck-item{background:#fff;border-color:#e7ecff;flex-wrap:wrap}
+  .tb-block .deck-item.active{border-color:var(--primary2);background:#f0f1ff}
+  .tb-chip{display:inline-block;background:#e8efff;color:#3b5bdb;border-radius:6px;padding:1px 6px;font-size:11.5px;font-weight:700;margin-right:7px;vertical-align:1px}
+  .tb-note{margin-top:10px;font-size:12px;color:#9aa0b6;line-height:1.6}
+  /* 卡片整体允许换行：放不下时按钮自动落到下一行，不会被裁掉 */
+  .deck-item{flex-wrap:wrap}
+  .deck-item .wi-actions{margin-left:auto}
+  .dw-unit-sel{border:1.5px solid var(--border);border-radius:10px;padding:7px 10px;font-size:13px;font-family:inherit;background:#fff;color:var(--text);outline:none;max-width:170px}
+  .dw-unit-sel:focus{border-color:var(--primary)}
+  .dw-unit{font-style:normal;font-size:10.5px;font-weight:700;color:#8b93ad;background:#eef1fa;border-radius:5px;padding:1px 5px;margin-left:6px;vertical-align:middle}
+
   /* ===== 词库卡片 + 单词浏览弹窗 ===== */
   .di-main{flex:1;min-width:0;cursor:pointer}
   .di-sub{color:#999;font-size:12.5px;margin-top:2px;line-height:1.5}
@@ -1009,6 +1026,8 @@
 </div>
 
 <script src="words-data.js"></script>
+<!-- 教材同步词库（沪教版·牛津上海版 初中英语 7A/7B/8A/8B/9A，共 1340 条，独立于内置词库） -->
+<script src="textbooks_data.js"></script>
 <script src="examples_data.js"></script>
 <script src="extras_data.js"></script>
 <script src="families_data.js"></script>
@@ -3087,6 +3106,34 @@ function startWrongReview(){
 }
 
 /* ---- 我的词库页 ---- */
+/* 教材同步词库：按册独立成库，不与内置词库混合，老师可按册切换 */
+function textbookOrder(){
+  return ['7A','7B','8A','8B','9A'];
+}
+function renderTextbookDecks(activeId, studied){
+  if(typeof TEXTBOOK_DB === 'undefined') return '';
+  const cards = textbookOrder().filter(k => TEXTBOOK_DB[k]).map(k=>{
+    const tb = TEXTBOOK_DB[k];
+    const list = tb.words || [];
+    const done = list.reduce((a, it)=> a + (studied.has(String(it[0]).toLowerCase()) ? 1 : 0), 0);
+    const on = activeId === ('tb:' + k);
+    return `<div class="deck-item ${on ? 'active' : ''}">
+      <div class="di-main" onclick="openDeckWords('tb:${k}')">
+        <div class="di-name"><span class="tb-chip">教材</span>${escapeHtml(tb.short)} · ${escapeHtml(tb.name)}</div>
+        <div class="di-sub">${list.length} 词 · ${tb.units} 个单元 · 已学 ${done}</div>
+      </div>
+      <div class="wi-actions">
+        <button class="btn btn-mini btn-ghost" onclick="openDeckWords('tb:${k}')">查看单词</button>
+        <button class="btn btn-mini btn-primary" onclick="activateTextbook('${k}')">用这个词库</button>
+      </div>
+    </div>`;
+  }).join('');
+  return `<div class="tb-block">
+    <div class="tb-title">教材同步 <span class="tb-sub">沪教版·牛津上海版 · 按册独立成库</span></div>
+    <div class="deck-list">${cards}</div>
+    <div class="tb-note">词表取自各册教材「Words and phrases in each unit」，标 * 的词只要求理解；仅供教学使用。</div>
+  </div>`;
+}
 function renderDecks(){
   const decks = loadDecks();
   const activeId = getActiveDeckId();
@@ -3095,6 +3142,7 @@ function renderDecks(){
   const lvIcon = { '初中':'🌱', '高中':'🌿', '四级':'🎓', '六级':'🏆' };
   $("#decksPage").classList.remove("hidden");
   $("#decksPage").innerHTML = `<h2 class="page-title">📚 词库总览</h2><p class="page-sub">点词库可查看全部单词，勾选后自由组成一组来学习或游戏</p>
+    ${renderTextbookDecks(activeId, studied)}
     <div class="deck-list">
       ${LEVELS.map((lv, i)=>{
         const list = WORD_DB[lv] || [];
@@ -3163,12 +3211,19 @@ function studiedSet(){
   return s;
 }
 function openDeckWords(key){
-  let title = '', items = [];
+  let title = '', items = [], units = 0;
   if(key.indexOf('builtin:') === 0){
     const lv = key.slice(8);
     if(!WORD_DB[lv]) return;
     title = lv + '词库';
     items = (WORD_DB[lv] || []).map(([w, cn]) => ({ w, cn: cn || '', lv }));
+  } else if(key.indexOf('tb:') === 0){
+    const id = key.slice(3);
+    const tb = (typeof TEXTBOOK_DB !== 'undefined') ? TEXTBOOK_DB[id] : null;
+    if(!tb) return;
+    title = tb.short + ' · ' + tb.name + '（教材同步）';
+    units = tb.units || 0;
+    items = (tb.words || []).map(([w, cn, u]) => ({ w, cn: cn || '', lv: '教材', deckId: 'tb:' + id, unit: u }));
   } else if(key.indexOf('custom:') === 0){
     const id = key.slice(7);
     const d = loadDecks().find(x => x.id === id);
@@ -3176,7 +3231,7 @@ function openDeckWords(key){
     title = d.name;
     items = (d.words || []).map(([w, cn]) => ({ w, cn: cn || '', lv: '自定义', deckId: id }));
   } else return;
-  deckView = { key, title, items, sel: new Set(), filter: 'all', q: '', studied: studiedSet() };
+  deckView = { key, title, items, sel: new Set(), filter: 'all', q: '', units: units || 0, unit: 0, studied: studiedSet() };
   renderDeckWords();
 }
 function closeDeckWords(){
@@ -3188,6 +3243,7 @@ function deckWordsFiltered(){
   if(!deckView) return [];
   const q = deckView.q.trim().toLowerCase();
   return deckView.items.filter(it => {
+    if(deckView.unit && it.unit !== deckView.unit) return false;
     const done = deckView.studied.has(it.w.toLowerCase());
     if(deckView.filter === 'new' && done) return false;
     if(deckView.filter === 'done' && !done) return false;
@@ -3195,11 +3251,22 @@ function deckWordsFiltered(){
     return it.w.toLowerCase().indexOf(q) >= 0 || String(it.cn).toLowerCase().indexOf(q) >= 0;
   });
 }
+function deckWordsUnit(v){
+  if(!deckView) return;
+  deckView.unit = Number(v) || 0;
+  const box = document.querySelector('.dw-list');
+  const scroll = box ? box.scrollTop : 0;
+  renderDeckWords();
+  const nb = document.querySelector('.dw-list');
+  if(nb) nb.scrollTop = scroll;
+}
 function renderDeckWords(){
   const root = document.getElementById('deckWordsRoot');
   if(!root || !deckView) return;
   const all = deckView.items;
-  const learned = all.reduce((a, it) => a + (deckView.studied.has(it.w.toLowerCase()) ? 1 : 0), 0);
+  // 计数跟着单元筛选走：选了 Unit 3 就只看该单元的已学/未学
+  const scope = deckView.unit ? all.filter(it => it.unit === deckView.unit) : all;
+  const learned = scope.reduce((a, it) => a + (deckView.studied.has(it.w.toLowerCase()) ? 1 : 0), 0);
   const list = deckWordsFiltered();
   const CAP = 260;
   const shown = list.slice(0, CAP);
@@ -3207,14 +3274,18 @@ function renderDeckWords(){
     <div class="modal-mask" onclick="if(event.target===this)closeDeckWords()">
       <div class="modal-box dw-box">
         <div class="modal-head" style="display:flex;align-items:center;justify-content:space-between;gap:10px">
-          <span>📖 ${escapeHtml(deckView.title)}<span class="dw-sub">共 ${all.length} 词 · 已学 ${learned} · 未学 ${all.length - learned}</span></span>
+          <span>📖 ${escapeHtml(deckView.title)}<span class="dw-sub">${deckView.unit ? `Unit ${deckView.unit}：` : ''}共 ${scope.length} 词 · 已学 ${learned} · 未学 ${scope.length - learned}</span></span>
           <button class="modal-x" onclick="closeDeckWords()" aria-label="关闭">✕</button>
         </div>
         <div class="dw-tools">
           <input class="dw-search" id="dwSearch" placeholder="搜索单词或释义…" value="${escapeHtml(deckView.q)}" oninput="deckWordsSearch(this.value)">
+          ${deckView.units ? `<select class="dw-unit-sel" onchange="deckWordsUnit(this.value)">
+            <option value="0">全部单元</option>
+            ${Array.from({length: deckView.units}, (_,i)=>`<option value="${i+1}"${deckView.unit===i+1?' selected':''}>Unit ${i+1}</option>`).join('')}
+          </select>` : ''}
           <div class="dw-filters">
-            <button class="dw-filter${deckView.filter === 'all' ? ' on' : ''}" onclick="deckWordsFilter('all')">全部 ${all.length}</button>
-            <button class="dw-filter${deckView.filter === 'new' ? ' on' : ''}" onclick="deckWordsFilter('new')">未学 ${all.length - learned}</button>
+            <button class="dw-filter${deckView.filter === 'all' ? ' on' : ''}" onclick="deckWordsFilter('all')">全部 ${scope.length}</button>
+            <button class="dw-filter${deckView.filter === 'new' ? ' on' : ''}" onclick="deckWordsFilter('new')">未学 ${scope.length - learned}</button>
             <button class="dw-filter${deckView.filter === 'done' ? ' on' : ''}" onclick="deckWordsFilter('done')">已学 ${learned}</button>
           </div>
         </div>
@@ -3225,7 +3296,7 @@ function renderDeckWords(){
             const on = deckView.sel.has(lw);
             return `<label class="dw-row${on ? ' on' : ''}">
               <input type="checkbox"${on ? ' checked' : ''} data-w="${escapeHtml(lw)}" onchange="deckWordsToggle(this)">
-              <span class="dw-w">${escapeHtml(it.w)}</span>
+              <span class="dw-w">${escapeHtml(it.w)}${it.unit ? `<i class="dw-unit">U${it.unit}</i>` : ''}</span>
               <span class="dw-cn">${escapeHtml(String(it.cn).slice(0, 36))}</span>
               <span class="dw-tag${done ? ' done' : ''}">${done ? '已学' : '未学'}</span>
             </label>`;
@@ -3413,6 +3484,22 @@ function activateDeck(id){
   // 空词库的情况上面已经给出专门提示，这里不再覆盖
   renderAll();
   pushRoute();
+}
+
+/* 切换到教材同步词库（与自定义词库共用 activeCustomWords 通道，学习/游戏/题型全部通用） */
+function activateTextbook(key){
+  const tb = (typeof TEXTBOOK_DB !== 'undefined') ? TEXTBOOK_DB[key] : null;
+  if(!tb || !(tb.words||[]).length){ toast('这个词库是空的'); return; }
+  activeCustomWords = tb.words.map(([w,cn])=>buildWord(w, cn, '教材', 'tb:'+key));
+  setActiveDeckId('tb:' + key);
+  currentBatch = [];
+  currentStep = 0; learnIndex = 0;
+  appMode = 'learn';
+  newBatch();
+  renderDecks();
+  renderAll();
+  pushRoute();
+  toast(`已切换到「${tb.short}」教材词库（${tb.words.length} 词）`);
 }
 
 /* ================= 词库批量导入：Excel / Word / CSV / TXT ================= */
@@ -7289,6 +7376,18 @@ function logoutAccount(){
 /* ================= 初始化 ================= */
 const boot = parseRoute();
 if(boot && typeof boot.group === 'number' && GROUPS[boot.group]) currentGroup = boot.group;
+// 刷新后恢复上次选中的教材词库（activeDeck 里存的是 tb:7A 这类标识）
+(function restoreTextbookDeck(){
+  const aid = getActiveDeckId();
+  if(!aid || String(aid).indexOf('tb:') !== 0) return;
+  const key = String(aid).slice(3);
+  const tb = (typeof TEXTBOOK_DB !== 'undefined') ? TEXTBOOK_DB[key] : null;
+  if(tb && (tb.words||[]).length){
+    activeCustomWords = tb.words.map(([w,cn])=>buildWord(w, cn, '教材', 'tb:'+key));
+  } else {
+    setActiveDeckId(null);
+  }
+})();
 newBatch();
 if(boot){
   appMode = boot.mode || 'learn';

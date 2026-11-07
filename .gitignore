@@ -27,3 +27,9 @@ bank/src/exam_examples_cet.json
 bank/src/examples_src.json
 bank/src/phonetic_src.json
 bank/src/probe_report.json
+
+# 例句翻译进度（本机中间产物）
+.extras_cn_progress.json
+.extras_google_progress.json
+.gt/
+.gt_bank/

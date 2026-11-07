@@ -772,6 +772,14 @@
   .auth-user .au-avatar{width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--primary2));color:#fff;font-size:19px;font-weight:800;display:flex;align-items:center;justify-content:center}
   .auth-user .au-name{font-size:16px;font-weight:800;color:var(--text)}
   .auth-user .au-mail{font-size:12.5px;color:#8a90a6;margin-top:2px}
+  /* 云同步状态卡 */
+  .sync-card{margin-top:14px;border:1px solid var(--border);border-radius:12px;padding:11px 13px;background:#fbfcff}
+  .sync-card .sync-row{display:flex;align-items:center;gap:10px}
+  .sync-card .sync-name{font-size:13.5px;font-weight:800;color:var(--text)}
+  .sync-card .sync-sub{font-size:11.5px;color:#8a90a6;margin-top:3px;line-height:1.5}
+  .sync-card .sync-btn{margin-left:auto;flex:0 0 auto;border:1px solid var(--primary);background:#fff;color:var(--primary);font-size:12px;font-weight:700;border-radius:14px;padding:5px 12px;cursor:pointer;font-family:inherit}
+  .sync-card .sync-btn:hover{background:#f3f6ff}
+  .sync-card .sync-err{font-size:11.5px;color:#d64545;margin-top:6px}
   .modal-x{border:none;background:none;font-size:15px;color:#b6bccd;cursor:pointer;line-height:1;padding:2px 4px}
   .modal-x:hover{color:#7a819a}
 
@@ -1191,10 +1199,11 @@ function buildExamples(w){
     cn: t.cn.replace(/__W__/g, w)
   }));
 }
-// 权威例句（报刊/通讯社来源，仅英文）：BBC / CNN / FORBES / NPR 等，供题型做「不同语境」考察
+// 权威例句（报刊/通讯社来源）：BBC / CNN / FORBES / NPR 等，供题型做「不同语境」考察
+// cn 是批量 AI 翻译补上的中文（scripts/translate_extras.js + gt_bridge.js），供学习页逐句对照
 function buildExtras(w){
   const d = (typeof EXTRAS_DATA !== 'undefined' && EXTRAS_DATA[w.toLowerCase()]) || [];
-  return d.map(e => ({ en: e.en, src: e.src || '报刊' }));
+  return d.map(e => ({ en: e.en, cn: e.cn || '', src: e.src || '报刊' }));
 }
 
 /* ---- 题型专属例句分配：同一单词在不同题型用不同句子，从多个语境反复强化 ---- */
@@ -1215,7 +1224,7 @@ function taskExamplePool(w){
   });
   (w.extras || []).forEach((e, i) => {
     const plain = (e.en || '').replace(/<[^>]+>/g, '');
-    pool.push({ en: e.en, cn: '', src: e.src || '', kind: 'news', head: /^<B>/i.test((e.en || '').trim()), tail: /<\/B>\s*[.!?"']?\s*$/.test((e.en || '').trim()), len: plain.split(/\s+/).filter(Boolean).length, idx: i });
+    pool.push({ en: e.en, cn: e.cn || '', src: e.src || '', kind: 'news', head: /^<B>/i.test((e.en || '').trim()), tail: /<\/B>\s*[.!?"']?\s*$/.test((e.en || '').trim()), len: plain.split(/\s+/).filter(Boolean).length, idx: i });
   });
   return pool;
 }
@@ -2332,7 +2341,7 @@ function pickLearnExamples(w, n){
     _real: !!e.src,
     key: 'd' + i
   }));
-  (w.extras || []).forEach((e, i) => pool.push({ en: e.en, cn: '', src: e.src || '', srcType: '', _real: !!e.src, key: 'x' + i }));
+  (w.extras || []).forEach((e, i) => pool.push({ en: e.en, cn: e.cn || '', src: e.src || '', srcType: '', _real: !!e.src, key: 'x' + i }));
   if(!pool.length) return [];
   const scored = pool.map(p => {
     let s = scoreExample(p.en, level, p.cn);
@@ -2348,15 +2357,13 @@ function pickLearnExamples(w, n){
     return { ...p, _s: s };
   });
   scored.sort((a, b) => a._s - b._s);
-  // 取 1 条时（语境填空/词义甄别题干）保持原排序：题干不给中文，句子的来源和难度更自由。
-  if(n <= 1) return scored.slice(0, n);
-  // 取多条时（学习页三条例句）译文优先：词典句与题库真题句都自带中文，
-  // 先只从这些句子里挑，保证三句都能单独点「显示翻译」；
-  // 报刊/通讯社例句没有中文，只在带译文的句子不足 3 条时兜底补位（页面标注「暂无译文」）。
-  const cnPool = scored.filter(p => String(p.cn || '').trim());
-  const noCnPool = scored.filter(p => !String(p.cn || '').trim());
-  const out = cnPool.slice(0, n);
-  if(out.length < n) out.push.apply(out, noCnPool.slice(0, n - out.length));
+  const out = scored.slice(0, n);
+  // 前两条里必须有一条带中文，否则零基础的学生看不到译文；优先挑"有具体出处"的那条。
+  // 只在取 2 条以上时补位——取 1 条时不能顶掉第一条，否则词义甄别题会和学习页首句不一致。
+  if(out.length > 1 && !out.slice(0, 2).some(p => p.cn)){
+    const withCn = scored.find(p => p.cn && p._real && !out.includes(p)) || scored.find(p => p.cn && !out.includes(p));
+    if(withCn) out[1] = withCn;
+  }
   return out;
 }
 
@@ -2670,10 +2677,16 @@ function saveStore(key, val){
   try{ str = JSON.stringify(val); }catch(e){ toast("⚠️ 数据格式异常，保存失败"); return false; }
   try{
     localStorage.setItem(key, str);
+    // 进度类数据改动后安排一次云同步（12 秒内的连续改动合并成一次）
+    if(key === 'lx_studylog' || key === 'lx_wrongbook' || key === 'lx_decks' || key === 'lx_points' || key === 'lx_stats') scheduleSync();
     return true;
   }catch(e){
     if(pruneImageCache()){
-      try{ localStorage.setItem(key, str); return true; }catch(e2){}
+      try{
+        localStorage.setItem(key, str);
+        if(key === 'lx_studylog' || key === 'lx_wrongbook' || key === 'lx_decks' || key === 'lx_points' || key === 'lx_stats') scheduleSync();
+        return true;
+      }catch(e2){}
     }
     toast("⚠️ 保存失败：浏览器本地空间已满，请先导出备份后清理");
     return false;
@@ -7273,7 +7286,19 @@ function renderAuthModal(){
               <div class="au-avatar">${escapeHtml(ini)}</div>
               <div><div class="au-name">${escapeHtml(a.name || '同学')}</div><div class="au-mail">${escapeHtml(a.email || '')}</div></div>
             </div>
-            <div style="font-size:12.5px;color:#8a90a6;line-height:1.7">这个邮箱就是账号，电脑、手机都能登录（每台新设备第一次登录会收一条验证码）。学习进度、错题本、段位积分保存在本机浏览器，换设备时用「我的词库 → 导出备份 / 导入备份」迁移。</div>
+            <div style="font-size:12.5px;color:#8a90a6;line-height:1.7">这个邮箱就是账号，电脑、手机都能登录（每台新设备第一次登录会收一条验证码）。</div>
+            <div class="sync-card">
+              <div class="sync-row">
+                <div>
+                  <div class="sync-name">☁️ 云同步</div>
+                  <div class="sync-sub">${a.syncToken
+                    ? (syncLast ? '进度已同步到云端 · ' + escapeHtml(new Date(syncLast).toLocaleString('zh-CN', { month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit' })) : '已开启：手机和电脑的进度会自动保持一致')
+                    : '未开启：开启后手机、电脑的学习进度自动保持一致'}</div>
+                </div>
+                <button class="sync-btn" onclick="${a.syncToken ? 'syncNow(true)' : 'openSyncSetup()'}">${a.syncToken ? '立即同步' : '开启'}</button>
+              </div>
+              ${syncErr ? `<div class="sync-err">上次同步失败：${escapeHtml(syncErr)}</div>` : ''}
+            </div>
             <div style="display:flex;gap:10px;margin-top:16px">
               <button class="btn btn-ghost" style="flex:1" onclick="logoutAccount()">退出登录</button>
               <button class="btn btn-primary" style="flex:1" onclick="closeAuth()">完成</button>
@@ -7284,6 +7309,39 @@ function renderAuthModal(){
     return;
   }
   const isReg = authTab === 'register';
+  // 开启云同步：验证一次邮箱即可拿到同步凭据
+  if(authTab === 'syncset' && a){
+    const ini = String(a.name || a.email || '?').trim().charAt(0).toUpperCase();
+    root.innerHTML = `
+      <div class="modal-mask" onclick="if(event.target===this)closeAuth()">
+        <div class="modal-box" style="max-width:420px">
+          <div class="modal-head" style="display:flex;align-items:center;justify-content:space-between">
+            <span>开启云同步</span>
+            <button class="modal-x" onclick="closeAuth()" aria-label="关闭">✕</button>
+          </div>
+          <div class="modal-body">
+            <div class="auth-user">
+              <div class="au-avatar">${escapeHtml(ini)}</div>
+              <div><div class="au-name">${escapeHtml(a.email)}</div><div class="au-mail">验证一次邮箱，之后进度自动同步</div></div>
+            </div>
+            <input id="auEmail" type="hidden" value="${escapeHtml(a.email)}">
+            <div class="auth-field">
+              <label>验证码</label>
+              <div class="auth-row">
+                <input id="auCode" type="text" inputmode="numeric" maxlength="6" placeholder="6 位数字">
+                <button class="auth-code-btn" id="auCodeBtn" onclick="sendAuthCode()">发送验证码</button>
+              </div>
+            </div>
+            <div class="auth-msg" id="auMsg"></div>
+            <button class="btn btn-primary" style="width:100%" onclick="doSyncSetup()">验证并开启</button>
+            <div class="auth-tip">验证码会发到 ${escapeHtml(a.email)}。手机、电脑用同一个邮箱开启后，学习记录、错题本、积分会自动合并，谁先谁后都不会覆盖进度。</div>
+          </div>
+        </div>
+      </div>`;
+    const c0 = document.getElementById('auCode');
+    if(c0) setTimeout(()=>{ try{ c0.focus(); }catch(e){} }, 30);
+    return;
+  }
   // 新设备首次登录：邮箱已验证 → 在本机建同名账号并直接登录（不用重新注册）
   if(authTab === 'verify' && authPending){
     const pend = authPending;
@@ -7450,7 +7508,7 @@ async function doLogin(){
   }
   const h = await hashPassword(pwd, acc.salt);
   if(h !== acc.hash){ authMsg('密码不正确', 'err'); return; }
-  setCurrentAccount({ email, name: acc.name || '', at: acc.at || Date.now() });
+  setCurrentAccount({ email, name: acc.name || '', at: acc.at || Date.now(), syncToken: acc.syncToken || '' });
   closeAuth();
   toast('已登录：' + (acc.name || email));
 }
@@ -7486,7 +7544,8 @@ async function doVerifyLogin(){
     const d = await r.json().catch(()=>({}));
     if(!r.ok) throw new Error(d.error || ('验证失败（' + r.status + '）'));
     const rec = await saveLocalAccount(email, name, pwd);
-    setCurrentAccount({ email, name: rec.name, at: rec.at });
+    if(d.syncToken){ rec.syncToken = d.syncToken; const accs = loadAccounts(); accs[email] = rec; saveAccounts(accs); }
+    setCurrentAccount({ email, name: rec.name, at: rec.at, syncToken: rec.syncToken || '' });
     authToken = null; authEmail = ''; authPending = null; authTab = 'login';
     closeAuth();
     toast('已登录：' + rec.name + '（这台设备以后可直接用密码登录）');
@@ -7515,7 +7574,8 @@ async function doRegister(){
     const d = await r.json().catch(()=>({}));
     if(!r.ok) throw new Error(d.error || ('验证失败（' + r.status + '）'));
     const rec = await saveLocalAccount(email, name, pwd);
-    setCurrentAccount({ email, name: rec.name, at: rec.at });
+    if(d.syncToken){ rec.syncToken = d.syncToken; const accs = loadAccounts(); accs[email] = rec; saveAccounts(accs); }
+    setCurrentAccount({ email, name: rec.name, at: rec.at, syncToken: rec.syncToken || '' });
     authToken = null; authEmail = ''; authPending = null;
     closeAuth();
     toast('注册成功，已登录');
@@ -7530,6 +7590,198 @@ function logoutAccount(){
   authTab = 'login';
   renderAuthModal();
   toast('已退出登录');
+}
+
+/* ================= 云同步：学习进度跨设备（手机 ↔ 电脑） ================= */
+// 数据放云端 Redis（Vercel 上的 /api/sync），凭据是邮箱验证时下发的 syncToken。
+// 冲突处理：两边各自合并后再上传——学习记录按「阶段更大/到期更晚」取胜，
+// 错题按「次数更多/时间更新」，词库取并集，分数取较大值，所以谁先谁后都不会丢进度。
+const SYNC_PUSH_DELAY = 12000;     // 连续改动的合并窗口
+let syncTimer = null, syncBusy = false, syncApplying = false, syncLast = 0, syncErr = '';
+
+function syncToken(){ const a = currentAccount(); return (a && a.syncToken) || ''; }
+function syncEnabled(){ return !!syncToken(); }
+
+// 保存进度后调用：12 秒合并一次；同步过程中写入不再触发（避免自己触发自己）
+function scheduleSync(){
+  if(syncApplying || !syncEnabled()) return;
+  if(syncTimer) clearTimeout(syncTimer);
+  syncTimer = setTimeout(()=>{ syncTimer = null; syncNow(false); }, SYNC_PUSH_DELAY);
+}
+function flushSync(){ if(syncTimer){ clearTimeout(syncTimer); syncTimer = null; syncNow(false); } }
+
+function syncSnapshot(){
+  return {
+    studylog: loadStudylog(),
+    wrongbook: loadWrongbook(),
+    decks: loadDecks(),
+    points: loadPoints(),
+    stats: loadStats(),
+    activeDeck: getActiveDeckId()
+  };
+}
+function mergeStudyLog(a, b){
+  const out = Object.assign({}, a || {});
+  for(const w in (b || {})){
+    const x = out[w], y = b[w];
+    if(!x){ out[w] = y; continue; }
+    const sx = Number(x.stage) || 0, sy = Number(y.stage) || 0;
+    if(sy > sx || (sy === sx && (Number(y.nextDue) || 0) > (Number(x.nextDue) || 0))) out[w] = y;
+  }
+  return out;
+}
+function mergeWrongbook(a, b){
+  const out = Object.assign({}, a || {});
+  for(const w in (b || {})){
+    const x = out[w], y = b[w];
+    if(!x){ out[w] = y; continue; }
+    out[w] = {
+      cn: x.cn || y.cn || '',
+      count: Math.max(Number(x.count) || 0, Number(y.count) || 0),
+      ts: Math.max(Number(x.ts) || 0, Number(y.ts) || 0)
+    };
+  }
+  return out;
+}
+function mergeDecks(a, b){
+  const map = new Map();
+  (a || []).forEach(d => { if(d && d.id) map.set(d.id, Object.assign({}, d, { words: (d.words || []).slice() })); });
+  (b || []).forEach(d => {
+    if(!d || !d.id) return;
+    if(!map.has(d.id)){ map.set(d.id, Object.assign({}, d, { words: (d.words || []).slice() })); return; }
+    const cur = map.get(d.id);
+    const seen = new Set((cur.words || []).map(x => String(x[0]).toLowerCase()));
+    (d.words || []).forEach(x => {
+      const k = String(x[0]).toLowerCase();
+      if(!seen.has(k)){ cur.words.push(x); seen.add(k); }
+    });
+    if(String(d.name || '').length > String(cur.name || '').length) cur.name = d.name;
+  });
+  return Array.from(map.values());
+}
+function mergePoints(a, b){
+  a = a || {}; b = b || {};
+  const earned = Object.assign({}, a.earned || {});
+  for(const k in (b.earned || {})) earned[k] = Math.max(Number(earned[k]) || 0, Number(b.earned[k]) || 0);
+  const cat = {};
+  ['vocab', 'answer', 'pk'].forEach(k => {
+    cat[k] = Math.max(Number((a.cat || {})[k]) || 0, Number((b.cat || {})[k]) || 0);
+  });
+  const out = Object.assign({ total: 0, today: 0, todayKey: '' }, a, {
+    total: Math.max(Number(a.total) || 0, Number(b.total) || 0),
+    earned, cat
+  });
+  // 当天得分取「日期更新」的那份，同一天取较大值
+  const ka = String(a.todayKey || ''), kb = String(b.todayKey || '');
+  if(kb > ka){ out.today = Number(b.today) || 0; out.todayKey = kb; }
+  else out.today = Math.max(Number(a.today) || 0, Number(b.today) || 0);
+  return out;
+}
+function mergeStats(a, b){
+  a = a || {}; b = b || {};
+  const out = Object.assign({}, a);
+  ['ans', 'right', 'streak', 'best'].forEach(k => out[k] = Math.max(Number(a[k]) || 0, Number(b[k]) || 0));
+  const bt = Object.assign({}, a.byType || {});
+  for(const k in (b.byType || {})) bt[k] = Math.max(Number(bt[k]) || 0, Number(b.byType[k]) || 0);
+  out.byType = bt;
+  const pk = {};
+  ['win', 'lose', 'draw', 'streak', 'best'].forEach(k => {
+    pk[k] = Math.max(Number((a.pk || {})[k]) || 0, Number((b.pk || {})[k]) || 0);
+  });
+  out.pk = pk;
+  return out;
+}
+function mergeSyncData(local, remote){
+  if(!remote) return local;
+  return {
+    studylog: mergeStudyLog(local.studylog, remote.studylog),
+    wrongbook: mergeWrongbook(local.wrongbook, remote.wrongbook),
+    decks: mergeDecks(local.decks, remote.decks),
+    points: mergePoints(local.points, remote.points),
+    stats: mergeStats(local.stats, remote.stats),
+    activeDeck: local.activeDeck
+  };
+}
+function applySyncData(m){
+  if(!m) return;
+  syncApplying = true;
+  try{
+    saveStore(LS.studylog, m.studylog || {});
+    saveStore(LS.wrongbook, m.wrongbook || {});
+    saveStore(LS.decks, m.decks || []);
+    saveStore(LS_POINTS, m.points || {});
+    saveStore(LS_STATS, m.stats || {});
+  } finally { syncApplying = false; }
+  try{ updateBadges(); updateRankUI(); updateDeckBadges(); }catch(e){}
+  try{ if(appMode === 'decks') renderDecks(); }catch(e){}
+}
+
+async function syncNow(manual){
+  const acc = currentAccount();
+  if(!acc || !acc.syncToken){ if(manual) toast('请先在账号页开启云同步'); return; }
+  if(syncBusy){ if(manual) toast('正在同步，请稍等'); return; }
+  syncBusy = true; syncErr = '';
+  try{
+    const r1 = await fetch('/api/sync', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'pull', email: acc.email, token: acc.syncToken })
+    });
+    const d1 = await r1.json().catch(()=>({}));
+    if(!r1.ok) throw new Error(d1.error || ('拉取失败 ' + r1.status));
+
+    if(d1.data) applySyncData(mergeSyncData(syncSnapshot(), d1.data));
+
+    const r2 = await fetch('/api/sync', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'push', email: acc.email, token: acc.syncToken, data: syncSnapshot() })
+    });
+    const d2 = await r2.json().catch(()=>({}));
+    if(!r2.ok) throw new Error(d2.error || ('上传失败 ' + r2.status));
+
+    syncLast = Date.now();
+    if(manual) toast('☁️ 已同步（' + new Date(syncLast).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }) + '）');
+    try{ if(authTab === 'profile') renderAuthModal(); }catch(e){}
+  }catch(e){
+    syncErr = String((e && e.message) || e);
+    if(manual) toast('同步失败：' + syncErr);
+  }finally{ syncBusy = false; }
+}
+
+// 开启云同步：验证一次邮箱拿到 syncToken（同一邮箱在任何设备上算出来都一样）
+function openSyncSetup(){
+  if(!currentAccount()){ openAuth('login'); return; }
+  authTab = 'syncset';
+  authToken = null; authEmail = '';
+  renderAuthModal();
+}
+async function doSyncSetup(){
+  const acc = currentAccount();
+  if(!acc){ closeAuth(); return; }
+  const code = String((document.getElementById('auCode') || {}).value || '').replace(/\D/g, '');
+  if(code.length !== 6){ authMsg('请输入 6 位数字验证码', 'err'); return; }
+  if(!authToken || authEmail !== acc.email){ authMsg('请先点「发送验证码」，收到后再填', 'err'); return; }
+  const btn = document.querySelector('.modal-box .btn-primary');
+  if(btn){ btn.disabled = true; btn.textContent = '验证中…'; }
+  try{
+    const r = await fetch('/api/auth', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'verify', email: acc.email, code, token: authToken })
+    });
+    const d = await r.json().catch(()=>({}));
+    if(!r.ok) throw new Error(d.error || ('验证失败（' + r.status + '）'));
+    if(!d.syncToken) throw new Error('服务端还没准备好云同步，请稍后再试');
+    acc.syncToken = d.syncToken;
+    setCurrentAccount(acc);
+    const accs = loadAccounts();
+    if(accs[acc.email]){ accs[acc.email].syncToken = d.syncToken; saveAccounts(accs); }
+    authToken = null; authEmail = ''; authTab = 'profile';
+    renderAuthModal();
+    toast('☁️ 云同步已开启');
+    syncNow(true);
+  }catch(e){
+    authMsg((e && e.message) || '验证失败，请稍后重试', 'err');
+    if(btn){ btn.disabled = false; btn.textContent = '验证并开启'; }
+  }
 }
 
 /* ================= 初始化 ================= */
@@ -7570,6 +7822,18 @@ renderAccountUI();
 })();
 try{ history.replaceState(routeSnapshot(), '', routeHash()); }catch(e){}
 routeReady = true;
+
+// 云同步：开了同步的设备进页面先拉一次；切后台时把攒着的改动立刻传上去
+if(syncEnabled()) setTimeout(()=>{ try{ syncNow(false); }catch(e){} }, 1500);
+document.addEventListener('visibilitychange', ()=>{
+  try{
+    if(document.visibilityState === 'hidden') flushSync();
+    else if(syncEnabled() && Date.now() - syncLast > 60000) syncNow(false);
+  }catch(e){}
+});
+window.addEventListener('focus', ()=>{
+  try{ if(syncEnabled() && Date.now() - syncLast > 60000) syncNow(false); }catch(e){}
+});
 
 // 键盘左右方向键翻词（输入框内不拦截，避免打字时误触）
 document.addEventListener('keydown', e=>{

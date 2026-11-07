@@ -191,8 +191,15 @@ export default async function handler(req, res) {
   if (!p) return res.status(400).json({ error: '验证码已过期，请重新获取', code: 'EXPIRED' });
   if (p.e !== email) return res.status(400).json({ error: '邮箱与验证码不匹配' });
   if (p.h !== codeHash(email, code)) return res.status(400).json({ error: '验证码不正确' });
-  return res.status(200).json({ ok: true, email });
+  // 邮箱验证通过同时下发云同步凭据（按邮箱确定性派生，同一邮箱在任何设备上都一样）
+  return res.status(200).json({ ok: true, email, syncToken: syncTokenOf(email) });
+}
+
+// 云同步凭据：HMAC(密钥, 'sync:邮箱')，服务端可随时重算校验，不需要额外存表
+function syncTokenOf(email) {
+  const key = process.env.SYNC_SECRET || process.env.CODE_SECRET || process.env.QQ_MAIL_PASS || '';
+  return crypto.createHmac('sha256', key || 'ket-sync').update('sync:' + String(email).toLowerCase()).digest('hex');
 }
 
 // 供本地脚本自检用（Vercel 只取 default 导出作为 handler，这些命名导出不影响部署）
-export { makeToken, readToken, codeHash, signKey, conf };
+export { makeToken, readToken, codeHash, signKey, conf, syncTokenOf };

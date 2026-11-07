@@ -446,6 +446,9 @@
   .tb-block .deck-item{background:#fff;border-color:#e7ecff;flex-wrap:wrap}
   .tb-block .deck-item.active{border-color:var(--primary2);background:#f0f1ff}
   .tb-chip{display:inline-block;background:#e8efff;color:#3b5bdb;border-radius:6px;padding:1px 6px;font-size:11.5px;font-weight:700;margin-right:7px;vertical-align:1px}
+  /* 侧边栏里的教材标记：小方块「教」，避免 emoji 在部分系统显示成方块 */
+  .tb-mini{display:inline-flex;align-items:center;justify-content:center;width:17px;height:17px;border-radius:5px;background:#e8efff;color:#3b5bdb;font-size:10.5px;font-weight:800;flex:0 0 auto}
+  .menu-group-tab.active .tb-mini{background:var(--primary);color:#fff}
   .tb-note{margin-top:10px;font-size:12px;color:#9aa0b6;line-height:1.6}
   /* 卡片整体允许换行：放不下时按钮自动落到下一行，不会被裁掉 */
   .deck-item{flex-wrap:wrap}
@@ -704,6 +707,12 @@
   /* 例句译文：默认收起，点「显示翻译」才在英文下面出现（先猜后译，不提前剧透） */
   .example .cn{display:none}
   .ex-list.show-cn .example .cn{display:block}
+  .example.show-cn .cn{display:block}
+  /* 每句的翻译按钮贴在来源标签右侧，避免三句挤在区块标题栏 */
+  .example .ex-foot{display:flex;align-items:center;gap:6px;margin-top:3px;flex-wrap:wrap}
+  .example .ex-foot .ex-one-trans{margin-left:auto}
+  .ex-trans-btn.mini{font-size:10.5px;padding:1px 8px;border-radius:10px}
+  .example .ex-no-cn{margin-left:auto;font-size:10.5px;color:#b6bac7}
   .ex-trans-btn{display:inline-flex;align-items:center;gap:4px;border:1px solid var(--border);background:#fff;color:var(--primary);font-size:11.5px;font-weight:700;border-radius:14px;padding:3px 10px;cursor:pointer;transition:.15s;font-family:inherit;white-space:nowrap}
   .ex-trans-btn:hover{background:#f3f6ff;border-color:var(--primary)}
   .ex-trans-btn.on{background:#eef2ff;border-color:var(--primary);color:var(--primary2)}
@@ -1863,11 +1872,26 @@ function wrapClickWords(html){
 function toggleExTrans(btn){
   const list = document.getElementById("exList");
   if(!list) return;
-  const on = list.classList.toggle("show-cn");
+  const on = !list.classList.contains("show-cn");
+  list.classList.toggle("show-cn", on);
+  // 逐句的按钮与逐句的展开状态一起同步，否则会出现「按钮写显示翻译、正文已经显示了」
+  list.querySelectorAll(".example").forEach(ex => ex.classList.toggle("show-cn", on));
+  list.querySelectorAll(".ex-one-trans").forEach(b => {
+    b.classList.toggle("on", on);
+    b.textContent = on ? "隐藏翻译" : "显示翻译";
+  });
   if(btn){
     btn.classList.toggle("on", on);
-    btn.textContent = on ? "隐藏翻译" : "显示翻译";
+    btn.textContent = on ? "收起全部" : "全部译文";
   }
+  closeWordPop();
+}
+function toggleOneExTrans(btn){
+  const box = btn && btn.closest ? btn.closest(".example") : null;
+  if(!box) return;
+  const on = box.classList.toggle("show-cn");
+  btn.classList.toggle("on", on);
+  btn.textContent = on ? "隐藏翻译" : "显示翻译";
   closeWordPop();
 }
 
@@ -2324,13 +2348,15 @@ function pickLearnExamples(w, n){
     return { ...p, _s: s };
   });
   scored.sort((a, b) => a._s - b._s);
-  const out = scored.slice(0, n);
-  // 前两条里必须有一条带中文，否则零基础的学生看不到译文；优先挑"有具体出处"的那条。
-  // 只在取 2 条以上时补位——取 1 条时不能顶掉第一条，否则词义甄别题会和学习页首句不一致。
-  if(out.length > 1 && !out.slice(0, 2).some(p => p.cn)){
-    const withCn = scored.find(p => p.cn && p._real && !out.includes(p)) || scored.find(p => p.cn && !out.includes(p));
-    if(withCn) out[1] = withCn;
-  }
+  // 取 1 条时（语境填空/词义甄别题干）保持原排序：题干不给中文，句子的来源和难度更自由。
+  if(n <= 1) return scored.slice(0, n);
+  // 取多条时（学习页三条例句）译文优先：词典句与题库真题句都自带中文，
+  // 先只从这些句子里挑，保证三句都能单独点「显示翻译」；
+  // 报刊/通讯社例句没有中文，只在带译文的句子不足 3 条时兜底补位（页面标注「暂无译文」）。
+  const cnPool = scored.filter(p => String(p.cn || '').trim());
+  const noCnPool = scored.filter(p => !String(p.cn || '').trim());
+  const out = cnPool.slice(0, n);
+  if(out.length < n) out.push.apply(out, noCnPool.slice(0, n - out.length));
   return out;
 }
 
@@ -2464,7 +2490,21 @@ function speakDataSentence(el){
 
 /* ================= 渲染 ================= */
 function renderTabs(){
-  $("#groupTabs").innerHTML = GROUPS.map((g,i)=>`<div class="menu-group-tab ${i===currentGroup?'active':''}" onclick="switchGroup(${i})"><span>${g.emoji}</span><span>${g.name}</span></div>`).join("");
+  const activeKey = String(getActiveDeckId() || '');
+  const tbOn = activeKey.indexOf('tb:') === 0;
+  const levels = GROUPS.map((g,i)=>`<div class="menu-group-tab ${(!tbOn && i===currentGroup)?'active':''}" onclick="switchGroup(${i})"><span>${g.emoji}</span><span>${g.name}</span></div>`).join("");
+  // 教材同步单独列在下方：老师在任意页面都能直接按册切换，不必先回词库页
+  let tbs = '';
+  if(typeof TEXTBOOK_DB !== 'undefined'){
+    const items = textbookOrder().filter(k => TEXTBOOK_DB[k]).map(k=>{
+      const tb = TEXTBOOK_DB[k];
+      const on = activeKey === ('tb:' + k);
+      return `<div class="menu-group-tab ${on?'active':''}" onclick="activateTextbook('${k}')" title="${escapeHtml(tb.name)} · ${(tb.words||[]).length} 词">
+        <span class="tb-mini">教</span><span>${escapeHtml(tb.short)}</span></div>`;
+    }).join('');
+    if(items) tbs = `<div class="menu-label" style="padding:12px 12px 4px">教材同步</div>${items}`;
+  }
+  $("#groupTabs").innerHTML = levels + tbs;
 }
 function renderSteps(){
   $("#steps").innerHTML = STEPS.map((s,i)=>{
@@ -3495,10 +3535,12 @@ function activateTextbook(key){
   currentBatch = [];
   currentStep = 0; learnIndex = 0;
   appMode = 'learn';
+  lastStudyStep = 0;
   newBatch();
   renderDecks();
   renderAll();
   pushRoute();
+  try{ closeDrawer(); }catch(e){}
   toast(`已切换到「${tb.short}」教材词库（${tb.words.length} 词）`);
 }
 
@@ -3853,9 +3895,16 @@ function renderLearn(){
     const badge = isExam ? '<b class="ex-badge">真题</b>'
       : (e.srcType === 'manual' ? '<b class="ex-badge ex-badge-manual">自建</b>' : '');
     const src = e.src ? `<span class="ex-src">${badge}${escapeHtml(e.src)}</span>` : '';
+    // 每句都有自己的「显示翻译」：先猜这句，再对答案，不必三句一起揭晓
+    // 个别报刊例句本身没配中文译文，给出「暂无译文」而不是一个点了没反应的按钮
+    const hasCn = String(e.cn || '').trim().length > 0;
+    const transBtn = hasCn
+      ? `<button class="ex-trans-btn mini ex-one-trans" onclick="toggleOneExTrans(this)" title="只显示这一句的中文翻译">显示翻译</button>`
+      : `<span class="ex-no-cn" title="这条例句来自报刊/通讯社语料，未配中文译文">暂无译文</span>`;
     return `<div class="example">
       <div class="en"><button class="ex-speak" data-say="${escapeHtml(plain)}" onclick="speakDataSentence(this)" title="听例句">🔊</button><span class="ex-en">${enHtml}</span></div>
-      ${e.cn ? `<div class="cn">${escapeHtml(e.cn)}</div>` : ''}${src}</div>`;
+      ${hasCn ? `<div class="cn">${escapeHtml(e.cn)}</div>` : ''}
+      ${(src || transBtn) ? `<div class="ex-foot">${src}${transBtn}</div>` : ''}</div>`;
   };
   const exHtml = exList.map(renderEx).join("") || `<div class="example"><div class="cn">该词暂无例句</div></div>`;
 
@@ -3928,7 +3977,7 @@ function renderLearn(){
         ${defHtml}
         <div class="sec-head">
           <h3>💬 常用例句 <span style="font-size:11px;font-weight:400;color:#9aa0b6">课本原句 · 中高考真题高频句</span></h3>
-          <button class="ex-trans-btn" id="exTransBtn" onclick="toggleExTrans(this)" title="在英文下面显示中文翻译">显示翻译</button>
+          <button class="ex-trans-btn" id="exTransBtn" onclick="toggleExTrans(this)" title="一次显示或收起全部例句的译文">全部译文</button>
         </div>
         <div class="ex-list" id="exList">${exHtml}</div>
       </div>
@@ -7123,13 +7172,16 @@ window.addEventListener('popstate', e => applyRoute(e.state || parseRoute()));
 
 /* ================= 账号：邮箱验证码注册 / 登录 ================= */
 // 说明：验证码由服务端（QQ 邮箱 SMTP）发出并签名校验，账号信息保存在本机浏览器，
-// 与学习进度、错题本同一存储层级，不涉及云端同步。
+// 账号用「邮箱」做身份：同一邮箱在电脑和手机上都能登录；
+// 因为账号是本机保存的，新设备第一次登录要用邮箱验证码证明「这个邮箱是我的」，
+// 验证通过后就在本机建同名账号并直接登录（不用重新走注册）。
 const LS_ACCOUNT = 'moci_account_v1';
 const LS_ACCOUNTS = 'moci_accounts_v1';
 let authTab = 'login';
 let authToken = null;       // 服务端签发的验证码令牌（不含验证码本身）
 let authEmail = '';         // 令牌对应的邮箱
 let authTimer = null;       // 重发倒计时
+let authPending = null;     // 新设备首次登录：待验证的 { email, pwd, name }
 
 function loadAccounts(){
   try{ return JSON.parse(localStorage.getItem(LS_ACCOUNTS) || '{}') || {}; }catch(e){ return {}; }
@@ -7181,16 +7233,24 @@ function openAuth(tab){
   renderAuthModal();
 }
 function switchAuth(tab){
-  const email = (document.getElementById('auEmail') || {}).value || '';
+  const cur = document.getElementById('auEmail');
+  const pwdEl = document.getElementById('auPwd');
+  let email = ((cur && cur.value) || '').trim();
+  let pwd = (pwdEl && pwdEl.value) || '';
+  if(!email && authPending){ email = authPending.email || ''; if(!pwd) pwd = authPending.pwd || ''; }
   authTab = tab === 'register' ? 'register' : 'login';
+  authPending = null;
   renderAuthModal();
   const el = document.getElementById('auEmail');
   if(el && email) el.value = email;
+  const p1 = document.getElementById('auPwd');
+  if(p1 && pwd) p1.value = pwd;
 }
 function closeAuth(){
   const root = document.getElementById('authRoot');
   if(root) root.innerHTML = '';
   if(authTimer){ clearInterval(authTimer); authTimer = null; }
+  authPending = null;
 }
 function authMsg(text, type){
   const el = document.getElementById('auMsg');
@@ -7213,7 +7273,7 @@ function renderAuthModal(){
               <div class="au-avatar">${escapeHtml(ini)}</div>
               <div><div class="au-name">${escapeHtml(a.name || '同学')}</div><div class="au-mail">${escapeHtml(a.email || '')}</div></div>
             </div>
-            <div style="font-size:12.5px;color:#8a90a6;line-height:1.7">学习进度、错题本、段位积分都保存在这台设备的浏览器里，换设备不会自动同步。</div>
+            <div style="font-size:12.5px;color:#8a90a6;line-height:1.7">这个邮箱就是账号，电脑、手机都能登录（每台新设备第一次登录会收一条验证码）。学习进度、错题本、段位积分保存在本机浏览器，换设备时用「我的词库 → 导出备份 / 导入备份」迁移。</div>
             <div style="display:flex;gap:10px;margin-top:16px">
               <button class="btn btn-ghost" style="flex:1" onclick="logoutAccount()">退出登录</button>
               <button class="btn btn-primary" style="flex:1" onclick="closeAuth()">完成</button>
@@ -7224,6 +7284,55 @@ function renderAuthModal(){
     return;
   }
   const isReg = authTab === 'register';
+  // 新设备首次登录：邮箱已验证 → 在本机建同名账号并直接登录（不用重新注册）
+  if(authTab === 'verify' && authPending){
+    const pend = authPending;
+    const ini = String(pend.name || pend.email || '?').trim().charAt(0).toUpperCase();
+    root.innerHTML = `
+      <div class="modal-mask" onclick="if(event.target===this)closeAuth()">
+        <div class="modal-box" style="max-width:420px">
+          <div class="modal-head" style="display:flex;align-items:center;justify-content:space-between">
+            <span>这台设备首次登录</span>
+            <button class="modal-x" onclick="closeAuth()" aria-label="关闭">✕</button>
+          </div>
+          <div class="modal-body">
+            <div class="auth-user">
+              <div class="au-avatar">${escapeHtml(ini)}</div>
+              <div><div class="au-name">${escapeHtml(pend.email)}</div><div class="au-mail">验证一次邮箱，这台设备就用同一个账号登录</div></div>
+            </div>
+            <div class="auth-field">
+              <label>验证码</label>
+              <div class="auth-row">
+                <input id="auCode" type="text" inputmode="numeric" maxlength="6" placeholder="6 位数字">
+                <button class="auth-code-btn" id="auCodeBtn" onclick="sendAuthCode()">发送验证码</button>
+              </div>
+            </div>
+            <div class="auth-field">
+              <label>昵称</label>
+              <input id="auName" type="text" maxlength="12" value="${escapeHtml(pend.name || '')}" placeholder="显示在侧边栏">
+            </div>
+            <div class="auth-field">
+              <label>本机密码</label>
+              <input id="auPwd" type="password" autocomplete="current-password" value="${escapeHtml(pend.pwd || '')}" placeholder="至少 6 位">
+            </div>
+            <div class="auth-msg" id="auMsg"></div>
+            <button class="btn btn-primary" style="width:100%" onclick="doVerifyLogin()">验证并登录</button>
+            <div class="auth-tip">验证码会发到 <b>${escapeHtml(pend.email)}</b>，10 分钟内有效。这不是重新注册：验证通过后，电脑上那个账号在这台设备直接可用。</div>
+            <div style="text-align:center;margin-top:10px"><a href="javascript:void(0)" onclick="switchAuth('login')" style="font-size:12.5px;color:#8a90a6">不是这个邮箱？回去重填</a></div>
+          </div>
+        </div>
+      </div>`;
+    root.querySelectorAll('.auth-field input').forEach(inp => {
+      inp.addEventListener('keydown', (e) => {
+        if(e.key !== 'Enter') return;
+        e.preventDefault();
+        doVerifyLogin();
+      });
+    });
+    const c = document.getElementById('auCode');
+    if(c) setTimeout(()=>{ try{ c.focus(); }catch(e){} }, 30);
+    return;
+  }
   root.innerHTML = `
     <div class="modal-mask" onclick="if(event.target===this)closeAuth()">
       <div class="modal-box" style="max-width:420px">
@@ -7263,8 +7372,8 @@ function renderAuthModal(){
           <div class="auth-msg" id="auMsg"></div>
           <button class="btn btn-primary" style="width:100%" onclick="${isReg ? 'doRegister()' : 'doLogin()'}">${isReg ? '注册并登录' : '登录'}</button>
           <div class="auth-tip">${isReg
-            ? '验证码由老师邮箱发出，10 分钟内有效；账号信息只保存在本机浏览器。'
-            : '账号保存在本机浏览器，学习进度、错题本、积分同在这个浏览器里。'}</div>
+            ? '验证码由老师邮箱发出，10 分钟内有效。同一个邮箱在电脑、手机上都能登录，每台新设备第一次登录收一条验证码即可。'
+            : '邮箱就是账号。在本机注册过的邮箱可直接用密码登录；换到手机或另一台电脑首次登录，会多一步「验证邮箱」，通过后用同一个账号进入。'}</div>
         </div>
       </div>
     </div>`;
@@ -7280,7 +7389,9 @@ function renderAuthModal(){
   if(first) setTimeout(()=>{ try{ first.focus(); }catch(e){} }, 30);
 }
 async function sendAuthCode(){
-  const email = String((document.getElementById('auEmail') || {}).value || '').trim().toLowerCase();
+  let email = String((document.getElementById('auEmail') || {}).value || '').trim().toLowerCase();
+  // 「这台设备首次登录」页没有邮箱输入框，直接取待验证的邮箱
+  if(!email && authTab === 'verify' && authPending) email = String(authPending.email || '').toLowerCase();
   if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)){ authMsg('请先填写正确的邮箱地址', 'err'); return; }
   const btn = document.getElementById('auCodeBtn');
   if(btn){ btn.disabled = true; btn.textContent = '发送中…'; }
@@ -7327,12 +7438,62 @@ async function doLogin(){
   const pwd = String((document.getElementById('auPwd') || {}).value || '');
   if(!email || !pwd){ authMsg('请填写邮箱和密码', 'err'); return; }
   const acc = loadAccounts()[email];
-  if(!acc){ authMsg('这个邮箱还没注册过，请先切到「注册」', 'err'); return; }
+  if(!acc){
+    // 这台设备没有该邮箱：说明是手机/另一台电脑首次登录。
+    // 不弹「未注册」，直接进邮箱验证：验完就在本机建同名账号并登录，电脑上的账号照常可用。
+    authPending = { email, pwd, name: email.split('@')[0] };
+    authToken = null; authEmail = '';
+    authTab = 'verify';
+    renderAuthModal();
+    authMsg('这台设备第一次登录「' + email + '」：点「发送验证码」→ 收到 6 位码填进来 → 验证并登录。', 'ok');
+    return;
+  }
   const h = await hashPassword(pwd, acc.salt);
   if(h !== acc.hash){ authMsg('密码不正确', 'err'); return; }
   setCurrentAccount({ email, name: acc.name || '', at: acc.at || Date.now() });
   closeAuth();
   toast('已登录：' + (acc.name || email));
+}
+// 把「邮箱 + 昵称 + 密码」写成本机账号记录（注册与新设备首次登录共用）
+async function saveLocalAccount(email, name, pwd){
+  const salt = randHex(8);
+  const hash = await hashPassword(pwd, salt);
+  const accs = loadAccounts();
+  accs[email] = { name: name || email.split('@')[0], salt, hash, at: Date.now() };
+  saveAccounts(accs);
+  // 无痕模式/隐私设置会静默吞掉写入，这里回读一次，避免「登录成功了但下次又提示未注册」
+  if(!loadAccounts()[email]) throw new Error('这个浏览器不允许保存账号（可能开了无痕/隐私模式）。请用手机自带浏览器（Safari / Chrome）重新打开再登录。');
+  return accs[email];
+}
+// 新设备首次登录：校验邮箱验证码 → 本机建同名账号 → 直接登录
+async function doVerifyLogin(){
+  if(!authPending){ switchAuth('login'); return; }
+  const email = authPending.email;
+  const code = String((document.getElementById('auCode') || {}).value || '').replace(/\D/g, '');
+  const name = String((document.getElementById('auName') || {}).value || '').trim() || authPending.name || email.split('@')[0];
+  const pwd = String((document.getElementById('auPwd') || {}).value || '');
+  if(code.length !== 6){ authMsg('请输入 6 位数字验证码', 'err'); return; }
+  if(pwd.length < 6){ authMsg('密码至少 6 位（沿用你原来的密码即可）', 'err'); return; }
+  if(!authToken || authEmail !== email){ authMsg('请先点「发送验证码」，收到后再填', 'err'); return; }
+  const btn = document.querySelector('.modal-box .btn-primary');
+  if(btn){ btn.disabled = true; btn.textContent = '验证中…'; }
+  try{
+    const r = await fetch('/api/auth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'verify', email, code, token: authToken })
+    });
+    const d = await r.json().catch(()=>({}));
+    if(!r.ok) throw new Error(d.error || ('验证失败（' + r.status + '）'));
+    const rec = await saveLocalAccount(email, name, pwd);
+    setCurrentAccount({ email, name: rec.name, at: rec.at });
+    authToken = null; authEmail = ''; authPending = null; authTab = 'login';
+    closeAuth();
+    toast('已登录：' + rec.name + '（这台设备以后可直接用密码登录）');
+  }catch(e){
+    authMsg(e && e.message ? e.message : '验证失败，请稍后重试', 'err');
+    if(btn){ btn.disabled = false; btn.textContent = '验证并登录'; }
+  }
 }
 async function doRegister(){
   const email = String((document.getElementById('auEmail') || {}).value || '').trim().toLowerCase();
@@ -7353,13 +7514,9 @@ async function doRegister(){
     });
     const d = await r.json().catch(()=>({}));
     if(!r.ok) throw new Error(d.error || ('验证失败（' + r.status + '）'));
-    const salt = randHex(8);
-    const hash = await hashPassword(pwd, salt);
-    const accs = loadAccounts();
-    accs[email] = { name: name || email.split('@')[0], salt, hash, at: Date.now() };
-    saveAccounts(accs);
-    setCurrentAccount({ email, name: accs[email].name, at: accs[email].at });
-    authToken = null; authEmail = '';
+    const rec = await saveLocalAccount(email, name, pwd);
+    setCurrentAccount({ email, name: rec.name, at: rec.at });
+    authToken = null; authEmail = ''; authPending = null;
     closeAuth();
     toast('注册成功，已登录');
   }catch(e){
@@ -7401,6 +7558,16 @@ if(boot){
 }
 renderAll();
 renderAccountUI();
+// 手机浏览器禁用本地存储（无痕模式、隐私设置）时，账号和进度都存不住，
+// 表现就是「明明注册过却提示未注册」，先在这里提示换普通浏览器打开。
+(function checkLocalStorage(){
+  try{
+    localStorage.setItem('__ls_probe', '1');
+    localStorage.removeItem('__ls_probe');
+  }catch(e){
+    setTimeout(()=>{ try{ toast('这个浏览器禁用了本地存储，账号和进度无法保存。请用手机自带浏览器（Safari / Chrome）打开，不要用无痕模式。'); }catch(err){} }, 1200);
+  }
+})();
 try{ history.replaceState(routeSnapshot(), '', routeHash()); }catch(e){}
 routeReady = true;
 

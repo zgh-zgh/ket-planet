@@ -5363,6 +5363,7 @@ function renderMatch(){
 function matchFinish(reason){
   const st = matchState;
   if(!st || st.done) return;
+  if(st.cleared >= st.total) reason = 'clear';   // 双方同时到终点时，先消完的一方算赢
   st.done = true;
   stopCountdown();
   stopMatchRival();

@@ -6021,7 +6021,9 @@ function renderResult(){
   const r = getRank(p.total);
   const curDeckId = getActiveDeckId();
   const curDeck = curDeckId ? loadDecks().find(d=>d.id===curDeckId) : null;
-  const batchLabel = curDeck ? curDeck.name : GROUPS[currentGroup].name;
+  const tbKey = (curDeckId && String(curDeckId).indexOf('tb:') === 0) ? String(curDeckId).slice(3) : '';
+  const tbMeta = (tbKey && typeof TEXTBOOK_DB !== 'undefined') ? TEXTBOOK_DB[tbKey] : null;
+  const batchLabel = curDeck ? curDeck.name : (tbMeta ? (tbMeta.short + ' 教材词库') : GROUPS[currentGroup].name);
   $("#resultPage").innerHTML = `
     <div class="result-box">
       <div class="result-emoji">🎉</div>

@@ -456,6 +456,40 @@
   .toast{position:fixed;top:24px;left:50%;transform:translateX(-50%);background:#1f2430;color:#fff;padding:12px 22px;border-radius:26px;font-size:14px;opacity:0;transition:.3s;z-index:99;pointer-events:none}
   .toast.show{opacity:1}
 
+  /* ===== 背景音乐悬浮控件（学习/对战页出现） ===== */
+  .music-dock{position:fixed;right:18px;bottom:18px;z-index:280;display:flex;flex-direction:column;align-items:flex-end;gap:10px}
+  .music-fab{position:relative;width:46px;height:46px;border-radius:50%;border:none;cursor:pointer;background:#fff;color:#8a90a6;font-size:20px;box-shadow:0 8px 22px rgba(40,50,90,.18);transition:.16s;font-family:inherit}
+  .music-fab:hover{transform:translateY(-2px)}
+  .music-fab.on{background:linear-gradient(135deg,var(--primary),var(--primary2));color:#fff;box-shadow:0 8px 22px rgba(79,110,247,.38)}
+  .music-fab.on:after{content:"";position:absolute;right:3px;top:3px;width:9px;height:9px;border-radius:50%;background:#34d399;border:2px solid #fff}
+  .music-panel{display:none;width:280px;max-height:min(74vh,500px);overflow:auto;background:#fff;border-radius:16px;box-shadow:0 18px 44px rgba(30,40,80,.22);border:1px solid #e8ebf9;padding:12px 14px}
+  .music-dock.open .music-panel{display:block;animation:popIn .15s ease-out}
+  .mp-head{display:flex;align-items:center;justify-content:space-between;font-size:13px;font-weight:800;color:var(--text);margin-bottom:9px}
+  .mp-close{border:none;background:none;color:#b6bccd;cursor:pointer;font-size:13px;line-height:1}
+  .mp-row{margin-bottom:9px}
+  .mp-toggle{width:100%;border:1px solid var(--border);background:#f7f8fc;color:#6b7280;border-radius:10px;padding:7px 0;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit;transition:.15s}
+  .mp-toggle.on{background:#eef2ff;border-color:var(--primary);color:var(--primary)}
+  .mp-follow{background:#f8f9fe;border:1px dashed #dfe4f5;border-radius:10px;padding:7px 9px;margin-bottom:9px;font-size:11.5px;color:#5b6382;line-height:1.5}
+  .mp-follow label{display:flex;align-items:center;gap:5px;cursor:pointer;font-weight:700}
+  .mp-follow input{accent-color:var(--primary)}
+  .mp-scene{display:block;color:#9aa0b6;margin-top:2px;font-size:10.5px}
+  .mp-list{display:flex;flex-direction:column;gap:4px;max-height:min(300px,44vh);overflow:auto;margin-bottom:9px;padding-right:2px}
+  .mp-track{display:flex;align-items:center;gap:7px;border:1px solid transparent;background:#fafbff;border-radius:9px;padding:5px 8px;font-size:12.5px;color:#4a5169;cursor:pointer;font-family:inherit;text-align:left;width:100%}
+  .mp-track:hover{background:#eef2ff}
+  .mp-track.on{background:#e9eeff;border-color:var(--primary);color:var(--primary);font-weight:700}
+  .mp-emoji{font-size:14px;line-height:1}
+  .mp-name{flex:1}
+  .mp-bpm{font-size:10.5px;color:#a3a9bd;font-variant-numeric:tabular-nums}
+  .mp-vol{display:flex;align-items:center;gap:8px;font-size:12px;color:#7a819a}
+  .mp-vol input[type=range]{flex:1;accent-color:var(--primary)}
+  .mp-vol b{font-size:11.5px;color:var(--primary);min-width:34px;text-align:right}
+  .mp-tip{font-size:10.5px;color:#a3a9bd;line-height:1.55;margin-top:9px;padding-top:8px;border-top:1px dashed var(--border)}
+  @media(max-width:720px){
+    .music-dock{right:12px;bottom:12px}
+    .music-panel{width:min(80vw,272px)}
+    .music-fab{width:42px;height:42px;font-size:18px}
+  }
+
   /* ===== 复习巩固模块样式 ===== */
   .empty-state{text-align:center;padding:48px 20px}
   .empty-emoji{font-size:52px;margin-bottom:14px}
@@ -929,7 +963,7 @@
   }
 
   /* ===== 难度切换（基础 / 中等 / 优秀） ===== */
-  .diff-bar{display:flex;gap:6px;justify-content:center;margin:0 0 10px}
+  .diff-bar{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin:0 0 10px}
   .diff-pill{padding:6px 14px;border-radius:99px;border:1.5px solid var(--border);background:#fff;font-size:13px;font-weight:700;color:#6b7280;cursor:pointer;transition:.15s;font-family:inherit;line-height:1.4}
   .diff-pill:hover{border-color:var(--primary);color:var(--primary)}
   .diff-pill.on{background:var(--primary);border-color:var(--primary);color:#fff;box-shadow:0 6px 14px rgba(79,110,247,.26)}
@@ -969,6 +1003,24 @@
   .bomb-clock.urgent{color:var(--red);animation:qPulse .62s infinite}
   .bomb-combo{font-size:12.5px;font-weight:800;color:#e07b39;background:#fff3e8;border-radius:99px;padding:3px 10px}
   .bomb-combo.off{display:none}
+  /* 加时：题目倒计时旁边一个小胶囊 + 一个轻量弹层 */
+  .q-addtime{border:1px solid #d7ddf2;background:#fff;color:#5b6382;font-size:11px;font-weight:800;border-radius:99px;padding:2px 8px;cursor:pointer;font-family:inherit;line-height:1.6;flex:0 0 auto;transition:.15s}
+  .q-addtime:hover{border-color:var(--primary);color:var(--primary);background:#f4f7ff}
+  .bomb-addtime{border:1px dashed #cfd6ee;background:#fff;color:#5b6382;font-size:11.5px;font-weight:800;border-radius:99px;padding:3px 10px;cursor:pointer;font-family:inherit;transition:.15s}
+  .bomb-addtime:hover{border-color:var(--primary);color:var(--primary);background:#f4f7ff}
+  .race-boost{text-align:center;font-size:11.5px;font-weight:700;color:#e08a2e;background:#fff7ec;border:1px solid #ffe3c2;border-radius:8px;padding:3px 8px;margin:4px auto 2px;max-width:320px}
+  .race-boost.hidden{display:none}
+  .tb-pop{position:fixed;left:50%;bottom:78px;transform:translateX(-50%);z-index:330;width:min(300px,88vw);background:#fff;border:1px solid #e6e9f5;border-radius:14px;box-shadow:0 16px 40px rgba(30,40,80,.22);padding:11px 12px 10px;animation:popIn .14s ease-out}
+  .tb-head{display:flex;align-items:center;justify-content:space-between;font-size:13px;font-weight:800;color:#2d3450;margin-bottom:8px}
+  .tb-x{border:none;background:none;color:#b6bccd;cursor:pointer;font-size:12px;line-height:1}
+  .tb-presets{display:flex;gap:6px;margin-bottom:8px}
+  .tb-presets button{flex:1;border:1px solid #dfe4f5;background:#f6f8ff;color:#4a5ecc;font-size:12.5px;font-weight:800;border-radius:9px;padding:7px 0;cursor:pointer;font-family:inherit;transition:.15s}
+  .tb-presets button:hover{background:#e9eeff;border-color:var(--primary)}
+  .tb-custom{display:flex;align-items:center;gap:6px;font-size:12px;color:#7a819a}
+  .tb-custom input{width:74px;border:1px solid #dfe4f5;border-radius:8px;padding:5px 7px;font-size:13px;font-family:inherit;text-align:center}
+  .tb-custom input:focus{outline:none;border-color:var(--primary)}
+  .tb-ok{margin-left:auto;border:none;background:var(--primary);color:#fff;font-size:12.5px;font-weight:800;border-radius:9px;padding:6px 16px;cursor:pointer;font-family:inherit}
+  .tb-tip{font-size:10.5px;color:#a3a9bd;line-height:1.5;margin-top:8px}
   .bomb-cell .cn-pos{font-size:11px;opacity:.72;margin-right:3px;font-weight:700}
   .bomb-grid.dense{grid-template-columns:repeat(5,1fr);gap:6px}
   .bomb-grid.dense .bomb-cell{min-height:44px;padding:8px 6px;font-size:13px;line-height:1.25}
@@ -1165,11 +1217,19 @@
 <div id="clipRoot"></div>
 <div id="authRoot"></div>
 <div id="deckWordsRoot"></div>
+<div class="music-dock hidden" id="musicDock">
+  <div class="music-panel" id="musicPanel"></div>
+  <button class="music-fab" id="musicFab" onclick="toggleMusicPanel()" title="背景音乐">🎵</button>
+</div>
 
 <script src="words-data.js"></script>
 <!-- 教材同步词库（沪教版·牛津上海版 初中英语 7A/7B/8A/8B/9A，共 1340 条，独立于内置词库） -->
 <script src="textbooks_data.js"></script>
 <script src="examples_data.js"></script>
+<!-- 短语/冷门词的真实双语例句（有道 + 少量大模型补写，scripts/build_phrase_pack.js 生成） -->
+<script src="phrase_examples.js"></script>
+<!-- 短语专属插图（scripts/build_phrase_pics.js 生成；没覆盖到的走中心词/词形还原兜底） -->
+<script src="phrase_pics.js"></script>
 <script src="extras_data.js"></script>
 <script src="families_data.js"></script>
 <script src="synonyms_data.js"></script>
@@ -1196,6 +1256,54 @@
    - 例句：有道词典双语例句 */
 const LEVELS = ["初中", "高中", "四级", "六级"];
 const LEVEL_EMOJI = { "初中":"🌱", "高中":"📚", "四级":"🎓", "六级":"🏛️" };
+
+// 短语配图回退用的功能词表 + 词性缓存
+// 注意：必须放在 GROUPS 构建之前。buildWord 会立刻调用 resolveWordImage，
+// 如果这两个声明留在文件后面，会触发 TDZ（Cannot access before initialization），整个页面白屏。
+const IMG_FUNC_WORDS = new Set(('a an the to of in on at for with and or but be is are was were do does did have has had ' +
+  'this that these those my your his her its our their some any no every each another other up down out off over ' +
+  'somebody something someone anybody anything nobody nothing').split(' '));
+let _posMap = null;
+
+// 有些短语取「词尾实词」的图会跑偏（put on → put，go up → go）。
+// 这里给这些短语指定一张语义最接近的现成图，比让 AI 随机重画稳定得多。
+const PHRASE_IMG_HINTS = {
+  'look after':'care', 'take care of':'care', 'care for':'care',
+  'do the dishes':'dish', 'have picnics':'picnic',
+  'be based on':'base', 'be covered by':'cover',
+  'cut down':'tree', 'hundreds of':'number', 'thousands of':'number',
+  'be interested in':'interest', 'add ... to ...':'plus', 'used to':'history',
+  'go hiking':'hike', 'be made of':'material', 'get down':'down',
+  'television set':'television', 'air conditioner':'air', 'run out of':'empty',
+  'go bad':'food', 'put out':'fire', 'die out':'dinosaur', 'be related to':'relate',
+  'go back a long way':'history', 'go up':'up', 'go down':'down',
+  'bring big changes to':'change', 'make fun of':'laugh', 'traffic jam':'traffic',
+  'tai chi':'exercise', 'snake its way':'snake', 'catch the eye of somebody':'eye',
+  'in low spirits':'sad', 'sit up':'sit', 'folk art':'art', 'in one sitting':'sit',
+  'make use of':'use', 'up to':'up', 'spelling bee':'spell', 'go by':'time',
+  'for a while':'clock', 'naked eye':'eye', 'in all directions':'direction',
+  'be satisfied with':'satisfy', 'run over':'run', 'lightning rod':'lightning',
+  'get addicted to':'phone', 'drive somebody mad':'mad', 'hit it off with somebody':'friend',
+  'go on':'continue', "fix one's eyes on":'eye', 'a set of':'set',
+  'put on':'clothes', 'get up':'bed', 'go to bed':'bed', 'cry out':'shout',
+  'neither ... nor ...':'two', 'be at one with ...':'nature',
+  "with a spring in one's step":'walk', "fresh in one's memory":'memory',
+  'first-person point of view':'book', 'carry on with something':'continue',
+  'pay ... back':'pay', 'shine down upon somebody':'sun', 'remind somebody of ...':'memory',
+  "work one's land":'farm', "take one's eyes off something":'eye', 'hold something up':'hold',
+  "make up one's mind":'decision', 'be strict about':'rule', 'clubs fair':'club',
+  'travel show':'travel', 'sound operator':'music', 'lighting operator':'light',
+  'agony aunt':'letter', 'advice column':'advice', 'quiz show':'show',
+  'reality show':'show', 'talent show':'stage', 'talk show':'talk', 'film review':'movie',
+  'host family':'family', 'eye contact':'eye',
+  'make a good impression on':'smile', 'in the mood':'happy', 'in fear':'fear',
+  'lose one\'s life':'life', 'go missing':'map', 'at risk of':'risk',
+  'in the shape of':'shape', 'in person':'person', 'the general public':'people',
+  'all walks of life':'people', 'voluntary work':'volunteer', 'disabled people':'help',
+  'in need':'help', 'with the help of':'help', 'pay attention':'listen',
+  'hold one\'s breath':'breath', 'make a point of doing something':'decide',
+  'take part in':'join', 'play an important part in':'team'
+};
 
 // 例句模板库（按词义通用模板，目标词动态替换）
 const EXAMPLE_TEMPLATES = [
@@ -1311,13 +1419,17 @@ GROUPS.forEach(g => g.words.forEach(w => {
 // 词典式"元例句"（如 The word "x" is very common in English.）排序靠后，避免占坑
 function buildExamples(w){
   const META_SENT = /^the word\s*["'“]/i;      // 放在函数内，避免 const 声明晚于首次调用（TDZ）
-  const data = (typeof EXAMPLES_DATA !== 'undefined' && EXAMPLES_DATA[w.toLowerCase()]) || [];
+  const key = String(w || '').toLowerCase().trim();
+  const data = (typeof EXAMPLES_DATA !== 'undefined' && EXAMPLES_DATA[key]) || [];
   if(data.length){
     const arr = data.slice(0, 5).map(e => ({ en: e.en, cn: e.cn }));
     const normal = arr.filter(e => !META_SENT.test(e.en.replace(/<[^>]+>/g, '').trim()));
     const meta = arr.filter(e => META_SENT.test(e.en.replace(/<[^>]+>/g, '').trim()));
     return normal.concat(meta);
   }
+  // 短语 / 词典漏收的词：用补充例句库（每条都是真实语境，不再是那 3 句万能模板）
+  const extra = (typeof PHRASE_EXAMPLES !== 'undefined' && PHRASE_EXAMPLES[key]) || [];
+  if(extra.length) return extra.slice(0, 5).map(e => ({ en: e.en, cn: e.cn }));
   return EXAMPLE_TEMPLATES.map(t=>({
     en: t.en.replace(/__W__/g, `<B>${w}</B>`),
     cn: t.cn.replace(/__W__/g, w)
@@ -1519,8 +1631,10 @@ function buildWord(w, cn, lv, deckId){
   if(!cn || !String(cn).trim()) cn = cnFallback(w);
   cn = String(cn == null ? '' : cn).trim() || '（暂无释义）';
   cn = cleanCnText(cn);
-  let cachedImg = "";
-  try{ cachedImg = localStorage.getItem('wordimg_' + w) || ""; }catch(e){}
+  // 配图：词库标准图优先（与猜词环节一致），没有才用之前缓存的 AI 图
+  const fixedImg = (typeof resolveWordImage === 'function') ? resolveWordImage(w) : null;
+  let cachedImg = fixedImg ? fixedImg.url : "";
+  if(!cachedImg){ try{ cachedImg = localStorage.getItem('wordimg_' + w) || ""; }catch(e){} }
   const affix = matchAffixes(w);
   const lw = w.toLowerCase();
   // 权威数据：ECDICT（音标/词频/星级）、WordNet（英文释义/同义词）、Wiktionary（IPA 国际音标）
@@ -1792,12 +1906,15 @@ let playing = false;
 // 播放代次：每次停止/切换自增，旧的异步播放链检测到代次变化即退出，避免“旧朗读串到新单词”
 let playToken = 0;
 let learnAudioTimer = null;   // 学习页自动发音的延时器，切页时必须清掉
+function duckAudioStart(){ if(typeof musicDuck === 'function') musicDuck(true); }
+function duckAudioEnd(){ if(typeof musicDuck === 'function') musicDuck(false); }
 function stopAudio(){
   playToken++;
   if(learnAudioTimer){ clearTimeout(learnAudioTimer); learnAudioTimer = null; }
   if(currentAudio){ try{currentAudio.pause();}catch(e){} currentAudio=null; }
   if(window.speechSynthesis){ try{speechSynthesis.cancel();}catch(e){} }
   playing = false;
+  if(typeof musicDuck === 'function') musicDuck(false);   // 朗读被打断时把背景音乐恢复
 }
 
 /* ---- 朗读语速档位（标准 / 快速）：师生可自主切换，选择记忆在本机 ---- */
@@ -1862,8 +1979,9 @@ function playMediaUrl(url){
   return new Promise(resolve=>{
     const a = new Audio(url);
     currentAudio = a;
+    duckAudioStart();
     let done = false;
-    const finish = ok=>{ if(done) return; done = true; resolve(ok); };
+    const finish = ok=>{ if(done) return; done = true; duckAudioEnd(); resolve(ok); };
     a.onended = ()=>finish(true);
     a.onerror = ()=>finish(false);
     a.onpause = ()=>{ if(!a.ended) finish(false); };
@@ -1896,10 +2014,14 @@ function playWordAudio(word, onEnd){
   stopAudio();
   const a = new Audio("https://dict.youdao.com/dictvoice?audio="+encodeURIComponent(word)+"&type=2");
   currentAudio = a;
+  duckAudioStart();
+  const done = () => { duckAudioEnd(); if(onEnd) onEnd(); };
+  a.onended = done;
+  a.onerror = done;
   a.play().then(()=>{}).catch(()=>{
+    duckAudioEnd();
     playTTS(word, onEnd);
   });
-  if(onEnd) a.onended = onEnd;
 }
 function speakTTS(text, onEnd){
   try{
@@ -1910,7 +2032,9 @@ function speakTTS(text, onEnd){
     const voices = speechSynthesis.getVoices();
     const en = voices.find(v=>/^en(-|_)/i.test(v.lang)) || voices.find(v=>/en/i.test(v.lang));
     if(en) u.voice = en;
-    if(onEnd) u.onend = onEnd;
+    duckAudioStart();
+    u.onend = ()=>{ duckAudioEnd(); if(onEnd) onEnd(); };
+    u.onerror = ()=>duckAudioEnd();
     speechSynthesis.speak(u);
   }catch(e){ toast("发音失败"); }
 }
@@ -1919,9 +2043,12 @@ function speakTTS(text, onEnd){
 function playTTS(text, onEnd, rateVal){
   const a = new Audio(ttsUrl(text, rateVal || "+0%"));
   currentAudio = a;
-  if(onEnd) a.onended = onEnd;
-  a.onerror = ()=>{ if(onEnd) onEnd(); };
-  a.play().catch(()=>{ if(onEnd) onEnd(); });
+  // 朗读时把背景音乐压低，读完恢复，避免音乐盖住人声
+  if(typeof musicDuck === 'function') musicDuck(true);
+  const done = () => { if(typeof musicDuck === 'function') musicDuck(false); if(onEnd) onEnd(); };
+  a.onended = done;
+  a.onerror = done;
+  a.play().catch(done);
 }
 // 例句整句朗读（edge-tts 自然整句，不再是逐词读）；语速跟随「标准 / 快速」档位
 function speakSentence(sentence){
@@ -1956,8 +2083,9 @@ function speakLongText(text){
 function speakWords(sentence){
   const wordsArr = sentence.replace(/[^\w\s']/g," ").split(/\s+/).filter(w=>w.length>0);
   let i=0;
+  duckAudioStart();
   (function playNext(){
-    if(i>=wordsArr.length) return;
+    if(i>=wordsArr.length){ duckAudioEnd(); return; }
     const w = wordsArr[i];
     const a = new Audio("https://dict.youdao.com/dictvoice?audio="+encodeURIComponent(w)+"&type=2");
     currentAudio = a;
@@ -2648,11 +2776,93 @@ function preheatEnabled(){
   if(!PREHEAT.on) return false;
   return loadStore(LS.preheat, true) !== false;
 }
+// 短语没有独立配图时，用词尾的实词兜底（modern dance → dance，junior high school → school）
+// IMG_FUNC_WORDS / _posMap / PHRASE_IMG_HINTS 已在文件顶部声明（GROUPS 构建前就要用）
+function imageKeyVariants(k){
+  const out = [k];
+  const sp = k.replace(/-/g, ' ');
+  if(sp !== k) out.push(sp);
+  const hy = k.replace(/\s+/g, '-');
+  if(hy !== k) out.push(hy);
+  const apos = k.replace(/[’']/g, '');
+  if(apos !== k) out.push(apos);
+  // 词形还原：dishes → dish，picnics → picnic，hiking → hike，satisfied → satisfy
+  const base = [];
+  for(const v of out){
+    if(/(ches|shes|xes|sses)$/.test(v)) base.push(v.slice(0, -2));
+    else if(v.endsWith('ies')) base.push(v.slice(0, -3) + 'y');
+    else if(v.endsWith('s') && !v.endsWith('ss')) base.push(v.slice(0, -1));
+    if(v.endsWith('ing') && v.length > 5){ const b = v.slice(0, -3); base.push(b, b + 'e'); }
+    if(v.endsWith('ed') && v.length > 4){ const b = v.slice(0, -2); base.push(b, b + 'e'); }
+  }
+  base.forEach(v => { if(v && out.indexOf(v) < 0) out.push(v); });
+  return out;
+}
+function imageOfKey(k){
+  if(typeof PICS_DATA !== 'undefined' && PICS_DATA[k]) return { url: PICS_DATA[k], src: 'pics' };
+  if(typeof ATLAS_PICS !== 'undefined' && ATLAS_PICS[k]) return { url: ATLAS_PICS[k], src: 'atlas' };
+  return null;
+}
+// 判断短语里的某个词是不是名词（名词短语的中心词在词尾，取它的图才贴切）
+function wordPosOf(p){
+  if(_posMap === null){
+    const m = new Map();
+    try{
+      for(const a of ALL_WORDS){
+        const mm = String(a.cn || '').match(/^\s*((?:n|v|vt|vi|adj|adv|prep|conj|pron|num)\.)/i);
+        if(mm && !m.has(a.w)) m.set(a.w, mm[1].toLowerCase().replace('.', ''));
+      }
+      _posMap = m;             // 只有真正建成功才缓存
+    }catch(e){ return ''; }    // ALL_WORDS 还没就绪时返回空，下次再试
+  }
+  return _posMap.get(p) || '';
+}
+function imageCandidates(word){
+  const k = String(word || '').toLowerCase().trim();
+  const list = [];
+  if(!k) return list;
+  const push = hit => { if(hit && !list.some(x => x.url === hit.url)) list.push(hit); };
+
+  // ① 短语专属插图：一次生成、长期复用，优先级最高
+  if(typeof PHRASE_PICS !== 'undefined' && PHRASE_PICS[k]) push({ url: PHRASE_PICS[k], src: 'phrase' });
+
+  // ② 人工指定的语义替代图（put on → clothes，go up → up）
+  const hint = PHRASE_IMG_HINTS[k];
+  if(hint){
+    for(const v of imageKeyVariants(hint)){ const hit = imageOfKey(v); if(hit) push({ url: hit.url, src: hit.src + ':hint' }); }
+  }
+
+  // ③ 词库里的原图（含连字符/空格/撇号/复数等写法差异）
+  for(const v of imageKeyVariants(k)) push(imageOfKey(v));
+
+  // ④ 多词短语：按「名词中心词优先」退到实词
+  if(!list.length){
+    const parts = k.split(/[\s\-]+/).filter(Boolean);
+    if(parts.length > 1){
+      const content = [];
+      for(let i = parts.length - 1; i >= 0; i--){
+        const p = parts[i];
+        if(p.length < 3 || IMG_FUNC_WORDS.has(p)) continue;
+        content.push(p);
+      }
+      const ordered = content.filter(p => wordPosOf(p) === 'n').concat(content.filter(p => wordPosOf(p) !== 'n'));
+      for(const p of ordered){
+        for(const v of imageKeyVariants(p)){
+          const hit = imageOfKey(v);
+          if(hit) push({ url: hit.url, src: hit.src + ':part' });
+        }
+      }
+    }
+  }
+  return list;
+}
+// 全站唯一的「这个词该用哪张图」解析口：命中即固定，不再让 AI 覆盖
+function resolveWordImage(word){
+  return imageCandidates(word)[0] || null;
+}
 function wordImage(word){
-  const k = String(word).toLowerCase();
-  if(typeof PICS_DATA !== 'undefined' && PICS_DATA[k]) return PICS_DATA[k];
-  if(typeof ATLAS_PICS !== 'undefined' && ATLAS_PICS[k]) return ATLAS_PICS[k];
-  return '';
+  const r = resolveWordImage(word);
+  return r ? r.url : '';
 }
 // 挑 2 个干扰图：同学段、有图、按 URL 去重（有道图库存在多词共用一张图的情况），
 // 并排掉「释义撞车」的词——否则 sink 的干扰项也可能是 basin（同样是水池图），题目就没有唯一解。
@@ -2986,6 +3196,8 @@ function renderAll(opts){
   }
   // 内容没变就只切显示、不重渲染：避免返回时整页闪烁、图片重载、发音被重复触发
   const keepLearn = appMode === 'learn' && currentStep === 0 && learnSig && learnSig === learnSignature();
+  // 背景音乐跟着场景换：猜词/消消乐/做题/对战各一套，进新页面先切曲
+  try{ syncMusic(); }catch(e){}
   ["learnPage","matchPage","choicePage","fillPage","spellPage","sentencePage","transPage","passagePage","resultPage","reviewPage","wrongbookPage","decksPage","achievementPage","battlePage"].forEach(id=>{
     if(id === "learnPage" && keepLearn) return;
     const el = $("#"+id); if(el) el.classList.add("hidden");
@@ -3065,14 +3277,26 @@ function saveStore(key, val){
     return false;
   }
 }
-// 清理单词配图缓存（占用最大、可重新生成），为词库/错题本腾出空间
+// 清理单词配图缓存（占用最大），为词库/错题本腾出空间。
+// 关键：先删「词库本来就有的固定图」——删了下次还能从 PICS/图谱重取；
+// AI 生成图（没有固定图兜底）留到最后，否则学生下次打开同一个词，AI 会重画一张不一样的。
 function pruneImageCache(){
-  const del = [];
+  const fixed = [], aiOnly = [];
   for(let i=0;i<localStorage.length;i++){
     const k = localStorage.key(i);
-    if(k && k.indexOf("wordimg_")===0) del.push(k);
+    if(!k || k.indexOf("wordimg_")!==0) continue;
+    if(k.indexOf("wordimg_src_")===0) continue;          // 来源标记跟着图片一起清
+    const word = k.slice("wordimg_".length);
+    let hasFixed = false;
+    try{ hasFixed = !!resolveWordImage(word); }catch(e){}
+    (hasFixed ? fixed : aiOnly).push(k);
   }
-  del.forEach(k=>{ try{ localStorage.removeItem(k); }catch(e){} });
+  const del = fixed.length ? fixed : aiOnly;
+  del.forEach(k=>{
+    try{ localStorage.removeItem(k); }catch(e){}
+    const w = k.slice("wordimg_".length);
+    try{ localStorage.removeItem("wordimg_src_" + w); }catch(e){}
+  });
   return del.length > 0;
 }
 // 本地存储占用（KB），用于界面提示
@@ -4325,7 +4549,7 @@ function renderLearn(){
 
   // 图片：有则显示，无则占位（异步加载）
   const imgHtml = w.imageUrl
-    ? `<img src="${w.imageUrl}" alt="${escapeHtml(w.word)}" onerror="this.parentElement.classList.add('noimg');this.parentElement.innerHTML='<span class=&quot;ni-tip&quot;>暂无配图</span>'">`
+    ? imgTag(w.imageUrl, w.word)
     : `<span class="emoji" id="imgPlaceholder">🖼️</span>`;
 
   // 释义：主视觉只放最高频的 3 个义项，完整释义留在 title 里（拒绝无效信息堆砌）
@@ -4369,7 +4593,7 @@ function renderLearn(){
         ${badgeHtml}
         ${defHtml}
         <div class="sec-head">
-          <h3>💬 常用例句 <span style="font-size:11px;font-weight:400;color:#9aa0b6">课本原句 · 中高考真题高频句</span></h3>
+          <h3>💬 常用例句 <span style="font-size:11px;font-weight:400;color:#9aa0b6">真实语境 · 词典/真题例句</span></h3>
           <button class="ex-trans-btn" id="exTransBtn" onclick="toggleExTrans(this)" title="一次显示或收起全部例句的译文">全部译文</button>
         </div>
         <div class="ex-list" id="exList">${exHtml}</div>
@@ -4424,50 +4648,51 @@ async function loadPhonetic(w){
    ② 有道图解词典（PICS_DATA，免费、国内直连，约60%词有图）
    ③ Agnes AI 生成兜底（仅抽象词，额度需求减半） */
 const IMG_CACHE_PREFIX = 'wordimg_';
+// 内存兜底：localStorage 写满/隐私模式时，至少本次会话里不要重复找 AI 画同一张图
+const IMG_MEMORY = new Map();
 function getCachedImage(word){
-  try{ return localStorage.getItem(IMG_CACHE_PREFIX + word) || ''; }catch(e){ return ''; }
+  try{ const v = localStorage.getItem(IMG_CACHE_PREFIX + word); if(v) return v; }catch(e){}
+  return IMG_MEMORY.get(String(word).toLowerCase()) || '';
 }
 function setCachedImage(word, url){
+  IMG_MEMORY.set(String(word).toLowerCase(), url);
   try{ localStorage.setItem(IMG_CACHE_PREFIX + word, url); }catch(e){}
 }
+// 记录这张图是「词库固定图」还是「AI 生成」：固定图不允许被 AI 顶掉，否则同一个词前后两张不一样的图
+const IMG_SRC_PREFIX = 'wordimg_src_';
+function getImageSource(word){
+  try{ return localStorage.getItem(IMG_SRC_PREFIX + word) || ''; }catch(e){ return ''; }
+}
+function setImageSource(word, src){
+  try{ localStorage.setItem(IMG_SRC_PREFIX + word, src || ''); }catch(e){}
+}
 function imgTag(url, word){
-  return `<img src="${url}" alt="${word}" onerror="onImgFail(this.parentElement,'${word}')">`;
+  // 短语里常有撇号（take somebody's place），直接塞进单引号会打断 onerror 里的 JS
+  const jsWord = String(word == null ? '' : word).replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+  return `<img src="${escapeHtml(String(url || ''))}" alt="${escapeHtml(String(word || ''))}" onerror="onImgFail(this.parentElement,'${jsWord}')">`;
 }
 async function loadImage(w){
   const imgEl = $("#wordImg");
   if(!imgEl) return;
   if(w.imageUrl){ return; }
-  // 1. 本地缓存
-  const cached = getCachedImage(w.word);
-  if(cached){
-    w.imageUrl = cached;
-    imgEl.innerHTML = imgTag(cached, w.word);
+  // 词库标准图优先（就是猜词环节学生看到的那张），只有词库确实没图时才用 AI 缓存/现画
+  const fixed = resolveWordImage(w.word);
+  const url = fixed ? fixed.url : getCachedImage(w.word);
+  if(url){
+    w.imageUrl = url;
+    setCachedImage(w.word, url);
+    if(fixed) setImageSource(w.word, fixed.src);
+    imgEl.innerHTML = imgTag(url, w.word);
     return;
   }
-  // 2. 有道图解词典优先（真实照片，免费国内直连，约59%具体名词）
-  const yd = (typeof PICS_DATA !== 'undefined' && PICS_DATA[w.word.toLowerCase()]) || '';
-  if(yd){
-    w.imageUrl = yd;
-    setCachedImage(w.word, yd);
-    imgEl.innerHTML = imgTag(yd, w.word);
-    return;
-  }
-  // 3. AI 写实照片（有道无图时优先 AI，真实感；抽象词也能有写实场景图）
   await genImage(w, imgEl);
-  if(w.imageUrl){ return; }
-  // 4. Word Atlas 插画最后兜底（AI 失败/额度耗尽时用场景插画）
-  const at = (typeof ATLAS_PICS !== 'undefined' && ATLAS_PICS[w.word.toLowerCase()]) || '';
-  if(at){
-    w.imageUrl = at;
-    setCachedImage(w.word, at);
-    imgEl.innerHTML = imgTag(at, w.word);
-    return;
-  }
 }
-async function genImage(w, imgEl){
+async function genImage(w, imgEl, force){
   // 快速翻词时旧的生图请求没有意义，先确认这个词还在当前页
   const cur = words()[learnIndex];
   if(!cur || cur.word !== w.word) return;
+  // 词库已经有固定图，就不让 AI 重画（force 仅用于固定图两张都加载失败时兜底）
+  if(!force && resolveWordImage(w.word)) return;
   try{
     // 取该词最长的一条例句作为生图语境（让 AI 按例句场景画，更贴词义）
     let sentence = '';
@@ -4486,33 +4711,37 @@ async function genImage(w, imgEl){
     if(data.url){
       w.imageUrl = data.url;
       setCachedImage(w.word, data.url);
+      setImageSource(w.word, 'ai');
       imgEl.innerHTML = imgTag(data.url, w.word);
     }
   }catch(e){
     // AI 失败（额度用尽等）保留占位，下次进入重试
   }
 }
-// 图片加载失败：按顺序回退 有道图 → AI 写实 → Word Atlas 插画，全部失败则显示占位符
+// 图片加载失败：先换同词的另一张固定图（有道 ⇄ 图谱），两张都挂才让 AI 补一张
 async function onImgFail(el, word){
+  // onerror 触发时 img 还在 DOM 里，先记下是哪张图挂了
+  const badImg = el && el.querySelector ? el.querySelector('img') : null;
+  const failed = badImg ? String(badImg.getAttribute('src') || '') : '';
   try{ localStorage.removeItem(IMG_CACHE_PREFIX + word); }catch(e){}
-  const w = words().find(x=>x.word === word);
+  setImageSource(word, '');
+  const w = words().find(x => x.word === word) || null;
   if(!w){ el.innerHTML = '<span class="emoji">🖼️</span>'; return; }
-  const lw = word.toLowerCase();
-  const yd = (typeof PICS_DATA !== 'undefined' && PICS_DATA[lw]) || '';
-  const at = (typeof ATLAS_PICS !== 'undefined' && ATLAS_PICS[lw]) || '';
-  const fail = (w._imgFail = (w._imgFail||0) + 1);
   w.imageUrl = '';
-  if(fail === 1 && yd){ // 第一次失败 → 试有道真实照片
-    w.imageUrl = yd; setCachedImage(word, yd); el.innerHTML = imgTag(yd, word); return;
+  const next = imageCandidates(word).find(c => c.url && c.url !== failed);
+  if(next){
+    w.imageUrl = next.url;
+    setCachedImage(word, next.url);
+    setImageSource(word, next.src);
+    el.innerHTML = imgTag(next.url, word);
+    return;
   }
-  if(fail <= 2 && !w._aiTried){ // 第二次失败 → 试 AI 写实照片
-    w._aiTried = true; await genImage(w, el);
+  if(!w._aiTried){
+    w._aiTried = true;
+    await genImage(w, el, true);
     if(w.imageUrl) return;
   }
-  if(fail <= 3 && at){ // AI 失败 → Word Atlas 插画兜底
-    w.imageUrl = at; setCachedImage(word, at); el.innerHTML = imgTag(at, word); return;
-  }
-  if(!w.imageUrl){ el.innerHTML = '<span class="emoji">🖼️</span>'; }
+  el.innerHTML = '<span class="emoji">🖼️</span>';
 }
 function nextWord(){
   if(learnIndex < words().length-1){
@@ -4564,12 +4793,16 @@ function rerenderStep(){
   else if(currentStep === 5) renderSentenceQ();
   else if(currentStep === 6) renderTransQ();
 }
-function diffBar(){
+function diffBar(withTime){
   const cur = curDiff();
+  const b = timeBonus();
+  const timePill = withTime
+    ? `<button class="diff-pill time-pill${b ? ' on' : ''}" onclick="openTimeBoost('default', this)" title="给选择/填空/组句/翻译的每道题多加时间">${b ? '⏱ +' + b + 's' : '⏱ 时间'}</button>`
+    : '';
   return `<div class="diff-bar">${DIFF_ORDER.map(k=>{
     const d = DIFF[k];
     return `<button class="diff-pill${k===cur.key?' on':''}" onclick="setDiff('${k}')">${d.icon} ${d.name}</button>`;
-  }).join('')}</div>`;
+  }).join('')}${timePill}</div>`;
 }
 
 /* ---- 释义精简：只取最常用的 N 个义项并标词性；短语（无词性前缀）不标词性 ---- */
@@ -4645,7 +4878,7 @@ function startCountdown(sec, onTick, onEnd){
     if(st.paused) return;
     const left = Math.max(0, st.end - Date.now());
     st.remaining = left;
-    if(st.onTick) st.onTick(left / 1000, left / total);
+    if(st.onTick) st.onTick(left / 1000, left / st.total);
     if(left <= 0){
       st.paused = true;
       if(qTimer){ clearInterval(qTimer); qTimer = null; }
@@ -4683,9 +4916,11 @@ function resumeCountdown(){
 }
 function timerBar(sec, uid){
   const u = uid || 'q';
+  const total = Math.max(1, sec + timeBonus());
   return `<div class="q-timer" id="qTimerBox-${u}">
       <div class="q-timer-track"><i id="qTimerFill-${u}"></i></div>
-      <span class="q-timer-num" id="qTimerNum-${u}">${sec}s</span>
+      <span class="q-timer-num" id="qTimerNum-${u}">${total}s</span>
+      <button class="q-addtime" onclick="openTimeBoost('timer', this)" title="时间不够，可以加点时间">＋加时</button>
     </div>`;
 }
 // 驱动题目上的计时条；到点回调 onEnd（按"超时=答错"处理）
@@ -4693,13 +4928,152 @@ function timerBar(sec, uid){
 function runQTimer(sec, onEnd, uid){
   const u = uid || 'q';
   const fill = $("#qTimerFill-" + u), num = $("#qTimerNum-" + u), box = $("#qTimerBox-" + u);
-  startCountdown(sec, (left, ratio) => {
+  const total = Math.max(1, sec + timeBonus());
+  startCountdown(total, (left, ratio) => {
     if(!fill || !num) return;
     fill.style.width = Math.max(0, Math.min(1, ratio)) * 100 + '%';
     num.textContent = Math.ceil(left) + 's';
     if(box) box.classList.toggle('urgent', ratio <= 0.25);
   }, onEnd);
 }
+
+/* ---- 自定义加时：题目倒计时 / 消消乐竞速都能加，加多少由用户定并记住 ---- */
+const LS_BOOST = 'lx_boost_sec';
+// 每题额外时间：学生可以一次性把「这一类题型」的每道题都加长，不用每题手忙脚乱点加时
+const LS_TIME_BONUS = 'lx_time_bonus';
+function timeBonus(){
+  try{ const v = parseInt(localStorage.getItem(LS_TIME_BONUS), 10); if(v >= 0 && v <= 120) return v; }catch(e){}
+  return 0;
+}
+function setTimeBonus(v){
+  try{ localStorage.setItem(LS_TIME_BONUS, String(v)); }catch(e){}
+}
+function syncTimePill(){
+  const b = timeBonus();
+  document.querySelectorAll('.time-pill').forEach(el => {
+    el.textContent = b ? ('⏱ +' + b + 's') : '⏱ 时间';
+    el.classList.toggle('on', !!b);
+  });
+}
+function boostDefault(){
+  try{ const v = parseInt(localStorage.getItem(LS_BOOST), 10); if(v >= 5 && v <= 300) return v; }catch(e){}
+  return 30;
+}
+let timeBoostCtx = null;
+function closeTimeBoost(){
+  const el = document.getElementById('timeBoostPop');
+  if(el) el.remove();
+  timeBoostCtx = null;
+}
+function openTimeBoost(kind, anchor){
+  const cur = document.getElementById('timeBoostPop');
+  if(cur && timeBoostCtx && timeBoostCtx.kind === kind){ closeTimeBoost(); return; }  // 再点一次收起
+  closeTimeBoost();
+  timeBoostCtx = { kind };
+  const pop = document.createElement('div');
+  pop.className = 'tb-pop';
+  pop.id = 'timeBoostPop';
+  const isDefault = kind === 'default';
+  const presets = isDefault ? [0, 15, 30, 60] : [15, 30, 60];
+  const tips = {
+    match:'对手会原地等你这么久，进度条一起停住',
+    pk:'双方共用的倒计时一起延长，适合手慢的一方',
+    default:'给选择/填空/组句/翻译的每道题都加时，设置会记住；选 0 恢复默认',
+    timer:'加到当前这道题上，倒计时立刻变长'
+  };
+  pop.innerHTML = `
+    <div class="tb-head"><span>${isDefault ? '⏱ 每道题加多少时间？' : '⏱ 加多少时间？'}</span><button class="tb-x" onclick="closeTimeBoost()" aria-label="关闭">✕</button></div>
+    <div class="tb-presets">${presets.map(s => `<button onclick="applyTimeBoost(${s}, true)">${s === 0 ? '不加时' : '+' + s + ' 秒'}</button>`).join('')}</div>
+    <div class="tb-custom">
+      <input type="number" id="tbSec" min="${isDefault ? 0 : 5}" max="${isDefault ? 120 : 300}" step="5" value="${isDefault ? timeBonus() : boostDefault()}" inputmode="numeric">
+      <span>秒</span>
+      <button class="tb-ok" onclick="applyTimeBoost(parseInt(document.getElementById('tbSec').value,10), true)">${isDefault ? '保存' : '加'}</button>
+    </div>
+    <div class="tb-tip">${tips[kind] || tips.timer}</div>`;
+  document.body.appendChild(pop);
+}
+function applyTimeBoost(sec, remember){
+  const kind = timeBoostCtx && timeBoostCtx.kind;
+  sec = Math.round(Number(sec));
+  if(kind === 'default'){
+    if(!Number.isFinite(sec)){ toast('请输入 0–120 之间的秒数'); return; }
+    sec = Math.min(120, Math.max(0, sec));
+    const old = timeBonus();
+    setTimeBonus(sec);
+    if(sec > old) boostQuestionTime(sec - old);   // 当前这题也立刻享受新时长
+    syncTimePill();
+    closeTimeBoost();
+    toast(sec ? `⏱ 每道题已加 ${sec} 秒` : '⏱ 已恢复默认时间');
+    return;
+  }
+  if(!Number.isFinite(sec) || sec <= 0){ toast('请输入 5–300 之间的秒数'); return; }
+  sec = Math.min(300, Math.max(5, sec));
+  if(remember){ try{ localStorage.setItem(LS_BOOST, String(sec)); }catch(e){} }
+  const ok = kind === 'match' ? boostMatchTime(sec) : (kind === 'pk' ? boostPkTime(sec) : boostQuestionTime(sec));
+  closeTimeBoost();
+  toast(ok ? `⏱ 已加时 ${sec} 秒` : '这道题已经结束了，加时留到下一题吧');
+}
+function boostQuestionTime(sec){
+  const st = qTimerState;
+  if(!st || st.remaining <= 0) return false;
+  st.total += sec * 1000;
+  st.end += sec * 1000;
+  st.remaining += sec * 1000;
+  if(st.onTick) st.onTick(st.remaining / 1000, st.remaining / st.total);   // 立刻刷新，不等下一次 tick
+  return true;
+}
+// 对战：双方共用一块表，直接延长本回合 deadline
+function boostPkTime(sec){
+  const st = (typeof pk !== 'undefined') ? pk : null;
+  if(!st || st.phase !== 'q') return false;
+  st.extraTime = (st.extraTime || 0) + sec;
+  st.deadline += sec * 1000;
+  const clock = document.getElementById('pkClock');
+  if(clock) clock.textContent = Math.ceil(Math.max(0, st.deadline - Date.now()) / 1000);
+  return true;
+}
+function boostMatchTime(sec){
+  const st = matchState;
+  if(!st || st.done) return false;
+  const r = st.rival;
+  if(!r) return false;
+  st.bonus = (st.bonus || 0) + sec;
+  if(r.timer){ clearTimeout(r.timer); r.timer = null; }
+  r.paused = true;
+  // 可以连续加时：把剩余暂停时间累加，而不是让上一次的定时器提前把对手放出来
+  r.pauseLeft = (r.pauseLeft || 0) + sec * 1000;
+  if(r.resumeTimer){ clearTimeout(r.resumeTimer); r.resumeTimer = null; }
+  const tickDown = () => {
+    r.resumeTimer = setTimeout(() => {
+      if(matchState !== st || st.done) return;
+      r.pauseLeft -= 1000;
+      if(r.pauseLeft > 0){
+        const tip = document.getElementById('raceBoost');
+        if(tip) tip.textContent = `⏸ 对手暂停，等你 ${Math.ceil(r.pauseLeft / 1000)} 秒…`;
+        tickDown();
+        return;
+      }
+      r.paused = false;
+      r.pauseLeft = 0;
+      r.resumeTimer = null;
+      scheduleMatchRival();
+      const tip = document.getElementById('raceBoost');
+      if(tip) tip.textContent = `已加时 ${st.bonus} 秒，继续加油`;
+    }, 1000);
+  };
+  tickDown();
+  const tip = document.getElementById('raceBoost');
+  if(tip){ tip.classList.remove('hidden'); tip.textContent = `⏸ 对手暂停，等你 ${Math.ceil(r.pauseLeft / 1000)} 秒…`; }
+  paintMatchRace();
+  return true;
+}
+document.addEventListener('click', e => {
+  const pop = document.getElementById('timeBoostPop');
+  if(!pop) return;
+  if(pop.contains(e.target)) return;
+  if(e.target.closest && e.target.closest('.q-addtime, .bomb-addtime')) return;
+  closeTimeBoost();
+}, true);
 
 /* ---- 答题解析卡（全题型通用） ---- */
 let fbNext = null;
@@ -4789,7 +5163,393 @@ function fbWordAnswer(w, chosen, ok, head){
   };
 }
 
-/* 背景音乐已移除：做题时只保留单词/句子的朗读音，不再播放无关 BGM。 */
+/* ================= 背景音乐：Web Audio 实时合成 · 按场景自动换曲 ================= */
+// 不引入音频文件（避免版权与体积），全部用振荡器 + 噪声实时合成。
+// 每首曲子 = 速度 + 音色 + 和弦进行 + 旋律型 + 鼓组；16 分音符为一步，每 16 步一小节。
+// 关键改动：音乐跟着场景走 —— 猜词/做题/消消乐/对战/结算各用不同曲子，
+// 而不是从头到尾一首「阳光午后」放着，那样才叫和场景不合。
+const LS_MUSIC = 'lx_music_v2';   // v2：按场景自动换曲；旧版本存过「关闭」的，升级后重新默认开启
+const MUSIC_ROOT = 261.63;                       // C4
+const _mf = semi => MUSIC_ROOT * Math.pow(2, semi / 12);
+
+const MUSIC_TRACKS = [
+  { id:'sunny',   name:'阳光午后', emoji:'🌤️', bpm:106, wave:'triangle', style:'arp',     drums:'pop',
+    chords:[[0,4,7],[7,11,14],[9,12,16],[5,9,12]] },
+  { id:'focus',   name:'专注模式', emoji:'🎧', bpm:84,  wave:'sine',     style:'sparse',  drums:'soft',
+    chords:[[0,3,7],[5,8,12],[7,10,14],[3,7,10]] },
+  { id:'piano',   name:'温柔钢琴', emoji:'🎹', bpm:72,  wave:'sine',     style:'arp',     drums:'none',
+    chords:[[0,4,7,11],[5,9,12,16],[7,11,14,17],[2,5,9,12]] },
+  { id:'electro', name:'电子律动', emoji:'🎛️', bpm:120, wave:'square',   style:'drive',   drums:'edm',
+    chords:[[0,3,7],[8,12,15],[5,8,12],[3,7,10]] },
+  { id:'jazz',    name:'爵士小调', emoji:'🎷', bpm:96,  wave:'triangle', style:'swing',   drums:'jazz',
+    chords:[[0,3,7,10],[5,8,12,15],[7,10,14,17],[2,7,11,14]] },
+  { id:'china',   name:'古风轻扬', emoji:'🏮', bpm:88,  wave:'sine',     style:'pluck',   drums:'soft',
+    chords:[[0,2,7],[5,7,12],[7,9,14],[2,7,9]] },
+  { id:'lofi',    name:'Lo-fi 夜读', emoji:'🌙', bpm:76, wave:'triangle', style:'lofi',   drums:'lofi',
+    chords:[[0,4,7,11],[9,12,16,19],[5,9,12,16],[7,11,14,17]] },
+  { id:'forest',  name:'森林晨光', emoji:'🌿', bpm:92,  wave:'sine',     style:'arp',     drums:'soft',
+    chords:[[0,4,9],[7,11,14],[5,9,12],[2,7,11]] },
+  { id:'star',    name:'星空漫游', emoji:'✨', bpm:80,  wave:'sine',     style:'sparkle', drums:'none',
+    chords:[[0,7,12],[3,10,15],[5,12,17],[7,14,19]] },
+  { id:'sprint',  name:'冲刺时刻', emoji:'⚡', bpm:132, wave:'sawtooth', style:'drive',   drums:'edm',
+    chords:[[0,3,7],[10,14,17],[8,12,15],[5,8,12]] }
+];
+
+// 场景 → 曲子：安静的场景用慢的，竞速用快的，结算用星空收尾
+const SCENE_TRACK = {
+  guess:'focus', match:'sunny', choice:'forest', fill:'piano', spell:'lofi',
+  // 组句/翻译/篇章都要听音频、读长句，配最轻的钢琴或氛围音，别用带鼓点的曲子抢注意力
+  sentence:'piano', trans:'piano', passage:'star', result:'star',
+  battle:'sprint', review:'focus', wrongbook:'focus', decks:'focus', achievement:'forest', home:'focus'
+};
+function currentSceneKey(){
+  if(appMode === 'battle') return 'battle';
+  if(appMode === 'learn'){
+    if(currentStep >= 8) return 'result';
+    return ['guess','match','choice','fill','spell','sentence','trans','passage'][currentStep] || 'guess';
+  }
+  if(MODE_META && MODE_META[appMode]) return appMode;
+  return 'home';
+}
+let musicDuck = null;          // 由 music 模块赋值，朗读时把音乐压下去
+
+const music = {
+  ac:null, master:null, noiseBuf:null,
+  on:false, want:true, follow:true, timer:null, step:0, nextT:0,
+  trackId:'focus', vol:0.35, ducking:false,
+
+  load(){
+    try{
+      const d = JSON.parse(localStorage.getItem(LS_MUSIC) || 'null') || {};
+      if(MUSIC_TRACKS.some(t => t.id === d.track)) this.trackId = d.track;
+      if(typeof d.vol === 'number') this.vol = Math.max(0, Math.min(1, d.vol));
+      if(typeof d.on === 'boolean') this.want = d.on;
+      if(typeof d.follow === 'boolean') this.follow = d.follow;
+    }catch(e){}
+  },
+  save(){
+    try{ localStorage.setItem(LS_MUSIC, JSON.stringify({ on:this.want, follow:this.follow, track:this.trackId, vol:this.vol })); }catch(e){}
+  },
+  track(){ return MUSIC_TRACKS.find(t => t.id === this.trackId) || MUSIC_TRACKS[0]; },
+
+  ensure(){
+    if(!this.ac){
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if(!AC) return null;
+      try{
+        this.ac = new AC();
+        this.master = this.ac.createGain();
+        this.master.gain.value = this.vol * 0.5;
+        this.master.connect(this.ac.destination);
+        const len = Math.floor(this.ac.sampleRate * 0.4);
+        const buf = this.ac.createBuffer(1, len, this.ac.sampleRate);
+        const ch = buf.getChannelData(0);
+        for(let i = 0; i < len; i++) ch[i] = Math.random() * 2 - 1;
+        this.noiseBuf = buf;
+      }catch(e){ return null; }
+    }
+    if(this.ac.state === 'suspended'){ try{ this.ac.resume(); }catch(e){} }
+    return this.ac;
+  },
+  // 朗读时把音乐压低，读完恢复：不然念例句时音乐盖过人声
+  duck(v){
+    this.ducking = !!v;
+    if(!this.on) return;                    // 音乐没在播时，朗读开始/结束都不该把它「恢复」出来
+    if(this.master){
+      const target = this.vol * 0.5 * (v ? 0.22 : 1);
+      try{ this.master.gain.setTargetAtTime(target, this.ac.currentTime, 0.12); }catch(e){ this.master.gain.value = target; }
+    }
+  },
+
+  tone(freq, t, dur, type, gain){
+    const ac = this.ac;
+    if(!ac) return;
+    try{
+      const o = ac.createOscillator(), g = ac.createGain();
+      o.type = type || 'sine';
+      o.frequency.setValueAtTime(freq, t);
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(Math.max(0.0003, gain), t + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + Math.max(0.05, dur));
+      o.connect(g); g.connect(this.master);
+      o.start(t); o.stop(t + dur + 0.04);
+    }catch(e){}
+  },
+  hat(t, gain, hp){
+    const ac = this.ac;
+    if(!ac || !this.noiseBuf) return;
+    try{
+      const s = ac.createBufferSource(); s.buffer = this.noiseBuf;
+      const f = ac.createBiquadFilter(); f.type = 'highpass'; f.frequency.value = hp || 7000;
+      const g = ac.createGain();
+      g.gain.setValueAtTime(gain, t);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.055);
+      s.connect(f); f.connect(g); g.connect(this.master);
+      s.start(t); s.stop(t + 0.07);
+    }catch(e){}
+  },
+  kick(t){
+    const ac = this.ac;
+    if(!ac) return;
+    try{
+      const o = ac.createOscillator(), g = ac.createGain();
+      o.frequency.setValueAtTime(150, t);
+      o.frequency.exponentialRampToValueAtTime(46, t + 0.13);
+      g.gain.setValueAtTime(0.16, t);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.17);
+      o.connect(g); g.connect(this.master);
+      o.start(t); o.stop(t + 0.19);
+    }catch(e){}
+  },
+
+  schedule(step, t){
+    const tr = this.track();
+    const s = step % 16;
+    const bar = Math.floor(step / 16);
+    const chord = tr.chords[bar % tr.chords.length];
+    const beat = 60 / tr.bpm;
+    const st = beat / 4;
+
+    if(s === 0){
+      chord.forEach(n => this.tone(_mf(n) * 2, t, beat * 3.7, tr.wave, 0.028));
+      this.tone(_mf(chord[0] - 12), t, beat * 1.7, 'sine', 0.085);
+      this.tone(_mf(chord[0] - 12), t + beat * 2, beat * 1.6, 'sine', 0.065);
+    }
+
+    const notes = chord.concat([chord[0] + 12]);
+    if(tr.style === 'arp'){
+      if(s % 2 === 0){
+        const n = notes[(s / 2) % notes.length] + 12;
+        this.tone(_mf(n), t, st * 1.8, tr.wave, s % 8 === 0 ? 0.07 : 0.045);
+      }
+    } else if(tr.style === 'sparse'){
+      if(s === 0 || s === 6 || s === 10){
+        this.tone(_mf(chord[s === 6 ? 1 : 0] + 12), t, beat * 1.1, tr.wave, 0.06);
+      }
+    } else if(tr.style === 'drive'){
+      if(s % 2 === 1){
+        this.tone(_mf(notes[(s >> 1) % notes.length] + 12), t, st * 1.2, tr.wave, 0.035);
+      }
+      if(s === 0 || s === 8){
+        this.tone(_mf(chord[2] + 12), t, st * 1.4, tr.wave, 0.05);
+      }
+    } else if(tr.style === 'swing'){
+      if([0, 3, 6, 10, 13].indexOf(s) >= 0){
+        const n = notes[(s / 3 | 0) % notes.length] + 12;
+        this.tone(_mf(n), t, st * 2.2, tr.wave, 0.055);
+      }
+    } else if(tr.style === 'pluck'){
+      if(s === 0 || s === 4 || s === 8 || s === 12){
+        this.tone(_mf(chord[(s / 4) % chord.length] + 12), t, beat * 0.9, tr.wave, 0.06);
+      }
+    } else if(tr.style === 'lofi'){
+      if(s === 0 || s === 6 || s === 8 || s === 14){
+        this.tone(_mf(chord[(s / 2 | 0) % chord.length] + 12), t, beat * 1.3, tr.wave, 0.05);
+      }
+    } else if(tr.style === 'sparkle'){
+      if(s % 4 === 2){
+        this.tone(_mf(chord[0] + 24), t, st * 2.5, 'sine', 0.04);
+        this.tone(_mf(chord[2] + 19), t + st, st * 2, 'sine', 0.025);
+      }
+    }
+
+    const d = tr.drums;
+    if(d === 'pop'){
+      if(s === 0 || s === 8) this.kick(t);
+      if(s === 4 || s === 12) this.hat(t, 0.05, 5000);
+      if(s % 2 === 0) this.hat(t, 0.018, 9000);
+    } else if(d === 'edm'){
+      if(s % 4 === 0) this.kick(t);
+      if(s % 2 === 1) this.hat(t, 0.03, 9500);
+      if(s === 4 || s === 12) this.hat(t, 0.055, 4200);
+    } else if(d === 'soft'){
+      if(s === 0) this.kick(t);
+      if(s === 8) this.hat(t, 0.014, 9000);
+    } else if(d === 'jazz'){
+      if(s === 0 || s === 10) this.kick(t);
+      if(s % 2 === 0) this.hat(t, 0.022, 8000);
+    } else if(d === 'lofi'){
+      if(s === 0 || s === 8) this.kick(t);
+      if(s === 12) this.hat(t, 0.035, 5000);
+      if(s % 4 === 2) this.hat(t, 0.012, 9000);
+    }
+  },
+
+  tick(){
+    const ac = this.ac;
+    if(!ac || !this.on) return;
+    // 浏览器在首次点击前会把 AudioContext 挂起；此时绝不能排音符，否则一恢复就是一堆音同时炸出来
+    if(ac.state !== 'running') return;
+    const st = (60 / this.track().bpm) / 4;
+    // 页面切后台回来时 currentTime 会跳很远，把时钟拉回来，避免追赶式连播
+    if(this.nextT < ac.currentTime - 0.4) this.nextT = ac.currentTime + 0.06;
+    while(this.nextT < ac.currentTime + 0.5){
+      this.schedule(this.step, this.nextT);
+      this.step++;
+      this.nextT += st;
+    }
+  },
+  fade(target, sec){
+    if(!this.master) return;
+    const t = this.ac.currentTime;
+    try{
+      this.master.gain.cancelScheduledValues(t);
+      this.master.gain.setValueAtTime(Math.max(0.0001, this.master.gain.value), t);
+      this.master.gain.linearRampToValueAtTime(Math.max(0.0001, target), t + (sec || 0.6));
+    }catch(e){ this.master.gain.value = target; }
+  },
+  start(){
+    if(this.on) return;
+    const ac = this.ensure();
+    if(!ac) return;
+    if(ac.state !== 'running'){ this.pending = true; return; }   // 等用户第一次点击再出声
+    this.on = true;
+    this.pending = false;
+    this.step = 0;
+    this.nextT = ac.currentTime + 0.12;
+    this.fade(this.ducking ? this.vol * 0.5 * 0.22 : this.vol * 0.5, 0.9);
+    if(this.timer) clearInterval(this.timer);
+    this.timer = setInterval(() => this.tick(), 120);
+    this.tick();
+    updateMusicDock();
+  },
+  // 任意一次点击都调一次：把被浏览器挂起的音频上下文唤醒，并补上播放
+  kick(){
+    if(!this.want) return;
+    const ac = this.ensure();
+    if(!ac) return;
+    if(ac.state === 'running'){ if(!this.on) this.start(); return; }
+    try{
+      const p = ac.resume();
+      if(p && p.then) p.then(() => { if(this.want && !this.on) this.start(); }).catch(() => {});
+    }catch(e){}
+  },
+  stop(){
+    this.on = false;
+    this.pending = false;
+    this.fade(0.0001, 0.35);
+    if(this.timer){ clearInterval(this.timer); this.timer = null; }
+    updateMusicDock();
+  },
+  setWant(v){
+    this.want = !!v;
+    this.save();
+    // 按钮点击本身就是用户手势，直接唤醒音频上下文，不用等下一次点击
+    if(this.want){ this.kick(); this.start(); } else this.stop();
+    updateMusicDock();
+  },
+  // 换曲子：播放中换，直接改调度参数并从下一小节开头重来，不打断音频链路
+  applyTrack(id, silent){
+    if(!MUSIC_TRACKS.some(t => t.id === id)) return;
+    if(this.trackId === id) return;
+    this.trackId = id;
+    if(this.on && this.ac){
+      this.step = 0;
+      this.nextT = this.ac.currentTime + 0.06;
+    }
+    if(!silent){ this.save(); renderMusicPanel(); }
+  },
+  setTrack(id){
+    this.follow = false;          // 手动选曲 = 不再跟随场景
+    this.applyTrack(id);
+    this.save();
+    renderMusicPanel();
+  },
+  setFollow(v){
+    this.follow = !!v;
+    this.save();
+    if(this.follow){ syncMusic(); }
+    renderMusicPanel();
+  },
+  setVolume(v){
+    this.vol = Math.max(0, Math.min(1, v));
+    if(this.master && !this.ducking) this.master.gain.value = this.vol * 0.5;
+    this.save();
+  },
+  toggle(){
+    this.setWant(!this.want);
+    return this.want;
+  }
+};
+music.load();
+// 第一次升级到「场景音乐」时提示一次，避免用户以为还没修好
+try{
+  if(!localStorage.getItem('lx_music_notice_v2')){
+    localStorage.setItem('lx_music_notice_v2', '1');
+    setTimeout(()=>{ try{ if(music.want) toast('🎵 背景音乐已开启：不同环节自动换曲，点右下角 🎵 可调音量或关闭'); }catch(e){} }, 1800);
+  }
+}catch(e){}
+
+/* ---- 悬浮音乐控件（做题/游戏页出现） ---- */
+function isGamePage(){
+  return appMode === 'battle' || appMode === 'learn';
+}
+function updateMusicDock(){
+  const dock = document.getElementById('musicDock');
+  if(!dock) return;
+  const show = isGamePage();
+  dock.classList.toggle('hidden', !show);
+  const fab = document.getElementById('musicFab');
+  if(fab){
+    fab.classList.toggle('on', music.on);
+    fab.title = music.on ? ('背景音乐：' + music.track().name + '（点击切换）') : '添加背景音乐';
+  }
+  if(!show) dock.classList.remove('open');
+}
+function toggleMusicPanel(){
+  const dock = document.getElementById('musicDock');
+  if(!dock) return;
+  const open = dock.classList.toggle('open');
+  if(open) renderMusicPanel();
+}
+// 每渲染一页调一次：跟随场景时自动换成这一场景该放的曲子，然后补一次播放
+function syncMusic(){
+  if(music.follow){
+    const want = SCENE_TRACK[currentSceneKey()] || 'focus';
+    if(music.trackId !== want) music.applyTrack(want, true);
+  }
+  if(music.want && !music.on) music.kick();
+  else if(!music.want && music.on) music.stop();
+  updateMusicDock();
+}
+// 浏览器限制：首次交互后才允许出声，任意一次点击补一次 resume
+document.addEventListener('pointerdown', () => { try{ music.kick(); }catch(e){} }, { passive:true });
+musicDuck = (v) => music.duck(v);
+function musicToggleBtn(){
+  music.setWant(!music.want);
+  renderMusicPanel();
+  toast(music.want ? '🎵 背景音乐已开启' : '🔇 背景音乐已关闭');
+}
+function renderMusicPanel(){
+  const panel = document.getElementById('musicPanel');
+  if(!panel) return;
+  const cur = music.track();
+  const sceneName = ({guess:'猜词',match:'消消乐',choice:'词义甄别',fill:'语境填空',spell:'拼写',sentence:'组句',trans:'翻译',passage:'篇章',result:'结算',battle:'对战'})[currentSceneKey()] || '当前页';
+  panel.innerHTML = `
+    <div class="mp-head">
+      <span>🎵 背景音乐</span>
+      <button class="mp-close" onclick="toggleMusicPanel()" aria-label="关闭">✕</button>
+    </div>
+    <div class="mp-row">
+      <button class="mp-toggle${music.want ? ' on' : ''}" onclick="musicToggleBtn()">${music.want ? '播放中 · 点击关闭' : '已关闭 · 点击开启'}</button>
+    </div>
+    <div class="mp-follow">
+      <label><input type="checkbox" ${music.follow ? 'checked' : ''} onchange="music.setFollow(this.checked)"> 跟随场景自动换曲</label>
+      <span class="mp-scene">${music.follow ? '当前场景：' + escapeHtml(sceneName) : '已手动锁定曲目'}</span>
+    </div>
+    <div class="mp-list">
+      ${MUSIC_TRACKS.map(t => `<button class="mp-track${t.id === cur.id ? ' on' : ''}" onclick="music.setTrack('${t.id}')">
+        <span class="mp-emoji">${t.emoji}</span><span class="mp-name">${t.name}</span><span class="mp-bpm">${t.bpm}</span>
+      </button>`).join('')}
+    </div>
+    <div class="mp-vol">
+      <span>音量</span>
+      <input type="range" min="0" max="100" value="${Math.round(music.vol * 100)}" oninput="music.setVolume(this.value/100); document.getElementById('mpVolNum').textContent=this.value+'%'">
+      <b id="mpVolNum">${Math.round(music.vol * 100)}%</b>
+    </div>
+    <div class="mp-tip">音乐由浏览器实时合成，无版权素材；朗读单词/例句时会自动压低，不抢人声</div>`;
+}
+
 
 
 /* ---- 意群切分：按「介词短语 / 从句 / 标点」成组，而不是拆成单个单词 ---- */
@@ -5291,6 +6051,7 @@ function matchRivalCfg(){
 function stopMatchRival(){
   const st = matchState;
   if(st && st.rival && st.rival.timer){ clearTimeout(st.rival.timer); st.rival.timer = null; }
+  if(st && st.rival && st.rival.resumeTimer){ clearTimeout(st.rival.resumeTimer); st.rival.resumeTimer = null; }
   if(st && st.clockTimer){ clearInterval(st.clockTimer); st.clockTimer = null; }
 }
 // 释义极简：只留 2~3 个最高频核心义项 + 对应词性；短语/无词性不硬加词性
@@ -5376,8 +6137,10 @@ function renderMatch(){
       <span class="bomb-clock" id="bombClock">0.0s</span>
       <span class="bomb-combo off" id="bombCombo"></span>
       <span class="race-lead" id="raceLead">不相上下</span>
+      <button class="bomb-addtime" onclick="openTimeBoost('match', this)" title="时间不够，让对手等一等">⏱ 加时</button>
     </div>
     ${matchRaceHtml()}
+    <div class="race-boost hidden" id="raceBoost"></div>
     <div class="bomb-hud">
       <span>已消除 <b id="bombCleared">0</b> / ${matchState.total}</span>
       <span>失误 <b id="bombMiss">0</b></span>
@@ -5598,7 +6361,7 @@ function renderChoiceQ(){
   $("#choicePage").innerHTML = `
     <h2 class="page-title">🎯 词义甄别</h2>
     <p class="page-sub">语境之中，辨明加粗单词的真义</p>
-    ${diffBar()}
+    ${diffBar(true)}
     <div class="question">
       ${qArtHtml(w, 'choice')}
       <div class="q-index">第 ${choiceState.idx+1} / ${quizLen(choiceState)} 题</div>
@@ -5716,7 +6479,37 @@ function renderFill(){
 // 把句中的目标词整词挖空：优先用 <B></B> 标记定位，可连带挖掉变形（abandoned → ______）
 function blankTarget(en, word){
   en = fixDashes(en);
-  const w = String(word || '').toLowerCase();
+  const w = String(word || '').toLowerCase().trim();
+  const parts = w.split(/[\s\-]+/).filter(Boolean);
+  // 短语：整条挖空（学生要填的是 take part in，而不是只填 take）
+  if(parts.length > 1){
+    const spans = [];
+    const re = /<B>(.*?)<\/B>/gi;
+    let m;
+    while ((m = re.exec(en))) spans.push({ start:m.index, end:re.lastIndex, text:String(m[1]).toLowerCase().trim() });
+    for(let i = 0; i + parts.length <= spans.length; i++){
+      let ok = true;
+      for(let j = 0; j < parts.length; j++){
+        const t = spans[i + j].text, p = parts[j];
+        if(!(t === p || t.startsWith(p.slice(0, Math.min(4, p.length))))){ ok = false; break; }
+      }
+      if(ok) return en.slice(0, spans[i].start) + '<b>______</b>' + en.slice(spans[i + parts.length - 1].end);
+    }
+    // 没打标签（AI 例句）：用宽松正则匹配，允许时态/人称变化和 somebody/something 占位
+    const esc = x => x.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const pieces = parts
+      .filter((p, i) => !(p === '...' && i === parts.length - 1))
+      .map(p => {
+        if(/^(somebody|someone|something|somebody's|someone's|one's|oneself|\.\.\.)$/i.test(p)) return "[A-Za-z'’]+(?:\\s+[A-Za-z'’]+)?";
+        if(/y$/.test(p)) return esc(p.slice(0, -1)) + "(?:y|ies|ied)";
+        return esc(p) + '(?:s|es|ed|d|ing)?';
+      });
+    try{
+      const m2 = new RegExp('\\b' + pieces.join('\\s+') + '\\b', 'i').exec(en);
+      if(m2) return en.slice(0, m2.index) + '<b>______</b>' + en.slice(m2.index + m2[0].length);
+    }catch(e){}
+    return en;
+  }
   const key = w.slice(0, Math.min(4, w.length));
   const re = /<B>(.*?)<\/B>/gi;
   let m;
@@ -5738,10 +6531,18 @@ function blankTarget(en, word){
 }
 // 判断句子里是否出现了目标词（含变形），用于挑"能挖空"的句子
 function containsWordForm(text, word){
-  const w = String(word || '').toLowerCase();
-  const key = w.slice(0, Math.min(4, w.length));
-  if (!key) return false;
+  const w = String(word || '').toLowerCase().trim();
+  if (!w) return false;
   const toks = String(text || '').toLowerCase().match(/[a-z][a-z'’-]*/g) || [];
+  const parts = w.split(/[\s\-]+/).filter(Boolean);
+  if(parts.length > 1){
+    // 短语：只要有实词以原形/变形出现，就算句子里有它（somebody/something 这类占位不算）
+    const content = parts.filter(p => p !== '...' && !IMG_FUNC_WORDS.has(p) &&
+      !/^(somebody|someone|something|somebody's|someone's|one's|oneself)$/i.test(p));
+    const need = content.length ? content : parts.filter(p => p !== '...');
+    return need.some(p => toks.some(t => t.startsWith(p.slice(0, Math.min(3, p.length)))));
+  }
+  const key = w.slice(0, Math.min(4, w.length));
   return toks.some(t => t.startsWith(key));
 }
 // 词汇认知页真正展开过的句子（默认 2 条），填空要避开它们
@@ -5861,7 +6662,7 @@ function renderFillQ(){
   $("#fillPage").innerHTML = `
     <h2 class="page-title">✍️ 语境填空</h2>
     <p class="page-sub">一词入句，选择恰如其分的单词</p>
-    ${diffBar()}
+    ${diffBar(true)}
     <div class="question">
       ${qArtHtml(w, 'fill')}
       <div class="q-index">第 ${fillState.idx+1} / ${quizLen(fillState)} 题</div>
@@ -6072,7 +6873,7 @@ function renderSentenceQ(){
   $("#sentencePage").innerHTML = `
     <h2 class="page-title">🧩 句式组配</h2>
     <p class="page-sub">按意群拼句 · 每块是一个短语，不是单个单词（点已选块可撤回）</p>
-    ${diffBar()}
+    ${diffBar(true)}
     <div class="question">
       ${qArtHtml(w, 'sentence')}
       <div class="q-index">第 ${sentenceState.idx+1} / ${quizLen(sentenceState)} 题 · 共 ${pick.chunks.length} 个意群</div>
@@ -6250,7 +7051,7 @@ function renderTransQ(){
   $("#transPage").innerHTML = `
     <h2 class="page-title">🌐 双语转译</h2>
     <p class="page-sub">看中文写英文，用上本节课学到的词；也可以点麦克风直接说</p>
-    ${diffBar()}
+    ${diffBar(true)}
     <div class="question">
       ${qArtHtml(w, 'trans')}
       <div class="q-index">第 ${transState.idx+1} / ${quizLen(transState)} 题 · 提示单词：${escapeHtml(w.word)}</div>
@@ -6919,6 +7720,7 @@ function pkRender(){
   const st = pk;
   if(!st) return;
   $("#battlePage").classList.remove("hidden");
+  try{ syncMusic(); }catch(e){}      // 对战换成冲刺曲
   if(st.mode === 'ai') pkRenderAi();
   else pkRenderDuel();
 }
@@ -6946,6 +7748,7 @@ function pkRenderAi(){
         <div class="pkd-mid">
           <div class="pkd-idx">第 <b id="pkIdx">${st.idx + 1}</b> / ${st.qs.length} 题</div>
           <div class="pkd-clock" id="pkClock">${PK_CONF.TIME}</div>
+          <button class="q-addtime" onclick="openTimeBoost('pk', this)" title="双方都加时，手慢也不吃亏">＋加时</button>
           <div class="pkd-lead" id="pkLead">同时开答</div>
         </div>
         <div class="pkd-side ai">
@@ -6996,6 +7799,7 @@ function pkRenderDuel(){
         <div class="pkd-mid">
           <div class="pkd-idx">第 <b id="pkIdx">${st.idx + 1}</b> / ${st.qs.length} 题</div>
           <div class="pkd-clock" id="pkClock">${PK_CONF.TIME}</div>
+          <button class="q-addtime" onclick="openTimeBoost('pk', this)" title="双方都加时，手慢也不吃亏">＋加时</button>
           <div class="pkd-lead" id="pkLead">同时开答</div>
         </div>
         <div class="pkd-side p2">
@@ -7060,6 +7864,7 @@ function pkStartTimer(){
   const st = pk;
   if(!st) return;
   st.qStart = Date.now();
+  st.extraTime = 0;
   st.deadline = st.qStart + PK_CONF.TIME * 1000;
   // 双方各自重置本回合状态，然后 AI / 双人各自独立答题（互不等待）
   st.players.forEach(p => { p.answered = false; p.chosen = null; });
@@ -7073,7 +7878,8 @@ function pkStartTimer(){
       clock.textContent = Math.ceil(left / 1000);
       clock.classList.toggle('urgent', left <= 3000);
     }
-    if(bar) bar.style.width = (left / (PK_CONF.TIME * 10)) + "%";
+    const totalMs = (PK_CONF.TIME + (st.extraTime || 0)) * 1000;
+    if(bar) bar.style.width = Math.max(0, Math.min(100, left / totalMs * 100)) + "%";
     if(left <= 0) pkTimeout();
   }, 100);
 }

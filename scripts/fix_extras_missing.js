@@ -4,7 +4,9 @@ const fs = require('fs');
 const path = require('path');
 const ROOT = path.join(__dirname, '..');
 const DATA = path.join(ROOT, 'extras_data.js');
-const KEY = process.env.AGNES_API_KEY || 'sk-vFjjDDBhUli2hBPSIKC6mbIgSFnY0ISqCfSFOfTYq0vH5Fw1';
+// 密钥只从环境变量读，不要写进仓库（仓库公开时等于把额度送人）
+// 运行前：export AGNES_API_KEY=sk-...
+const KEY = process.env.AGNES_API_KEY || '';
 
 const EXTRAS = new Function(fs.readFileSync(DATA, 'utf8') + '\nreturn EXTRAS_DATA;')();
 const miss = [];

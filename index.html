@@ -5192,15 +5192,42 @@ const MUSIC_TRACKS = [
   { id:'star',    name:'星空漫游', emoji:'✨', bpm:80,  wave:'sine',     style:'sparkle', drums:'none',
     chords:[[0,7,12],[3,10,15],[5,12,17],[7,14,19]] },
   { id:'sprint',  name:'冲刺时刻', emoji:'⚡', bpm:132, wave:'sawtooth', style:'drive',   drums:'edm',
-    chords:[[0,3,7],[10,14,17],[8,12,15],[5,8,12]] }
+    chords:[[0,3,7],[10,14,17],[8,12,15],[5,8,12]] },
+  // 8-bit 芯片曲：旋律是手写的原创线（风格接近经典横版跳跃游戏，但并非任天堂原曲）
+  { id:'chip',    name:'像素冒险', emoji:'🍄', bpm:150, wave:'pulse', style:'chip', drums:'chip',
+    chords:[[0,4,7],[9,12,16],[5,9,12],[7,11,14]],
+    melody:[
+      [[0,16,1],[2,19,1],[4,16,1],[6,12,2],[8,14,1],[10,16,1],[12,19,2],[14,16,1]],
+      [[0,21,1],[2,16,1],[4,21,1],[6,24,2],[8,23,1],[10,21,1],[12,19,2],[14,16,1]],
+      [[0,17,1],[2,21,1],[4,24,1],[6,21,2],[8,19,1],[10,17,1],[12,16,2],[14,14,1]],
+      [[0,14,1],[2,19,1],[4,23,1],[6,26,2],[8,24,2],[10,19,1],[12,12,4]],
+      // B 段：整体抬高一个八度再走一遍，结尾落回属音，接着回 A 段
+      [[0,24,1],[2,26,1],[4,24,1],[6,23,1],[8,21,2],[10,19,1],[12,16,1],[14,19,1]],
+      [[0,21,1],[2,24,1],[4,26,1],[6,24,2],[8,21,1],[10,19,1],[12,16,2]],
+      [[0,17,1],[2,19,1],[4,21,1],[6,24,1],[8,26,2],[10,24,1],[12,21,1],[14,19,1]],
+      [[0,19,1],[2,23,1],[4,26,1],[6,23,1],[8,19,1],[10,14,1],[12,11,4]]
+    ] },
+  { id:'arcade',  name:'街机冲刺', emoji:'🕹️', bpm:172, wave:'pulse', style:'chip', drums:'chip',
+    chords:[[9,12,16],[5,9,12],[7,11,14],[0,4,7]],
+    melody:[
+      [[0,21,1],[1,24,1],[3,21,1],[4,19,1],[6,21,1],[8,24,1],[9,26,1],[11,24,1],[12,21,1],[14,19,1]],
+      [[0,17,1],[1,21,1],[3,17,1],[4,16,1],[6,17,1],[8,21,1],[10,24,1],[12,21,1],[14,17,1]],
+      [[0,19,1],[1,23,1],[3,19,1],[4,14,1],[6,19,1],[8,23,1],[10,26,1],[12,23,1],[14,19,1]],
+      [[0,24,2],[2,23,1],[4,19,1],[6,16,1],[8,12,4]],
+      // B 段：换到高音区，十六分音符更密，把紧张感再推一层
+      [[0,24,1],[2,26,1],[4,24,1],[6,21,1],[8,19,2],[10,21,1],[12,24,1],[14,26,1]],
+      [[0,24,1],[2,21,1],[4,17,1],[6,21,1],[8,24,2],[10,21,1],[12,17,2]],
+      [[0,26,1],[2,23,1],[4,19,1],[6,23,1],[8,26,2],[10,28,1],[12,26,1],[14,23,1]],
+      [[0,24,1],[2,19,1],[4,16,1],[6,12,1],[8,11,2],[10,14,1],[12,19,2]]
+    ] }
 ];
 
 // 场景 → 曲子：安静的场景用慢的，竞速用快的，结算用星空收尾
 const SCENE_TRACK = {
-  guess:'focus', match:'sunny', choice:'forest', fill:'piano', spell:'lofi',
+  guess:'chip', match:'chip', choice:'forest', fill:'piano', spell:'lofi',
   // 组句/翻译/篇章都要听音频、读长句，配最轻的钢琴或氛围音，别用带鼓点的曲子抢注意力
   sentence:'piano', trans:'piano', passage:'star', result:'star',
-  battle:'sprint', review:'focus', wrongbook:'focus', decks:'focus', achievement:'forest', home:'focus'
+  battle:'arcade', review:'focus', wrongbook:'focus', decks:'focus', achievement:'forest', home:'focus'
 };
 function currentSceneKey(){
   if(appMode === 'battle') return 'battle';
@@ -5214,7 +5241,7 @@ function currentSceneKey(){
 let musicDuck = null;          // 由 music 模块赋值，朗读时把音乐压下去
 
 const music = {
-  ac:null, master:null, noiseBuf:null,
+  ac:null, master:null, noiseBuf:null, pulseWave:null,
   on:false, want:true, follow:true, timer:null, step:0, nextT:0,
   trackId:'focus', vol:0.35, ducking:false,
 
@@ -5246,6 +5273,12 @@ const music = {
         const ch = buf.getChannelData(0);
         for(let i = 0; i < len; i++) ch[i] = Math.random() * 2 - 1;
         this.noiseBuf = buf;
+        // 25% 占空比脉冲波：红白机最标志性的音色，比 50% 的 square 更细更「芯片」
+        try{
+          const N = 32, real = new Float32Array(N), imag = new Float32Array(N);
+          for(let k = 1; k < N; k++) real[k] = (2 / (k * Math.PI)) * Math.sin(k * Math.PI * 0.25);
+          this.pulseWave = this.ac.createPeriodicWave(real, imag, { disableNormalization: false });
+        }catch(e){ this.pulseWave = null; }
       }catch(e){ return null; }
     }
     if(this.ac.state === 'suspended'){ try{ this.ac.resume(); }catch(e){} }
@@ -5266,7 +5299,8 @@ const music = {
     if(!ac) return;
     try{
       const o = ac.createOscillator(), g = ac.createGain();
-      o.type = type || 'sine';
+      if(type === 'pulse' && this.pulseWave){ try{ o.setPeriodicWave(this.pulseWave); }catch(e){ o.type = 'square'; } }
+      else o.type = (type && type !== 'pulse') ? type : 'sine';
       o.frequency.setValueAtTime(freq, t);
       g.gain.setValueAtTime(0.0001, t);
       g.gain.exponentialRampToValueAtTime(Math.max(0.0003, gain), t + 0.02);
@@ -5288,7 +5322,25 @@ const music = {
       s.start(t); s.stop(t + 0.07);
     }catch(e){}
   },
-  kick(t){
+  // 8-bit 单音：脉冲波 + 平台式包络，尾巴干脆，不拖泥带水
+  chipNote(freq, t, dur, gain){
+    const ac = this.ac;
+    if(!ac) return;
+    try{
+      const o = ac.createOscillator(), g = ac.createGain();
+      if(this.pulseWave){ try{ o.setPeriodicWave(this.pulseWave); }catch(e){ o.type = 'square'; } }
+      else o.type = 'square';
+      o.frequency.setValueAtTime(freq, t);
+      const d = Math.max(0.06, dur);
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.linearRampToValueAtTime(gain, t + 0.006);
+      g.gain.setValueAtTime(gain * 0.82, t + d * 0.7);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + d);
+      o.connect(g); g.connect(this.master);
+      o.start(t); o.stop(t + d + 0.03);
+    }catch(e){}
+  },
+  thump(t){
     const ac = this.ac;
     if(!ac) return;
     try{
@@ -5311,12 +5363,27 @@ const music = {
     const st = beat / 4;
 
     if(s === 0){
-      chord.forEach(n => this.tone(_mf(n) * 2, t, beat * 3.7, tr.wave, 0.028));
+      // 芯片曲不铺垫底和弦：纯主旋律 + 低音才是红白机的干净质感
+      if(tr.style !== 'chip') chord.forEach(n => this.tone(_mf(n) * 2, t, beat * 3.7, tr.wave, 0.028));
       this.tone(_mf(chord[0] - 12), t, beat * 1.7, 'sine', 0.085);
       this.tone(_mf(chord[0] - 12), t + beat * 2, beat * 1.6, 'sine', 0.065);
     }
 
     const notes = chord.concat([chord[0] + 12]);
+    // 芯片曲：手写旋律线 + 八分音符低音（推进感全靠这两条）
+    if(tr.melody){
+      const mel = tr.melody[bar % tr.melody.length] || [];
+      for(const ev of mel){
+        if(ev[0] !== s) continue;
+        const len = st * (ev[2] || 1) * 0.92;
+        this.chipNote(_mf(ev[1]), t, len, ev[3] || 0.05);
+        if((ev[2] || 1) >= 2) this.chipNote(_mf(ev[1] + 12), t, st * 1.1, 0.012);   // 轻叠高八度，模拟双声道加厚
+      }
+      if(s % 2 === 0){
+        const bn = chord[((s / 2) % 2 === 0) ? 0 : (chord.length > 2 ? 2 : 1)] - 12;
+        this.tone(_mf(bn), t, st * 1.45, 'triangle', s % 4 === 0 ? 0.10 : 0.068);
+      }
+    }
     if(tr.style === 'arp'){
       if(s % 2 === 0){
         const n = notes[(s / 2) % notes.length] + 12;
@@ -5355,23 +5422,27 @@ const music = {
 
     const d = tr.drums;
     if(d === 'pop'){
-      if(s === 0 || s === 8) this.kick(t);
+      if(s === 0 || s === 8) this.thump(t);
       if(s === 4 || s === 12) this.hat(t, 0.05, 5000);
       if(s % 2 === 0) this.hat(t, 0.018, 9000);
     } else if(d === 'edm'){
-      if(s % 4 === 0) this.kick(t);
+      if(s % 4 === 0) this.thump(t);
       if(s % 2 === 1) this.hat(t, 0.03, 9500);
       if(s === 4 || s === 12) this.hat(t, 0.055, 4200);
     } else if(d === 'soft'){
-      if(s === 0) this.kick(t);
+      if(s === 0) this.thump(t);
       if(s === 8) this.hat(t, 0.014, 9000);
     } else if(d === 'jazz'){
-      if(s === 0 || s === 10) this.kick(t);
+      if(s === 0 || s === 10) this.thump(t);
       if(s % 2 === 0) this.hat(t, 0.022, 8000);
     } else if(d === 'lofi'){
-      if(s === 0 || s === 8) this.kick(t);
+      if(s === 0 || s === 8) this.thump(t);
       if(s === 12) this.hat(t, 0.035, 5000);
       if(s % 4 === 2) this.hat(t, 0.012, 9000);
+    } else if(d === 'chip'){
+      if(s === 0 || s === 8) this.thump(t);
+      if(s === 4 || s === 12) this.hat(t, 0.05, 3200);
+      if(s % 2 === 1) this.hat(t, 0.016, 9500);
     }
   },
 
@@ -5523,6 +5594,8 @@ function musicToggleBtn(){
 function renderMusicPanel(){
   const panel = document.getElementById('musicPanel');
   if(!panel) return;
+  const oldList = panel.querySelector('.mp-list');
+  const keepScroll = oldList ? oldList.scrollTop : 0;   // 重绘后别把列表滚回顶部
   const cur = music.track();
   const sceneName = ({guess:'猜词',match:'消消乐',choice:'词义甄别',fill:'语境填空',spell:'拼写',sentence:'组句',trans:'翻译',passage:'篇章',result:'结算',battle:'对战'})[currentSceneKey()] || '当前页';
   panel.innerHTML = `
@@ -5547,7 +5620,9 @@ function renderMusicPanel(){
       <input type="range" min="0" max="100" value="${Math.round(music.vol * 100)}" oninput="music.setVolume(this.value/100); document.getElementById('mpVolNum').textContent=this.value+'%'">
       <b id="mpVolNum">${Math.round(music.vol * 100)}%</b>
     </div>
-    <div class="mp-tip">音乐由浏览器实时合成，无版权素材；朗读单词/例句时会自动压低，不抢人声</div>`;
+    <div class="mp-tip">音乐由浏览器实时合成，旋律为原创手写，不含任何版权音频；朗读时会自动压低，不抢人声</div>`;
+  const newList = panel.querySelector('.mp-list');
+  if(newList && keepScroll) newList.scrollTop = keepScroll;
 }
 
 

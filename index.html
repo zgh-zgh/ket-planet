@@ -521,11 +521,35 @@
   .tb-block .deck-list{margin-top:10px}
   .tb-block .deck-item{background:#fff;border-color:#e7ecff;flex-wrap:wrap}
   .tb-block .deck-item.active{border-color:var(--primary2);background:#f0f1ff}
+  .lv-hint{display:inline-block;margin-left:6px;font-size:10.5px;font-weight:600;color:#8a90a8;background:#eef1f8;border-radius:5px;padding:0 5px;vertical-align:1px}
   .tb-chip{display:inline-block;background:#e8efff;color:#3b5bdb;border-radius:6px;padding:1px 6px;font-size:11.5px;font-weight:700;margin-right:7px;vertical-align:1px}
   /* 侧边栏里的教材标记：小方块「教」，避免 emoji 在部分系统显示成方块 */
   .tb-mini{display:inline-flex;align-items:center;justify-content:center;width:17px;height:17px;border-radius:5px;background:#e8efff;color:#3b5bdb;font-size:10.5px;font-weight:800;flex:0 0 auto}
   .menu-group-tab.active .tb-mini{background:var(--primary);color:#fff}
   .tb-note{margin-top:10px;font-size:12px;color:#9aa0b6;line-height:1.6}
+  .tb-units{display:flex;flex-wrap:wrap;gap:6px;width:100%;margin-top:10px;padding-top:9px;border-top:1px dashed #e6ebff}
+  .tb-unit-chip{display:inline-flex;align-items:center;gap:4px;border:1px solid #dfe5ff;background:#fff;color:#3f4a6b;
+    border-radius:8px;padding:3px 7px;font-size:11.5px;font-weight:700;cursor:pointer;font-family:inherit;line-height:1.3}
+  .tb-unit-chip i{font-style:normal;font-weight:500;color:#9aa3bd;font-size:10.5px}
+  .tb-unit-chip:hover{background:#eef2ff;border-color:#c7d2fe}
+  .tb-unit-chip.on{background:var(--primary);border-color:var(--primary);color:#fff}
+  .tb-unit-chip.on i{color:#dfe6ff}
+  .menu-group-tab .tb-u{font-style:normal;font-size:10px;font-weight:700;color:#fff;background:var(--primary2);border-radius:4px;padding:0 4px;margin-left:4px}
+  .tb-unit-box{max-width:620px}
+  .tb-unit-list{padding:6px 14px 12px;overflow:auto;display:flex;flex-direction:column;gap:6px}
+  .tb-unit-row{display:grid;grid-template-columns:64px 1fr auto;grid-template-areas:'name title meta' 'bar bar bar';
+    gap:2px 10px;align-items:center;text-align:left;background:#fafbff;border:1px solid #e8ecf8;border-radius:11px;
+    padding:9px 12px;cursor:pointer;font-family:inherit;color:#333a55}
+  .tb-unit-row:hover{background:#f2f5ff;border-color:#cfd9ff}
+  .tb-unit-row.on{background:#eef2ff;border-color:var(--primary2)}
+  .tb-unit-row .tu-name{grid-area:name;font-size:12px;font-weight:800;color:var(--primary)}
+  .tb-unit-row .tu-title{grid-area:title;font-size:13.5px;font-weight:600;color:#2f3550;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .tb-unit-row .tu-meta{grid-area:meta;font-size:11.5px;color:#8d94ab;font-variant-numeric:tabular-nums}
+  .tb-unit-row .tu-bar{grid-area:bar;height:4px;background:#e9edfa;border-radius:3px;overflow:hidden;margin-top:4px}
+  .tb-unit-row .tu-bar i{display:block;height:100%;background:linear-gradient(90deg,#7c9cf5,var(--primary2));border-radius:3px}
+  @media (max-width:640px){
+    .tb-unit-row{grid-template-columns:52px 1fr;grid-template-areas:'name meta' 'title title' 'bar bar'}
+  }
   /* 卡片整体允许换行：放不下时按钮自动落到下一行，不会被裁掉 */
   .deck-item{flex-wrap:wrap}
   .deck-item .wi-actions{margin-left:auto}
@@ -779,6 +803,7 @@
   .example .ex-src{display:inline-block;font-size:10px;color:#8a8fa3;background:#eef1fa;border-radius:5px;padding:0 5px;margin-top:3px;white-space:nowrap}
   .example .ex-src .ex-badge{display:inline-block;font-style:normal;font-size:9.5px;font-weight:800;color:#c0392b;background:#ffe9e7;border-radius:3px;padding:0 3px;margin-right:4px;letter-spacing:.3px}
   .example .ex-src .ex-badge-manual{color:#3b5bdb;background:#e7ecff}
+  .example .ex-src .ex-badge-tb{color:#0b7a52;background:#e2f7ee}
 
   /* 例句译文：默认收起，点「显示翻译」才在英文下面出现（先猜后译，不提前剧透） */
   .example .cn{display:none}
@@ -1217,6 +1242,7 @@
 <div id="clipRoot"></div>
 <div id="authRoot"></div>
 <div id="deckWordsRoot"></div>
+<div id="tbUnitsRoot"></div>
 <div class="music-dock hidden" id="musicDock">
   <div class="music-panel" id="musicPanel"></div>
   <button class="music-fab" id="musicFab" onclick="toggleMusicPanel()" title="背景音乐">🎵</button>
@@ -1225,6 +1251,8 @@
 <script src="words-data.js"></script>
 <!-- 教材同步词库（沪教版·牛津上海版 初中英语 7A/7B/8A/8B/9A，共 1340 条，独立于内置词库） -->
 <script src="textbooks_data.js"></script>
+<!-- 教材例句：从电子课本正文抽取（scripts/build_textbook_examples.py 生成） -->
+<script src="textbook_examples.js"></script>
 <script src="examples_data.js"></script>
 <!-- 短语/冷门词的真实双语例句（有道 + 少量大模型补写，scripts/build_phrase_pack.js 生成） -->
 <script src="phrase_examples.js"></script>
@@ -1420,16 +1448,34 @@ GROUPS.forEach(g => g.words.forEach(w => {
 function buildExamples(w){
   const META_SENT = /^the word\s*["'“]/i;      // 放在函数内，避免 const 声明晚于首次调用（TDZ）
   const key = String(w || '').toLowerCase().trim();
+  // ① 教材课文原句最优先：学生刚在课本里见过，复现率最高
+  const tbRaw = (typeof TEXTBOOK_EXAMPLES !== 'undefined' && TEXTBOOK_EXAMPLES[key]) || [];
+  const tb = tbRaw.map(e => {
+    const meta = (typeof TEXTBOOK_UNITS !== 'undefined' && TEXTBOOK_UNITS[e.book]) || null;
+    const label = meta ? `${meta.short} U${e.unit}` : `U${e.unit}`;
+    return { en: e.en, cn: e.cn || '', src: label, srcType: 'textbook' };
+  });
   const data = (typeof EXAMPLES_DATA !== 'undefined' && EXAMPLES_DATA[key]) || [];
+  const rest = [];
   if(data.length){
     const arr = data.slice(0, 5).map(e => ({ en: e.en, cn: e.cn }));
     const normal = arr.filter(e => !META_SENT.test(e.en.replace(/<[^>]+>/g, '').trim()));
     const meta = arr.filter(e => META_SENT.test(e.en.replace(/<[^>]+>/g, '').trim()));
-    return normal.concat(meta);
+    rest.push(...normal, ...meta);
+  } else {
+    // 短语 / 词典漏收的词：用补充例句库（每条都是真实语境，不再是那 3 句万能模板）
+    const extra = (typeof PHRASE_EXAMPLES !== 'undefined' && PHRASE_EXAMPLES[key]) || [];
+    rest.push(...extra.slice(0, 5).map(e => ({ en: e.en, cn: e.cn })));
   }
-  // 短语 / 词典漏收的词：用补充例句库（每条都是真实语境，不再是那 3 句万能模板）
-  const extra = (typeof PHRASE_EXAMPLES !== 'undefined' && PHRASE_EXAMPLES[key]) || [];
-  if(extra.length) return extra.slice(0, 5).map(e => ({ en: e.en, cn: e.cn }));
+  if(tb.length || rest.length){
+    const seen = new Set();
+    return tb.concat(rest).filter(e => {
+      const k = String(e.en || '').replace(/<[^>]+>/g, '').toLowerCase().replace(/\s+/g, ' ').trim();
+      if(!k || seen.has(k)) return false;
+      seen.add(k);
+      return true;
+    }).slice(0, 6);
+  }
   return EXAMPLE_TEMPLATES.map(t=>({
     en: t.en.replace(/__W__/g, `<B>${w}</B>`),
     cn: t.cn.replace(/__W__/g, w)
@@ -1456,7 +1502,8 @@ function taskExamplePool(w){
   (w.examples || []).forEach((e, i) => {
     const plain = (e.en || '').replace(/<[^>]+>/g, '');
     // 真题句带出处，题型解析里要显示；kind 单独标 exam 便于优先取用
-    pool.push({ en: e.en, cn: e.cn || '', src: e.src || '', srcType: e.srcType || '', kind: e.srcType ? 'exam' : 'dict', head: /^<B>/i.test((e.en || '').trim()), tail: /<\/B>\s*[.!?"']?\s*$/.test((e.en || '').trim()), len: plain.split(/\s+/).filter(Boolean).length, idx: i });
+    pool.push({ en: e.en, cn: e.cn || '', src: e.src || '', srcType: e.srcType || '',
+      kind: e.srcType === 'textbook' ? 'textbook' : (e.srcType ? 'exam' : 'dict'), head: /^<B>/i.test((e.en || '').trim()), tail: /<\/B>\s*[.!?"']?\s*$/.test((e.en || '').trim()), len: plain.split(/\s+/).filter(Boolean).length, idx: i });
   });
   (w.extras || []).forEach((e, i) => {
     const plain = (e.en || '').replace(/<[^>]+>/g, '');
@@ -1541,6 +1588,9 @@ function buildTaskAssignment(w, dk, prev){
       if(p.tail && task === 'cloze') s += 2.5;
       if(p.kind === 'news'){
         if(task === 'cloze' || task === 'passage') s -= 3;
+      } else if(p.kind === 'textbook'){
+        // 教材原句最贴近课内：填空/篇章优先，其他题型也优先
+        s -= (task === 'cloze' || task === 'passage') ? 6.5 : 4;
       } else if(p.kind === 'exam'){
         // 真题句最贴近中高考风格：语境题优先，组配/翻译也优先（句子规整）
         s -= (task === 'cloze' || task === 'passage') ? 6 : 3.5;
@@ -2598,7 +2648,10 @@ function applyBank(w){
   const merged = bankEx.concat(bankDict);
   if(merged.length){
     const seen = new Set(merged.map(e => String(e.en).toLowerCase()));
-    w.examples = merged.concat(oldEx.filter(e => !seen.has(String(e.en).toLowerCase())));
+    // 教材句永远排最前：学生刚学过的原句，比真题/词典句更适合做第一例句
+    const tbEx = oldEx.filter(e => e && e.srcType === 'textbook');
+    const others = oldEx.filter(e => !(e && e.srcType === 'textbook') && !seen.has(String(e.en).toLowerCase()));
+    w.examples = tbEx.concat(merged, others);
   }
   // ② 英美音标 + 来源
   if(Array.isArray(b.ph)){
@@ -2706,8 +2759,10 @@ function pickLearnExamples(w, n){
   }
   const scored = uniq.map(p => {
     let s = scoreExample(p.en, level, p.cn);
-    // 人工补充句（管理页加的）排最前：那是有人专门挑过的句子
-    if(p.srcType === 'manual') s -= 10.5;
+    // 教材原句最优先：学生刚在课本里见过，复现率最高
+    if(p.srcType === 'textbook') s -= 12;
+    // 人工补充句（管理页加的）次之：那是有人专门挑过的句子
+    else if(p.srcType === 'manual') s -= 10.5;
     // 真题优先：同学段的真题句大幅加权；句子太长时仍会被长度罚分压下去，不会硬塞难句
     else if(isExamType(p.srcType)){
       s -= examMatched(p.srcType, level) ? 10 : 6;
@@ -2718,7 +2773,9 @@ function pickLearnExamples(w, n){
     return { ...p, _s: s };
   });
   scored.sort((a, b) => a._s - b._s);
-  const out = scored.slice(0, n);
+  // 教材原句按规则必须排在最前：打分再准也可能被专有名词/生词罚分挤下去，这里直接定序
+  const tbFirst = scored.filter(p => p.srcType === 'textbook');
+  const out = tbFirst.concat(scored.filter(p => p.srcType !== 'textbook')).slice(0, n);
   // 前两条里必须有一条带中文，否则零基础的学生看不到译文；优先挑"有具体出处"的那条。
   // 只在取 2 条以上时补位——取 1 条时不能顶掉第一条，否则词义甄别题会和学习页首句不一致。
   if(out.length > 1 && !out.slice(0, 2).some(p => p.cn)){
@@ -3086,9 +3143,10 @@ function renderTabs(){
   if(typeof TEXTBOOK_DB !== 'undefined'){
     const items = textbookOrder().filter(k => TEXTBOOK_DB[k]).map(k=>{
       const tb = TEXTBOOK_DB[k];
-      const on = activeKey === ('tb:' + k);
-      return `<div class="menu-group-tab ${on?'active':''}" onclick="activateTextbook('${k}')" title="${escapeHtml(tb.name)} · ${(tb.words||[]).length} 词">
-        <span class="tb-mini">教</span><span>${escapeHtml(tb.short)}</span></div>`;
+      const on = deckTbKey(activeKey) === k;
+      const u = on ? deckTbUnit(activeKey) : 0;
+      return `<div class="menu-group-tab ${on?'active':''}" onclick="openTextbookUnits('${k}')" title="${escapeHtml(tb.name)} · ${(tb.words||[]).length} 词${u ? ' · 当前 Unit ' + u : ''}">
+        <span class="tb-mini">教</span><span>${escapeHtml(tb.short)}${u ? '<i class="tb-u">U' + u + '</i>' : ''}</span></div>`;
     }).join('');
     if(items) tbs = `<div class="menu-label" style="padding:12px 12px 4px">教材同步</div>${items}`;
   }
@@ -3760,28 +3818,62 @@ function startWrongReview(){
 function textbookOrder(){
   return ['7A','7B','8A','8B','9A'];
 }
+// 教材词库 id 形如 tb:7A（整册）或 tb:7A:u3（第 3 单元）
+function deckTbKey(id){
+  const s = String(id || '');
+  if(s.indexOf('tb:') !== 0) return '';
+  return s.slice(3).split(':')[0];
+}
+function deckTbUnit(id){
+  const m = String(id || '').match(/^tb:[^:]+:u(\d+)$/);
+  return m ? Number(m[1]) : 0;
+}
+function tbUnitOfWord(it){ return Number(it && it[2]) || 0; }
+function tbUnitCount(tb){
+  const n = Number(tb && tb.units) || 0;
+  if(n) return n;
+  let max = 0;
+  ((tb && tb.words) || []).forEach(it => { max = Math.max(max, tbUnitOfWord(it)); });
+  return max;
+}
 function renderTextbookDecks(activeId, studied){
   if(typeof TEXTBOOK_DB === 'undefined') return '';
   const cards = textbookOrder().filter(k => TEXTBOOK_DB[k]).map(k=>{
     const tb = TEXTBOOK_DB[k];
     const list = tb.words || [];
     const done = list.reduce((a, it)=> a + (studied.has(String(it[0]).toLowerCase()) ? 1 : 0), 0);
-    const on = activeId === ('tb:' + k);
+    const on = deckTbKey(activeId) === k;
+    const total = tbUnitCount(tb);
+    // 每个单元一张小卡：直接点就学这个单元，不用整册 300 词一起上
+    let chips = '';
+    for(let u = 1; u <= total; u++){
+      const arr = list.filter(it => tbUnitOfWord(it) === u);
+      if(!arr.length) continue;
+      const dn = arr.reduce((a, it)=> a + (studied.has(String(it[0]).toLowerCase()) ? 1 : 0), 0);
+      const cur = on && deckTbUnit(activeId) === u;
+      chips += `<button class="tb-unit-chip${cur ? ' on' : ''}" onclick="event.stopPropagation();activateTextbook('${k}',${u})" title="${escapeHtml(tb.short)} Unit ${u}：${arr.length} 词，已学 ${dn}">
+        U${u}<i>${dn}/${arr.length}</i></button>`;
+    }
+    const wholeOn = on && !deckTbUnit(activeId);
+    // 正在学某个单元时，「查看单词」直接定位到该单元，省得再选一次
+    const viewKey = 'tb:' + k + (on && deckTbUnit(activeId) ? ':u' + deckTbUnit(activeId) : '');
     return `<div class="deck-item ${on ? 'active' : ''}">
-      <div class="di-main" onclick="openDeckWords('tb:${k}')">
+      <div class="di-main" onclick="openDeckWords('${viewKey}')">
         <div class="di-name"><span class="tb-chip">教材</span>${escapeHtml(tb.short)} · ${escapeHtml(tb.name)}</div>
-        <div class="di-sub">${list.length} 词 · ${tb.units} 个单元 · 已学 ${done}</div>
+        <div class="di-sub">${list.length} 词 · ${total} 个单元 · 已学 ${done}</div>
       </div>
       <div class="wi-actions">
-        <button class="btn btn-mini btn-ghost" onclick="openDeckWords('tb:${k}')">查看单词</button>
-        <button class="btn btn-mini btn-primary" onclick="activateTextbook('${k}')">用这个词库</button>
+        <button class="btn btn-mini btn-ghost" onclick="openDeckWords('${viewKey}')">查看单词</button>
+        <button class="btn btn-mini btn-primary${wholeOn ? ' is-on' : ''}" onclick="openTextbookUnits('${k}')">选单元学习</button>
       </div>
+      <div class="tb-units">${chips}</div>
     </div>`;
   }).join('');
   return `<div class="tb-block">
     <div class="tb-title">教材同步 <span class="tb-sub">沪教版·牛津上海版 · 按册独立成库</span></div>
     <div class="deck-list">${cards}</div>
-    <div class="tb-note">词表取自各册教材「Words and phrases in each unit」，标 * 的词只要求理解；仅供教学使用。</div>
+    <div class="tb-note">词表取自各册教材「Words and phrases in each unit」，标 * 的词只要求理解；仅供教学使用。<br>
+      例句优先用教材课文原句（已覆盖 ${(typeof TEXTBOOK_EXAMPLES !== 'undefined' ? Object.keys(TEXTBOOK_EXAMPLES).length : 0)} 个词），没有对应原句的词自动用词典/真题例句补齐。</div>
   </div>`;
 }
 function renderDecks(){
@@ -3800,8 +3892,8 @@ function renderDecks(){
         const active = activeId === null && currentGroup === i;
         return `<div class="deck-item ${active ? 'active' : ''}">
           <div class="di-main" onclick="openDeckWords('builtin:${lv}')">
-            <div class="di-name">${lvIcon[lv] || '📘'} ${lv}词库</div>
-            <div class="di-sub">${list.length} 词 · 已学 ${done} · 未学 ${list.length - done}</div>
+            <div class="di-name">${lvIcon[lv] || '📘'} ${lv}词库${lv === '初中' ? '<span class="lv-hint">拓展词表</span>' : ''}</div>
+            <div class="di-sub">${list.length} 词 · 已学 ${done} · 未学 ${list.length - done}${lv === '初中' ? '　·　教材同步请用上方七上~九上' : ''}</div>
           </div>
           <div class="wi-actions">
             <button class="btn btn-mini btn-ghost" onclick="openDeckWords('builtin:${lv}')">查看单词</button>
@@ -3868,12 +3960,15 @@ function openDeckWords(key){
     title = lv + '词库';
     items = (WORD_DB[lv] || []).map(([w, cn]) => ({ w, cn: cn || '', lv }));
   } else if(key.indexOf('tb:') === 0){
-    const id = key.slice(3);
+    const id = deckTbKey(key);
+    const presetUnit = deckTbUnit(key);
     const tb = (typeof TEXTBOOK_DB !== 'undefined') ? TEXTBOOK_DB[id] : null;
     if(!tb) return;
+    const uCount = tbUnitCount(tb);
     title = tb.short + ' · ' + tb.name + '（教材同步）';
-    units = tb.units || 0;
+    units = uCount;
     items = (tb.words || []).map(([w, cn, u]) => ({ w, cn: cn || '', lv: '教材', deckId: 'tb:' + id, unit: u }));
+    var _presetUnit = presetUnit;
   } else if(key.indexOf('custom:') === 0){
     const id = key.slice(7);
     const d = loadDecks().find(x => x.id === id);
@@ -3881,7 +3976,8 @@ function openDeckWords(key){
     title = d.name;
     items = (d.words || []).map(([w, cn]) => ({ w, cn: cn || '', lv: '自定义', deckId: id }));
   } else return;
-  deckView = { key, title, items, sel: new Set(), filter: 'all', q: '', units: units || 0, unit: 0, studied: studiedSet() };
+  deckView = { key, title, items, sel: new Set(), filter: 'all', q: '', units: units || 0,
+    unit: (typeof _presetUnit === 'number' ? _presetUnit : 0), studied: studiedSet() };
   renderDeckWords();
 }
 function closeDeckWords(){
@@ -4137,21 +4233,72 @@ function activateDeck(id){
 }
 
 /* 切换到教材同步词库（与自定义词库共用 activeCustomWords 通道，学习/游戏/题型全部通用） */
-function activateTextbook(key){
+function activateTextbook(key, unit){
   const tb = (typeof TEXTBOOK_DB !== 'undefined') ? TEXTBOOK_DB[key] : null;
   if(!tb || !(tb.words||[]).length){ toast('这个词库是空的'); return; }
-  activeCustomWords = tb.words.map(([w,cn])=>buildWord(w, cn, '教材', 'tb:'+key));
-  setActiveDeckId('tb:' + key);
+  const u = Number(unit) || 0;
+  const all = tb.words || [];
+  const list = u ? all.filter(it => tbUnitOfWord(it) === u) : all;
+  if(!list.length){ toast(`Unit ${u} 没有收录单词`); return; }
+  const deckId = 'tb:' + key + (u ? ':u' + u : '');
+  activeCustomWords = list.map(([w,cn])=>buildWord(w, cn, '教材', deckId));
+  setActiveDeckId(deckId);
   currentBatch = [];
   currentStep = 0; learnIndex = 0;
   appMode = 'learn';
   lastStudyStep = 0;
   newBatch();
+  closeTextbookUnits();
   renderDecks();
   renderAll();
   pushRoute();
   try{ closeDrawer(); }catch(e){}
-  toast(`已切换到「${tb.short}」教材词库（${tb.words.length} 词）`);
+  toast(u ? `已切换到「${tb.short} Unit ${u}」（${list.length} 词）` : `已切换到「${tb.short}」整册（${list.length} 词）`);
+}
+// 单元选择：整册 or 某个 Unit，顺手把「这一单元学到哪了」摆出来
+function openTextbookUnits(key){
+  const root = document.getElementById('tbUnitsRoot');
+  const tb = (typeof TEXTBOOK_DB !== 'undefined') ? TEXTBOOK_DB[key] : null;
+  if(!root || !tb) return;
+  const list = tb.words || [];
+  const studied = studiedSet();
+  const activeId = getActiveDeckId();
+  const total = tbUnitCount(tb);
+  const row = (u, title, arr, on) => {
+    const dn = arr.reduce((a, it)=> a + (studied.has(String(it[0]).toLowerCase()) ? 1 : 0), 0);
+    const pct = arr.length ? Math.round(dn / arr.length * 100) : 0;
+    return `<button class="tb-unit-row${on ? ' on' : ''}" onclick="activateTextbook('${key}',${u})">
+      <span class="tu-name">${u ? 'Unit ' + u : '整册'}</span>
+      <span class="tu-title">${escapeHtml(title)}</span>
+      <span class="tu-meta">${arr.length} 词 · 已学 ${dn}</span>
+      <span class="tu-bar"><i style="width:${pct}%"></i></span>
+    </button>`;
+  };
+  const rows = [];
+  rows.push(row(0, '按册从头学到尾', list, deckTbKey(activeId) === key && !deckTbUnit(activeId)));
+  const titles = (typeof TEXTBOOK_UNITS !== 'undefined' && TEXTBOOK_UNITS[key] && TEXTBOOK_UNITS[key].units) || [];
+  for(let u = 1; u <= total; u++){
+    const arr = list.filter(it => tbUnitOfWord(it) === u);
+    if(!arr.length) continue;
+    rows.push(row(u, titles[u - 1] || ('Unit ' + u), arr, deckTbKey(activeId) === key && deckTbUnit(activeId) === u));
+  }
+  root.innerHTML = `
+    <div class="modal-mask" onclick="if(event.target===this)closeTextbookUnits()">
+      <div class="modal-box tb-unit-box">
+        <div class="modal-head" style="display:flex;align-items:center;justify-content:space-between">
+          <span>📚 ${escapeHtml(tb.short)} · ${escapeHtml(tb.name)}<span class="dw-sub">按单元学，一次 30 词左右，进度更好控</span></span>
+          <button class="modal-x" onclick="closeTextbookUnits()" aria-label="关闭">✕</button>
+        </div>
+        <div class="tb-unit-list">${rows.join('')}</div>
+        <div class="modal-foot"><span class="dw-sel">也可以先「查看单词」，勾选任意词组成一组</span>
+          <button class="btn btn-ghost btn-mini" onclick="closeTextbookUnits();openDeckWords('tb:${key}')">查看全部单词</button>
+        </div>
+      </div>
+    </div>`;
+}
+function closeTextbookUnits(){
+  const root = document.getElementById('tbUnitsRoot');
+  if(root) root.innerHTML = '';
 }
 
 /* ================= 词库批量导入：Excel / Word / CSV / TXT ================= */
@@ -4505,8 +4652,9 @@ function renderLearn(){
     const enHtml = wrapClickWords(String(e.en).replace(/<B>(.*?)<\/B>/g, (m,p1)=>`<b>${p1}</b>`));
     const plain = String(e.en).replace(/<[^>]+>/g,'');
     const isExam = isExamType(e.srcType);
-    const badge = isExam ? '<b class="ex-badge">真题</b>'
-      : (e.srcType === 'manual' ? '<b class="ex-badge ex-badge-manual">自建</b>' : '');
+    const badge = e.srcType === 'textbook' ? '<b class="ex-badge ex-badge-tb">教材</b>'
+      : (isExam ? '<b class="ex-badge">真题</b>'
+      : (e.srcType === 'manual' ? '<b class="ex-badge ex-badge-manual">自建</b>' : ''));
     const src = e.src ? `<span class="ex-src">${badge}${escapeHtml(e.src)}</span>` : '';
     // 每句都有自己的「显示翻译」：先猜这句，再对答案，不必三句一起揭晓
     // 个别报刊例句本身没配中文译文，给出「暂无译文」而不是一个点了没反应的按钮
@@ -4593,7 +4741,7 @@ function renderLearn(){
         ${badgeHtml}
         ${defHtml}
         <div class="sec-head">
-          <h3>💬 常用例句 <span style="font-size:11px;font-weight:400;color:#9aa0b6">真实语境 · 词典/真题例句</span></h3>
+          <h3>💬 常用例句 <span style="font-size:11px;font-weight:400;color:#9aa0b6">教材原句优先 · 词典/真题补充</span></h3>
           <button class="ex-trans-btn" id="exTransBtn" onclick="toggleExTrans(this)" title="一次显示或收起全部例句的译文">全部译文</button>
         </div>
         <div class="ex-list" id="exList">${exHtml}</div>
@@ -7553,9 +7701,11 @@ function renderResult(){
   const r = getRank(p.total);
   const curDeckId = getActiveDeckId();
   const curDeck = curDeckId ? loadDecks().find(d=>d.id===curDeckId) : null;
-  const tbKey = (curDeckId && String(curDeckId).indexOf('tb:') === 0) ? String(curDeckId).slice(3) : '';
+  const tbKey = deckTbKey(curDeckId);
+  const tbUnit = deckTbUnit(curDeckId);
   const tbMeta = (tbKey && typeof TEXTBOOK_DB !== 'undefined') ? TEXTBOOK_DB[tbKey] : null;
-  const batchLabel = curDeck ? curDeck.name : (tbMeta ? (tbMeta.short + ' 教材词库') : GROUPS[currentGroup].name);
+  const batchLabel = curDeck ? curDeck.name
+    : (tbMeta ? (tbMeta.short + (tbUnit ? (' Unit ' + tbUnit) : ' 教材词库')) : GROUPS[currentGroup].name);
   $("#resultPage").innerHTML = `
     <div class="result-box">
       <div class="result-emoji">🎉</div>
@@ -9276,10 +9426,11 @@ if(boot && typeof boot.group === 'number' && GROUPS[boot.group]) currentGroup = 
 (function restoreTextbookDeck(){
   const aid = getActiveDeckId();
   if(!aid || String(aid).indexOf('tb:') !== 0) return;
-  const key = String(aid).slice(3);
+  const key = deckTbKey(aid), unit = deckTbUnit(aid);
   const tb = (typeof TEXTBOOK_DB !== 'undefined') ? TEXTBOOK_DB[key] : null;
-  if(tb && (tb.words||[]).length){
-    activeCustomWords = tb.words.map(([w,cn])=>buildWord(w, cn, '教材', 'tb:'+key));
+  const list = tb ? ((tb.words||[]).filter(it => !unit || tbUnitOfWord(it) === unit)) : [];
+  if(list.length){
+    activeCustomWords = list.map(([w,cn])=>buildWord(w, cn, '教材', aid));
   } else {
     setActiveDeckId(null);
   }

@@ -33,3 +33,6 @@ bank/src/probe_report.json
 .extras_google_progress.json
 .gt/
 .gt_bank/
+
+# 教材 PDF 解析/OCR/翻译的中间产物（体积大，可由 scripts 重新生成）
+.cache_textbook/

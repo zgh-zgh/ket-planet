@@ -255,8 +255,54 @@ def good_sentence(s):
     return True
 
 
+def heading_set(pages):
+    """OCR 常把表格/小标题拼进正文句子（…honest with Words for personal qualities each other），
+    先把这些短标题收集起来，句子里出现就整句丢弃。"""
+    heads = set()
+    for p in pages:
+        for ln in p['lines']:
+            t = ln.strip()
+            if not t or not t[0].isupper():
+                continue
+            if re.search(r'[.!?:;]$', t):
+                continue
+            words = t.split()
+            if not (3 <= len(words) <= 6):
+                continue
+            if len(t) > 44:
+                continue
+            if not re.match(r"^[A-Z][A-Za-z' ,\-]*$", t):
+                continue
+            heads.add(re.sub(r'\s+', ' ', t.lower()))
+    return heads
+
+
+# OCR 常把栏目标签（Quotes / Grammar / Writing…）插进句子中间，单独处理
+LABELS = ('Quotes Grammar Writing Reading Listening Speaking Project Practice Exercises '
+          'Summary Notes Tips Task Review Culture Corner Study Skills Strategy Quiz '
+          'Dictation Translation Spelling Vocabulary Pronunciation').split()
+LABEL_RX = re.compile(r'(?<=[a-z,;]\s)(?:' + '|'.join(LABELS) + r')(?=\s+[a-z])')
+
+
+def strip_labels(s):
+    prev = None
+    while prev != s:
+        prev = s
+        s = LABEL_RX.sub('', s)
+    return re.sub(r'\s{2,}', ' ', s).strip()
+
+
+def has_heading(s, heads):
+    low = re.sub(r'\s+', ' ', s.lower())
+    for h in heads:
+        if h in low:
+            return True
+    return False
+
+
 def build_pool(pages, openers):
     pool = []
+    heads = heading_set(pages)
     for p in pages:
         if p['no'] < openers[0]:
             continue
@@ -267,6 +313,12 @@ def build_pool(pages, openers):
         text = join_lines(p['lines'])
         for raw in re.split(r'(?<=[.!?])\s+(?=[A-Z"“(\[])', text):
             s = re.sub(r'^\d{1,2}\s+', '', raw.strip())
+            # 页边残留的单字母（M A true friend…）
+            s = re.sub(r'^[A-Z]\s+(?=[A-Z])', '', s)
+            s = strip_labels(s)
+            s = re.sub(r'^[A-Z]\d{1,2}\s*:\s*', '', s)   # 版面编号（S2: / A3:）
+            if has_heading(s, heads):
+                continue
             if good_sentence(s):
                 pool.append((unit, tidy(s)))
     return pool
@@ -305,6 +357,60 @@ def variants(w):
     return out
 
 
+IRREGULAR = {
+    'be': 'am is are was were been being', 'go': 'went gone goes going', 'have': 'has had having',
+    'do': 'did done does doing', 'make': 'made making', 'take': 'took taken taking',
+    'get': 'got gotten getting', 'give': 'gave given giving', 'come': 'came coming',
+    'see': 'saw seen seeing', 'say': 'said saying', 'think': 'thought thinking',
+    'buy': 'bought buying', 'teach': 'taught teaching', 'catch': 'caught catching',
+    'bring': 'brought bringing', 'find': 'found finding', 'tell': 'told telling',
+    'feel': 'felt feeling', 'keep': 'kept keeping', 'leave': 'left leaving',
+    'meet': 'met meeting', 'run': 'ran running', 'sit': 'sat sitting',
+    'stand': 'stood standing', 'understand': 'understood understanding',
+    'write': 'wrote written writing', 'read': 'reading', 'speak': 'spoke spoken speaking',
+    'break': 'broke broken breaking', 'begin': 'began begun beginning',
+    'drink': 'drank drunk drinking', 'eat': 'ate eaten eating',
+    'fall': 'fell fallen falling', 'fly': 'flew flown flying flying',
+    'forget': 'forgot forgotten forgetting', 'know': 'knew known knowing',
+    'sing': 'sang sung singing', 'swim': 'swam swum swimming',
+    'wear': 'wore worn wearing', 'win': 'won winning', 'lose': 'lost losing',
+    'pay': 'paid paying', 'spend': 'spent spending', 'build': 'built building',
+    'send': 'sent sending', 'sleep': 'slept sleeping', 'wake': 'woke woken waking',
+    'child': 'children', 'man': 'men', 'woman': 'women', 'person': 'people persons',
+    'foot': 'feet', 'tooth': 'teeth', 'mouse': 'mice', 'life': 'lives',
+    'wife': 'wives', 'half': 'halves', 'shelf': 'shelves', 'knife': 'knives',
+    'leaf': 'leaves', 'wolf': 'wolves', 'potato': 'potatoes', 'tomato': 'tomatoes',
+    'hero': 'heroes', 'photo': 'photos', 'piano': 'pianos',
+    'good': 'better best', 'bad': 'worse worst', 'many': 'more most', 'much': 'more most',
+    'little': 'less least', 'far': 'farther further farthest furthest',
+}
+VOWEL = set('aeiou')
+
+
+def inflections(w):
+    """单词的常见变形：复数、三单、过去式、进行时、比较级等（用于在句子里找它）"""
+    out = {w}
+    if w in IRREGULAR:
+        out |= set(IRREGULAR[w].split())
+    # 复数 / 三单
+    out |= {w + 's', w + 'es'}
+    if re.search(r'[^aeiou]y$', w):
+        out |= {w[:-1] + 'ies', w[:-1] + 'ied', w[:-1] + 'ier', w[:-1] + 'iest'}
+    # 进行时 / 过去式
+    out |= {w + 'ed', w + 'ing', w + 'd'}
+    if w.endswith('e'):
+        out.add(w[:-1] + 'ing')
+    if w.endswith('f'):
+        out.add(w[:-1] + 'ves')
+    if w.endswith('fe'):
+        out.add(w[:-2] + 'ves')
+    # 双写尾字母（stop → stopped / stopping）
+    if len(w) >= 3 and w[-1] not in VOWEL and w[-2] in VOWEL and w[-3] not in VOWEL:
+        out |= {w + w[-1] + 'ed', w + w[-1] + 'ing', w + w[-1] + 'er', w + w[-1] + 'est'}
+    out |= {w + 'er', w + 'est'}
+    return {x for x in out if x}
+
+
 def make_matcher(w):
     wl = w.lower().strip()
     if re.search(r'[\s\-]', wl):
@@ -316,7 +422,7 @@ def make_matcher(w):
             r'(?:' + re.escape(p) + r'(?:s|es|ed|d|ing)?)' for p in parts)
         rx = re.compile(r'\b' + body + r'\b', re.I)
         return rx
-    vs = sorted(variants(wl), key=len, reverse=True)
+    vs = sorted(inflections(wl) | variants(wl), key=len, reverse=True)
     return re.compile(r'\b(?:' + '|'.join(re.escape(v) for v in vs) + r')\b', re.I)
 
 
@@ -347,32 +453,70 @@ def highlight(s, rx):
     return s[:m.start()] + '<B>' + m.group(0) + '</B>' + s[m.end():]
 
 
-def match_book(book, pages):
+def load_materials():
+    p = os.path.join(CACHE, 'unit_materials.json')
+    if not os.path.exists(p):
+        return {}
+    return json.load(open(p, encoding='utf-8'))
+
+
+def material_pool(book, materials):
+    """单元资料里的中英对照句：[(unit, en, cn)]，人工译文，优先使用"""
+    out = []
+    for u, slot in (materials.get(book) or {}).items():
+        for s in slot.get('sentences', []):
+            en = s.get('en', '').strip()
+            cn = (s.get('cn') or '').strip()
+            if not en or not cn or '___' in en:
+                continue
+            out.append((int(u), en, cn))
+    return out
+
+
+def match_book(book, pages, materials):
     openers = detect_openers(book, pages)
     titles = unit_titles(book, pages, openers)
     pool = build_pool(pages, openers)
+    mat = material_pool(book, materials)
     words = json.load(open(os.path.join(CACHE, 'words.json'), encoding='utf-8'))[book]['words']
     out = {}
     for w, cn, unit in words:
         rx = make_matcher(w)
-        hits = [(score(u, s, unit), u, s) for u, s in pool if rx.search(s)]
-        hits.sort(key=lambda x: (-x[0], len(x[2])))
         picked, seen = [], set()
-        for sc, u, s in hits:
-            if sc < 3:
-                continue
-            key = re.sub(r'\W+', '', s.lower())[:60]
+
+        # ① 单元资料的人工中英对照句优先（干净、有译文、就是课本句子）
+        hits1 = [(score(u, t, unit) + (2 if u == unit else 0), u, t, c)
+                 for u, t, c in mat if rx.search(t)]
+        hits1.sort(key=lambda x: (-x[0], len(x[2])))
+        for sc, u, t, c in hits1:
+            if len(picked) >= 2:
+                break
+            key = re.sub(r'\W+', '', t.lower())[:60]
             if key in seen:
                 continue
             seen.add(key)
-            picked.append({'en': highlight(s, rx), 'unit': u, 'book': book})
-            if len(picked) >= 2:
-                break
+            picked.append({'en': highlight(t, rx), 'unit': u, 'book': book, 'cn': c})
+
+        # ② 再从课文正文里补（没有人工译文的稍后统一翻译）
+        if len(picked) < 2:
+            hits2 = [(score(u, t, unit), u, t) for u, t in pool if rx.search(t)]
+            hits2.sort(key=lambda x: (-x[0], len(x[2])))
+            for sc, u, t in hits2:
+                if len(picked) >= 2:
+                    break
+                if sc < 3:
+                    continue
+                key = re.sub(r'\W+', '', t.lower())[:60]
+                if key in seen:
+                    continue
+                seen.add(key)
+                picked.append({'en': highlight(t, rx), 'unit': u, 'book': book})
+
         if picked:
             out[w] = picked
-    print('%s：%d/%d 词有课本句（句池 %d，单元扉页 %s）'
-          % (book, len(out), len(words), len(pool), openers))
-    return out, titles, pool
+    print('%s：%d/%d 词有课本句（资料句 %d · 正文句 %d · 单元扉页 %s）'
+          % (book, len(out), len(words), len(mat), len(pool), openers))
+    return out, titles, mat + [(u, t, None) for u, t in pool]
 
 
 # ---------------- 翻译 ----------------
@@ -470,10 +614,11 @@ def main():
     os.makedirs(CACHE, exist_ok=True)
     if not os.path.exists(os.path.join(CACHE, 'words.json')):
         raise SystemExit('缺少 .cache_textbook/words.json')
+    materials = load_materials()
     data, titles, pools = {}, {}, {}
     for b in books:
         papers = load_pages(b)
-        got, tt, pool = match_book(b, papers)
+        got, tt, pool = match_book(b, papers, materials)
         data.update(got)
         titles[b] = tt
         pools[b] = pool
@@ -489,17 +634,20 @@ def main():
             rx = make_matcher(w)
             best = None
             for ob, pool in pools.items():
-                for u, sent in pool:
+                for u, sent, cn2 in pool:
                     if not rx.search(sent):
                         continue
                     sc = score(u, sent, unit) - abs(order_idx[ob] - order_idx[b]) * 2
                     if sc < 3:
                         continue
                     if best is None or sc > best[0]:
-                        best = (sc, ob, u, sent)
+                        best = (sc, ob, u, sent, cn2)
             if best:
-                _, ob, u, sent = best
-                data[w] = [{'en': highlight(sent, rx), 'unit': u, 'book': ob}]
+                _, ob, u, sent, cn2 = best
+                item = {'en': highlight(sent, rx), 'unit': u, 'book': ob}
+                if cn2:
+                    item['cn'] = cn2
+                data[w] = [item]
                 added += 1
     print('跨册补句 %d 个词' % added)
     json.dump(data, open(os.path.join(CACHE, 'tb_examples.json'), 'w', encoding='utf-8'),
@@ -507,13 +655,16 @@ def main():
     json.dump(titles, open(os.path.join(CACHE, 'tb_titles.json'), 'w', encoding='utf-8'),
               ensure_ascii=False, indent=1)
     if do_translate:
-        sents = sorted({re.sub(r'<[^>]+>', '', e['en']) for arr in data.values() for e in arr})
+        sents = sorted({re.sub(r'<[^>]+>', '', e['en'])
+                        for arr in data.values() for e in arr
+                        if not (e.get('cn') or '').strip()})
         cache = translate(sents)
         missing = [s for s in sents if not cache.get(s)]
         print('无译文 %d 句' % len(missing))
         for arr in data.values():
             for e in arr:
-                e['cn'] = cache.get(re.sub(r'<[^>]+>', '', e['en']), '')
+                if not (e.get('cn') or '').strip():
+                    e['cn'] = cache.get(re.sub(r'<[^>]+>', '', e['en']), '')
     emit(data, titles, os.path.join(ROOT, 'textbook_examples.js'))
 
 

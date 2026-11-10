@@ -3873,7 +3873,7 @@ function renderTextbookDecks(activeId, studied){
     <div class="tb-title">教材同步 <span class="tb-sub">沪教版·牛津上海版 · 按册独立成库</span></div>
     <div class="deck-list">${cards}</div>
     <div class="tb-note">词表取自各册教材「Words and phrases in each unit」，标 * 的词只要求理解；仅供教学使用。<br>
-      例句优先用教材课文原句（已覆盖 ${(typeof TEXTBOOK_EXAMPLES !== 'undefined' ? Object.keys(TEXTBOOK_EXAMPLES).length : 0)} 个词），没有对应原句的词自动用词典/真题例句补齐。</div>
+      例句优先用教材课文原句和单元资料里的中英对照句（已覆盖 ${(typeof TEXTBOOK_EXAMPLES !== 'undefined' ? Object.keys(TEXTBOOK_EXAMPLES).length : 0)} 个词），没有对应句子的词自动用词典/真题例句补齐。</div>
   </div>`;
 }
 function renderDecks(){

@@ -347,7 +347,10 @@ def variants(w):
     for suf in ('ing', 'ed'):
         if w.endswith(suf) and len(w) > len(suf) + 2:
             b = w[:-len(suf)]
-            out |= {b, b + 'e'}
+            # 词干太短时不要（caring → car 会把 "a car" 当成 caring）
+            if len(b) >= 4:
+                out.add(b)
+            out.add(b + 'e')
             if len(b) > 2 and b[-1] == b[-2]:
                 out.add(b[:-1])
     if w.endswith('er') and len(w) > 4:

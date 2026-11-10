@@ -7,6 +7,7 @@
 输出：.cache_textbook/ocr_<book>.json  {"pages": ["第1页文字", ...]}
 
 说明：只读取 ../zl 下的电子课本，不修改任何原文件；中断后重跑会跳过已完成的页。
+依赖：pip install pymupdf rapidocr-onnxruntime
 """
 import json
 import os

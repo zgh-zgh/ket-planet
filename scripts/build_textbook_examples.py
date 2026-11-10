@@ -12,6 +12,7 @@
     python scripts/build_textbook_examples.py 7B 8A
     python scripts/build_textbook_examples.py 7B 8A --no-translate   # 只抽句不回译
 不修改任何教材原文件；中间结果都在 .cache_textbook/。
+依赖：pip install pymupdf wordninja（扫描册还需 rapidocr-onnxruntime）
 """
 import json
 import os

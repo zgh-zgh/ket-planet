@@ -198,6 +198,11 @@ def join_lines(lines):
 
 def tidy(s):
     s = s.replace('’', "'").replace('‘', "'").replace('“', '"').replace('”', '"')
+    # PDF 里 fi/fl 连字常被拆成「fi nd」，能拼回词典词就拼回去
+    def _lig(m):
+        joined = (m.group(1) + m.group(2)).lower()
+        return joined if (LEX and joined in LEX) else m.group(0)
+    s = re.sub(r'\b(fi|fl)\s+([a-z]{2,})\b', _lig, s, flags=re.I)
     s = re.sub(r'\s+([.,!?;:])', r'\1', s)
     s = re.sub(r'([.,!?;:])(["])([A-Za-z])', r'\1\2 \3', s)   # 引号贴着下一个词
     s = re.sub(r'([.,!?])\1+', r'\1', s)

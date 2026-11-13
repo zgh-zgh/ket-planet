@@ -6123,12 +6123,23 @@ function qArtHtml(w, kind, wide){
   const cc2 = coreCn(w.cn, 2);
   const cn = String((cc2.senses || []).slice(0, 2).join('；') || cc2.text || '').slice(0, 14);
   const arg = encodeURIComponent(w.word);
-  return `<div class="q-art${wide ? ' wide' : ''}" style="--qa-grad:linear-gradient(135deg,${m.g})">
+  // 拼写题：只能给图和字母数，绝不能把单词本身写出来（否则等于直接给答案）
+  if(kind === 'spell' || wide){
+    const letters = String(w.word || '').replace(/[^A-Za-z]/g, '').length;
+    return `<div class="q-art wide" style="--qa-grad:linear-gradient(135deg,${m.g})">
+      <div class="qa-media">${img ? `<img src="${img}" alt="" loading="lazy" onerror="qArtImgFail(this,'${kind}')">` : qaSceneSvg(kind)}<span class="qa-tag">${m.label}</span></div>
+      <div class="qa-foot">
+        <span class="qa-word">看图回忆 · 共 ${letters} 个字母</span>
+        <span class="qa-hint">先想读音，再拼字母</span>
+        <button class="qa-video" onclick="openWordClip(decodeURIComponent('${arg}'),'${kind}')" title="看 12 秒情境微视频">🎬 微视频</button>
+      </div>
+    </div>`;
+  }
+  return `<div class="q-art" style="--qa-grad:linear-gradient(135deg,${m.g})">
     <div class="qa-media">${img ? `<img src="${img}" alt="" loading="lazy" onerror="qArtImgFail(this,'${kind}')">` : qaSceneSvg(kind)}<span class="qa-tag">${m.label}</span></div>
     <div class="qa-foot">
-      <span class="qa-word" title="${escapeHtml(w.word)}${cn ? ' · ' + escapeHtml(cn) : ''}">${escapeHtml(w.word)}${wide ? '' : (cn ? ' · ' + escapeHtml(cn) : '')}</span>
-      ${wide ? '<span class="qa-hint">看图回忆，再拼写</span>' : ''}
-      <button class="qa-video" onclick="openWordClip(decodeURIComponent('${arg}'),'${kind}')" title="看 12 秒情境微视频">🎬${wide ? ' 微视频' : ''}</button>
+      <span class="qa-word" title="${escapeHtml(w.word)}${cn ? ' · ' + escapeHtml(cn) : ''}">${escapeHtml(w.word)}${cn ? ' · ' + escapeHtml(cn) : ''}</span>
+      <button class="qa-video" onclick="openWordClip(decodeURIComponent('${arg}'),'${kind}')" title="看 12 秒情境微视频">🎬</button>
     </div>
   </div>`;
 }
